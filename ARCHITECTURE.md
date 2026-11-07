@@ -141,4 +141,4 @@ Audience-specific packets (executor, caregiver, technology helper, messages only
 
 ## GitHub Pages
 
-Optional and off by default. See [docs/github-pages.md](docs/github-pages.md). The single file uses only relative references, so it works under any base path, including `/family-continuity-planner/`.
+The `GitHub Pages` workflow deploys `dist/` to https://graybound.github.io/family-continuity-planner/ on every push to `main` after all checks pass. When the app detects it is served over HTTP(S) from a non-local host, it shows a notice explaining where data is stored and linking to the download. See [docs/github-pages.md](docs/github-pages.md). The single file uses only relative references, so it works under any base path.

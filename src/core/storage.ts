@@ -6,6 +6,7 @@
  *   familyContinuityPlanner.v1          plan written by the recovered v1 app; read once, never modified
  *   familyContinuityPlanner.theme       "light" or "dark", same key the v1 app used
  *   familyContinuityPlanner.recovery.*  copy of saved data that could not be read
+ *   familyContinuityPlanner.hostedNotice "dismissed" once the online-version notice is acknowledged
  *
  * The v1 app replaced unreadable data with a blank plan and then overwrote it
  * on the next save. This module never does that: unreadable data is copied to
@@ -18,6 +19,7 @@ export const KEYS = {
   plan: 'familyContinuityPlanner.v2',
   legacy: 'familyContinuityPlanner.v1',
   theme: 'familyContinuityPlanner.theme',
+  hostedNotice: 'familyContinuityPlanner.hostedNotice',
   recoveryPrefix: 'familyContinuityPlanner.recovery.',
 } as const;
 

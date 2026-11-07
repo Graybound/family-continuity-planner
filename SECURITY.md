@@ -31,7 +31,7 @@ It does **not** protect against:
 - Malware, browser extensions with access to all sites or files, or a compromised operating system.
 - Anyone who obtains a backup file, a saved PDF, or a printout.
 - Other HTML files opened from disk in the same Chromium browser profile, which share storage with the planner (see PRIVACY.md).
-- Other GitHub Pages sites under the same account, if you use a hosted copy.
+- Other GitHub Pages sites under the same account (`graybound.github.io`), if you use the online version.
 
 ## Browser risks
 

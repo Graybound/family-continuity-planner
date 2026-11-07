@@ -1,11 +1,12 @@
-name: GitHub Pages demo (optional)
+name: GitHub Pages
 
-# OFF BY DEFAULT. Runs only when started by hand from the Actions tab, after
-# Pages is enabled in the repository settings. Read docs/github-pages.md first:
-# the hosted copy shares browser storage with every other Pages site under the
-# same github.io account, so it is meant for trying the app with sample data,
-# not for a real plan.
+# Publishes the app to https://graybound.github.io/family-continuity-planner/
+# on every push to main, after the same checks CI runs. The hosted copy is the
+# same static file as the download: plans stay in each visitor's browser and
+# are never sent to GitHub. See docs/github-pages.md.
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -18,11 +19,9 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -30,10 +29,22 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
       - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - id: deployment
         uses: actions/deploy-pages@v4

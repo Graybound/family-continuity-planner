@@ -85,7 +85,7 @@ export function settingsView(): HTMLElement {
           h('li', null, `Storage: browser localStorage, key "${KEYS.plan}" (about ${Math.max(1, Math.round(bytes / 1024))} KB).`),
           h('li', null, 'It is tied to this browser profile and, for a downloaded copy, this file location. Another browser or device will not see it.'),
           h('li', null, 'Clearing browsing data for this site or file will erase it. Keep backups.'),
-          h('li', null, `Version ${__APP_VERSION__}, data format ${plan.schemaVersion}.`),
+          h('li', null, `Version ${__APP_VERSION__}, data format ${plan.schemaVersion}. Project page and downloads: `, h('a', { attrs: { href: __REPO_URL__, target: '_blank', rel: 'noopener noreferrer' } }, 'GitHub'), '.'),
         ),
         recovery.length ? h('div', { class: 'banner warn' },
           h('p', null, recovery.length === 1 ? 'A copy of saved data that could not be read is kept in this browser.' : `${recovery.length} copies of saved data that could not be read are kept in this browser.`),

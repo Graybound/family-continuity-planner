@@ -1,28 +1,26 @@
-# GitHub Pages (optional demo)
+# The online version (GitHub Pages)
 
-## Recommendation
+The app is published at **https://graybound.github.io/family-continuity-planner/** by the `GitHub Pages` workflow on every push to `main`, after lint, type checks, unit tests, the build, and browser tests pass.
 
-Use GitHub Pages, if at all, as a **try-it-with-sample-data demo**. Recommend the downloaded release for real plans. The Pages workflow is included but runs only when a maintainer starts it by hand.
+## What is the same as the download
 
-## Why not for real plans
+- It is the identical single HTML file, with the same Content Security Policy that blocks every network connection from the app.
+- Plans are saved only in the visitor's browser, on that device. Nothing is uploaded to GitHub or anywhere else.
+- No analytics, tracking, or cookies are added.
 
-The hosted page is the same static file as the download, and it never sends plan data anywhere. But two things differ from local use:
+## What is different
 
-1. **Shared storage.** Browser storage is per origin. Every GitHub Pages site under one account (for example every repository's site at `example-user.github.io/...`) shares the origin `https://example-user.github.io`. Any other Pages project published by that account, now or later, could read the planner's saved data in a visitor's browser. A custom domain dedicated to this project avoids this.
-2. **Server logs.** GitHub receives ordinary request information when the page loads (IP address, browser type, time), as with any website. The planner adds nothing to this, and plan contents are never included.
+1. **GitHub sees the page load.** Like any website, GitHub's servers receive ordinary request information when someone opens the page (IP address, browser type, time). Plan contents are never part of this. GitHub's own privacy statement applies to that request.
+2. **Shared browser storage.** Browser storage belongs to an origin. Every GitHub Pages site published by the same account shares the origin `https://graybound.github.io`, so another Pages project on that account could, in principle, read data saved by the planner. The maintainer controls all of those sites; this is still a reason the download is the more private choice. A custom domain used only for this app would remove the issue.
+3. **Availability.** The online copy depends on GitHub Pages being up. The download works forever, offline.
+4. **Separate saved data.** The online copy and a downloaded copy do not share a plan. Move between them with Export backup and Restore.
 
-## What stays the same
+The app shows a notice on the online version explaining where data is stored, with a link to the download. Visitors can acknowledge it once per browser.
 
-- Plans stay in the visitor's browser. Nothing is uploaded.
-- The Content Security Policy blocks all network connections from the app.
-- No analytics or tracking are added.
+## Base path
 
-## Enabling it
+The build uses only relative references, so it works under `/family-continuity-planner/` with no configuration. This is checked by serving `dist/` under that path and by the browser test "online copy shows where data lives."
 
-1. Repository **Settings**, **Pages**, Source: **GitHub Actions**.
-2. **Actions** tab, **GitHub Pages demo (optional)**, **Run workflow**.
-3. Add a visible note to the README linking to the demo, saying it is for trying the app and that the downloaded version is recommended for real plans.
+## Turning it off
 
-The build uses only relative references, so it works at `https://<account>.github.io/family-continuity-planner/` without configuration. This is verified by serving `dist/` under that path during release checks (see PUBLIC_RELEASE_CHECKLIST.md).
-
-The downloadable release remains the primary distribution and must always be available.
+Repository **Settings**, **Pages**, then unpublish, or disable the `GitHub Pages` workflow. The downloadable release does not depend on Pages.

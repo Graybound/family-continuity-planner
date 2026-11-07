@@ -8,7 +8,7 @@
 - The built file carries a Content Security Policy with `connect-src 'none'` and `default-src 'none'`, so the browser itself refuses any attempt to load or send anything over the network, even if a bug tried to.
 - Automated browser tests fail if the app makes any request that is not to the local file, and the build fails if any external URL appears in the output.
 
-The only ways information leaves the planner are actions you take: exporting a backup, printing or saving a PDF, or copying text.
+The app contains one external address: a plain link to the project's GitHub page, which opens only if you click it. The only ways information leaves the planner are actions you take: exporting a backup, printing or saving a PDF, or copying text.
 
 ## Where your information is stored
 
@@ -18,6 +18,7 @@ The only ways information leaves the planner are actions you take: exporting a b
 | A plan saved by the original version of the app | `familyContinuityPlanner.v1` (read once, never changed) | No |
 | Damaged data that could not be read | `familyContinuityPlanner.recovery.<time>` | No |
 | Light or dark theme choice | `familyContinuityPlanner.theme` | No |
+| Online-version notice acknowledged | `familyContinuityPlanner.hostedNotice` | No |
 | Exported backups | Wherever you save the `.json` file | No |
 | Printouts and saved PDFs | Paper, or wherever you save the PDF | No |
 
@@ -63,14 +64,16 @@ The only ways information leaves the planner are actions you take: exporting a b
 
 The planner is not a password vault and asks you not to use it as one. Record which password manager you use, how a trusted person can get emergency access, and where recovery documents are kept. The continuity review flags text that looks like a password, PIN, or full card number.
 
-## The optional hosted demo (GitHub Pages)
+## The online version (GitHub Pages)
 
-If maintainers publish a demo on GitHub Pages, it is the same static file served from GitHub. Your plan still stays in your browser and is never sent to GitHub. However:
+The app is also published at https://graybound.github.io/family-continuity-planner/. It is the same static file served from GitHub. Your plan still stays in your browser and is never sent to GitHub. However:
 
 - GitHub receives normal web server information when the page loads (such as your IP address and browser type), as it does for any website. The planner adds no tracking of its own.
 - Browser storage on `<account>.github.io` is shared by **every** GitHub Pages site under that account. Another project published by the same account could read the planner's data.
 
-For these reasons the hosted demo is meant for trying the app with sample data. Use the downloaded version for a real plan. See [docs/github-pages.md](docs/github-pages.md).
+- The online copy depends on GitHub Pages being available. The download does not.
+
+The online version is fine for real use, and it shows a notice explaining all this. The download is the most private option. See [docs/github-pages.md](docs/github-pages.md).
 
 ## Changes to this document
 

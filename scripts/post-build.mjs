@@ -38,8 +38,11 @@ const csp = [
 if (html.includes('http-equiv="Content-Security-Policy"')) throw new Error('CSP already present; run a clean build.');
 html = html.replace('<meta charset="utf-8">', `<meta charset="utf-8">\n<meta http-equiv="Content-Security-Policy" content="${csp}">`);
 
-// Fail the build if any absolute URL to another host slipped into the output.
-const urls = [...html.matchAll(/\bhttps?:\/\/[^\s"'<>)]+/g)].map((m) => m[0]).filter((u) => !u.startsWith('http://www.w3.org/'));
+// Fail the build if any absolute URL slipped into the output, except the project's own
+// repository page, which appears only as a link the user can choose to open. The CSP
+// still blocks the app from loading or sending anything to it.
+const repo = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')).repository.url;
+const urls = [...html.matchAll(/\bhttps?:\/\/[^\s"'<>)]+/g)].map((m) => m[0]).filter((u) => !u.startsWith('http://www.w3.org/') && !u.startsWith(repo));
 if (urls.length) throw new Error(`Unexpected external URLs in build output: ${[...new Set(urls)].join(', ')}`);
 
 writeFileSync(file, html);

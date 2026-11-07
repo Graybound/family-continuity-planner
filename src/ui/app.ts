@@ -166,6 +166,29 @@ export function start(): void {
     addBanner({ id: 'warnings', tone: 'info', text: `Your saved plan loaded with ${result.warnings.length} minor problem${result.warnings.length === 1 ? '' : 's'} corrected: ${result.warnings.join(' ')}`, actions: [], dismissible: true });
   }
 
+  // Online copy (GitHub Pages or any web host): say plainly where data lives and offer the download.
+  const hosted = /^https?:$/.test(location.protocol) && !/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
+  let noticeDismissed = false;
+  try {
+    noticeDismissed = localStorage.getItem(KEYS.hostedNotice) === 'dismissed';
+  } catch {
+    // Storage unavailable; show the notice.
+  }
+  if (hosted && !noticeDismissed) {
+    addBanner({
+      id: 'hosted', tone: 'info',
+      text: 'You are using the online version. Your plan is saved only in this browser on this device and is never sent to GitHub or anyone else. For the most private setup, download the app and open it from your own computer.',
+      actions: [
+        { label: 'How to download', run: () => window.open(`${__REPO_URL__}/releases/latest`, '_blank', 'noopener,noreferrer') },
+        { label: 'Got it', run: () => {
+          try { localStorage.setItem(KEYS.hostedNotice, 'dismissed'); } catch { /* ignore */ }
+          removeBanner('hosted');
+        } },
+      ],
+      dismissible: false,
+    });
+  }
+
   window.addEventListener('storage', (e) => {
     if (e.key === KEYS.plan) {
       addBanner({ id: 'other-tab', tone: 'warn', text: 'This plan was changed in another tab or window. Reload to see the latest version before making more changes, or the other changes may be overwritten.', actions: [{ label: 'Reload', run: () => location.reload() }], dismissible: true });

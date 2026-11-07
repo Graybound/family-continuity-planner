@@ -190,3 +190,37 @@ test('the original v1 app refuses v2 backups instead of silently dropping record
   await expect(page.locator('#toast')).toHaveText('That file is not a valid Family Continuity backup');
   expect(await page.evaluate(() => localStorage.getItem('familyContinuityPlanner.v1'))).toBeNull();
 });
+
+test('online copy shows where data lives, and the notice can be acknowledged', async ({ browser }) => {
+  // Serve the built file at the GitHub Pages address without any real network access.
+  const html = readFileSync('dist/index.html', 'utf8');
+  const ctx = await browser.newContext();
+  const unexpected: string[] = [];
+  await ctx.route('**/*', (route) => {
+    const url = route.request().url();
+    if (url === 'https://graybound.github.io/family-continuity-planner/') return route.fulfill({ body: html, contentType: 'text/html' });
+    unexpected.push(url);
+    return route.abort();
+  });
+  const page = await ctx.newPage();
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(String(e)));
+  page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
+  await page.goto('https://graybound.github.io/family-continuity-planner/');
+  const notice = page.locator('.banner').filter({ hasText: 'You are using the online version' });
+  await expect(notice).toBeVisible();
+  await expect(notice).toContainText('never sent to GitHub');
+  await notice.getByRole('button', { name: 'Got it' }).click();
+  await expect(notice).toHaveCount(0);
+  await page.reload();
+  await expect(page.locator('.view-title')).toBeVisible();
+  await expect(page.locator('.banner').filter({ hasText: 'online version' })).toHaveCount(0);
+  expect(unexpected).toEqual([]);
+  expect(errors).toEqual([]);
+  await ctx.close();
+});
+
+test('the downloaded copy does not show the online-version notice', async ({ app }) => {
+  await expect(app.locator('.view-title')).toBeVisible();
+  await expect(app.getByText('You are using the online version')).toHaveCount(0);
+});

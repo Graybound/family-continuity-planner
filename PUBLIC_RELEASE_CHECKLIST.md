@@ -11,7 +11,7 @@ Results recorded on 2026-11-07 for version 0.2.0 before first publication. Statu
 | No secrets (keys, tokens, private keys, passwords) | PASS | Pattern scan of all files and all history. Test strings that mimic secrets are marked `privacy-scan: allow`. |
 | No private backups or storage dumps | PASS | None exist in the repository; `.gitignore` blocks backup, damaged-data, local-storage, PDF packet, and `.env` patterns. |
 | Git history safe to publish | PASS | New repository; every commit's diff, message, author, and committer scanned against the denylist. |
-| Commit author identity | **TODO (owner)** | Commits use a placeholder `Family Continuity Planner maintainers <maintainers@example.invalid>` so no personal email entered history. Rewrite to your GitHub identity (use your `@users.noreply.github.com` address to keep your email private) before pushing; commands are in the session summary. |
+| Commit author identity | PASS | Every commit is authored as `Graybound <66386662+Graybound@users.noreply.github.com>`, GitHub's private noreply address. No personal email in history. |
 | Sample data fictional | PASS | Morgan family, Exampleville, 555-01xx numbers, example.com addresses. |
 
 ## Legal and documentation
@@ -19,7 +19,7 @@ Results recorded on 2026-11-07 for version 0.2.0 before first publication. Statu
 | Check | Status | Evidence |
 |---|---|---|
 | License present | PASS | MIT, `LICENSE`. |
-| Copyright holder | **TODO (owner)** | Currently "Family Continuity Planner contributors." Replace with your name if you prefer; that is a personal choice about public attribution. |
+| Copyright holder | PASS | "Family Continuity Planner contributors," accepted by the owner. |
 | Dependency licenses compatible | PASS | Zero runtime dependencies; the shipped file contains only project code. Dev tools are MIT, ISC, Apache-2.0, BSD, BlueOak-1.0.0, and MPL-2.0 (axe-core, lightningcss); none are distributed. |
 | Privacy documentation accurate | PASS | Claims checked in a browser: no network requests; `file://` pages share storage in Chrome (tested); v1 rejects v2 backups (tested). No encryption claimed. |
 | Security documentation present | PASS | `SECURITY.md` with threat model and reporting. |
@@ -44,7 +44,7 @@ Results recorded on 2026-11-07 for version 0.2.0 before first publication. Statu
 | Manual screen-reader testing | **TODO** | Not done. Tracked in IMPORT_ISSUES.md #1. |
 | Other browsers | PARTIAL | Chromium only. Firefox and Safari are expected to work but untested (IMPORT_ISSUES.md #2). |
 | No unexpected network requests | PASS | Every browser test fails on any non-local request. |
-| GitHub Pages under the repository path | PASS | `dist/` served over HTTP at `/family-continuity-planner/`: loads, saves, exports, no external requests. The workflow is manual-only. |
+| GitHub Pages under the repository path | PASS | `dist/` served over HTTP at `/family-continuity-planner/`: loads, saves, exports, no external requests. Browser test checks the online-version notice at the real Pages address (intercepted, no network). Deploys automatically from `main` after checks. |
 | Release package usable without developer tools | PASS | Zip extracted and opened from disk: loads, saves across reload, exports. Checksums verify. Not yet tried by a non-technical person (IMPORT_ISSUES.md #14). |
 | README instructions from a clean checkout | PASS | Fresh `git clone`, `npm ci`, lint, `npm test`, `npm run build`, browser tests, and `npm run release` all succeeded. |
 | Reproducible release | PASS | The release zip from the clean clone is byte-identical (same SHA-256) to one built in the working tree. |

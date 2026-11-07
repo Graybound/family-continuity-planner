@@ -28,6 +28,7 @@ The first open-source release. The original single-file app was recovered, audit
 - Checklist item editing; custom checklist groups are shown instead of hidden
 - Strict Content Security Policy that blocks all network access
 - Release zip with a plain-text START-HERE guide, sample backups, and checksums
+- Free online version at https://graybound.github.io/family-continuity-planner/, deployed automatically after all checks pass, with a notice explaining where data is stored
 
 ### Changed
 
