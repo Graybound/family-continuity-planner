@@ -1,0 +1,217 @@
+{
+  "version": 1,
+  "meta": {
+    "householdName": "Morgan Household (sample)",
+    "region": "Exampleville",
+    "meetup": "",
+    "trustedContact": "Pat Lee, 555-0140",
+    "updatedAt": "2026-11-07T16:33:30.941Z",
+    "createdAt": "2026-11-07T16:33:27.629Z",
+    "includePrivatePrint": false,
+    "privacyDefault": true
+  },
+  "people": [
+    {
+      "id": "mw6mhgkkjg7i6y",
+      "name": "Alex Morgan",
+      "relationship": "Plan creator",
+      "phone": "555-0100",
+      "email": "alex@example.com",
+      "address": "123 Example Street, Exampleville",
+      "needs": "",
+      "notes": "Handles most household paperwork."
+    },
+    {
+      "id": "mw6mhgqjluvgc4",
+      "name": "Jordan Morgan",
+      "relationship": "Partner",
+      "phone": "555-0101",
+      "email": "jordan@example.com",
+      "address": "",
+      "needs": "",
+      "notes": "Line one\nLine two keeps its break."
+    }
+  ],
+  "contacts": [
+    {
+      "id": "mw6mhgyu7tirw7",
+      "name": "Casey Rivera, Example Tax Partners",
+      "role": "Accountant",
+      "priority": "Primary",
+      "phone": "555-0110",
+      "email": "casey@example.com",
+      "instructions": "Call before any tax deadline."
+    },
+    {
+      "id": "mw6mhh6fmsdksn",
+      "name": "Example HVAC Services",
+      "role": "Heating and cooling",
+      "priority": "Service",
+      "phone": "555-0111",
+      "email": "",
+      "instructions": "Annual furnace check in October."
+    }
+  ],
+  "health": [
+    {
+      "id": "mw6mhhdhvblqmw",
+      "person": "Jordan Morgan",
+      "recordType": "Allergy",
+      "name": "Sample allergy",
+      "details": "Fictional detail",
+      "phone": "",
+      "instructions": "Fictional instruction"
+    }
+  ],
+  "home": [
+    {
+      "id": "mw6mhhm9jd2g5z",
+      "name": "Example Water Utility",
+      "type": "Water",
+      "provider": "Exampleville Water",
+      "account": "ends 0000",
+      "phone": "555-0120",
+      "location": "Basement, north wall",
+      "instructions": "Quarter turn to close."
+    }
+  ],
+  "accounts": [
+    {
+      "id": "mw6mhhtmzm7iy5",
+      "name": "Sample Credit Union",
+      "type": "Banking",
+      "owner": "Alex Morgan",
+      "identifier": "ends 0000",
+      "website": "Sample Credit Union app",
+      "phone": "555-0130",
+      "access": "Password manager emergency access",
+      "notes": "Autopays utilities."
+    }
+  ],
+  "documents": [
+    {
+      "id": "mw6mhi1887sf8r",
+      "name": "Home insurance policy",
+      "category": "Insurance",
+      "owner": "Alex and Jordan",
+      "location": "Fire safe, top shelf",
+      "expires": "2027-03-01",
+      "notes": "Agent: Sample Insurance Company"
+    }
+  ],
+  "plans": [
+    {
+      "id": "mw6mhi9mgwkli1",
+      "name": "Power outage",
+      "trigger": "Power out longer than 4 hours",
+      "lead": "Jordan Morgan",
+      "backup": "Pat Lee (neighbor)",
+      "meetup": "Front porch",
+      "steps": "Check breaker panel\nCall utility\nMove food to cooler",
+      "reviewed": "2026-01-15"
+    }
+  ],
+  "notes": [
+    {
+      "id": "mw6mhig9largta",
+      "name": "Trash and recycling",
+      "category": "Routine",
+      "details": "Trash Tuesday night.\nRecycling every other week.",
+      "reviewed": "2026-06-01"
+    }
+  ],
+  "checklist": [
+    {
+      "id": "mw6mhg7hcqfwis",
+      "group": "First 24 hours",
+      "title": "Choose two trusted backup contacts",
+      "note": "Confirm how they should be reached.",
+      "due": "",
+      "done": true
+    },
+    {
+      "id": "mw6mhg7hni31se",
+      "group": "Information to gather",
+      "title": "Record utility shutoff locations",
+      "note": "Include any tool needed to operate them.",
+      "due": "",
+      "done": false
+    },
+    {
+      "id": "mw6mhg7hbuocpc",
+      "group": "People to brief",
+      "title": "Walk one trusted person through the plan",
+      "note": "Show them where the current backup is stored.",
+      "due": "",
+      "done": false
+    },
+    {
+      "id": "mw6mhg7hwe1d1y",
+      "group": "Quarterly upkeep",
+      "title": "Export an updated backup",
+      "note": "Keep an offline copy somewhere protected.",
+      "due": "",
+      "done": false
+    },
+    {
+      "id": "mw6mhimr9hmvfr",
+      "title": "Confirm the insurance agent contact",
+      "group": "People to brief",
+      "due": "2026-12-01",
+      "note": "",
+      "done": false
+    }
+  ],
+  "activity": [
+    {
+      "id": "mw6mhig9s5iav2",
+      "text": "Added note",
+      "at": "2026-11-07T16:33:30.537Z"
+    },
+    {
+      "id": "mw6mhi9m9mzl3j",
+      "text": "Added plan",
+      "at": "2026-11-07T16:33:30.298Z"
+    },
+    {
+      "id": "mw6mhi18a3gth3",
+      "text": "Added document",
+      "at": "2026-11-07T16:33:29.996Z"
+    },
+    {
+      "id": "mw6mhhtmr7w0o0",
+      "text": "Added account",
+      "at": "2026-11-07T16:33:29.722Z"
+    },
+    {
+      "id": "mw6mhhma8cl7kv",
+      "text": "Added home record",
+      "at": "2026-11-07T16:33:29.458Z"
+    },
+    {
+      "id": "mw6mhhdhp3yc1l",
+      "text": "Added health record",
+      "at": "2026-11-07T16:33:29.141Z"
+    },
+    {
+      "id": "mw6mhh6fx73syw",
+      "text": "Added contact",
+      "at": "2026-11-07T16:33:28.887Z"
+    },
+    {
+      "id": "mw6mhgyuuhp4d1",
+      "text": "Added contact",
+      "at": "2026-11-07T16:33:28.614Z"
+    },
+    {
+      "id": "mw6mhgqkl6zm4k",
+      "text": "Added person",
+      "at": "2026-11-07T16:33:28.316Z"
+    },
+    {
+      "id": "mw6mhgkkib5sm7",
+      "text": "Added person",
+      "at": "2026-11-07T16:33:28.100Z"
+    }
+  ]
+}
