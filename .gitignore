@@ -1,0 +1,52 @@
+# Dependencies and build output
+node_modules/
+dist/
+release/
+playwright-report/
+test-results/
+coverage/
+*.tsbuildinfo
+
+# Plan data must never be committed. Exported backups, damaged-data
+# downloads, printed PDFs, and local storage dumps all contain personal data.
+family-continuity-backup-*.json
+family-continuity-damaged-data-*
+*.backup.json
+*-backup.json
+!examples/legacy-v1-backup.json
+*.plan.json
+localstorage*.json
+local-storage*
+*.localstorage
+continuity-packet*.pdf
+*.private.*
+private/
+private-fixtures/
+tests/fixtures/private/
+
+# Private denylist used by scripts/privacy-scan.mjs
+.privacy-denylist
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Editors and operating systems
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs and temporary files
+*.log
+npm-debug.log*
+*.tmp
+tmp/
+.cache/
