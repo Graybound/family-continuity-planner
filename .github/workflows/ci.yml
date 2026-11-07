@@ -29,12 +29,12 @@ jobs:
       - run: npm run test:e2e
       - run: npm run privacy-scan
       - run: npm run release
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: release-preview
           path: release/
           retention-days: 14
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: playwright-report
