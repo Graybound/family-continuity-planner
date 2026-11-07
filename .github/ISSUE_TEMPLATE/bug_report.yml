@@ -1,0 +1,36 @@
+name: Bug report
+description: Something does not work as expected.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Do not paste your real plan, a backup file, or screenshots containing personal details.** Describe the problem with made-up data, or load the sample data (Settings and backup, Load sample data) and reproduce it there.
+        Security problems go through SECURITY.md, not public issues.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: "1. Load sample data\n2. Open Accounts\n3. ..."
+  - type: input
+    id: version
+    attributes:
+      label: Planner version
+      description: Shown in Settings and backup, under "Where your data is stored".
+  - type: dropdown
+    id: how
+    attributes:
+      label: How are you opening the planner?
+      options: [Downloaded file opened from my computer, From a USB or network drive, GitHub Pages demo, Development server]
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and operating system
+      placeholder: Firefox 140 on Windows 11

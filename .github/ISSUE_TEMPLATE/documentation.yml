@@ -1,0 +1,16 @@
+name: Documentation improvement
+description: Something in the README, guides, or in-app text is unclear, wrong, or missing.
+labels: [documentation]
+body:
+  - type: input
+    id: where
+    attributes:
+      label: Which page or screen?
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What is unclear or wrong, and what would be better?
+    validations:
+      required: true

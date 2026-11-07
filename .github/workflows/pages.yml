@@ -1,0 +1,39 @@
+name: GitHub Pages demo (optional)
+
+# OFF BY DEFAULT. Runs only when started by hand from the Actions tab, after
+# Pages is enabled in the repository settings. Read docs/github-pages.md first:
+# the hosted copy shares browser storage with every other Pages site under the
+# same github.io account, so it is meant for trying the app with sample data,
+# not for a real plan.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+      - id: deployment
+        uses: actions/deploy-pages@v4
