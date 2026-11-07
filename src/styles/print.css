@@ -1,0 +1,36 @@
+/* Printed continuity packet. US Letter, light, no app controls. */
+@page { size: letter; margin: 0.6in 0.65in; }
+@media print {
+  html, body { background: #fff !important; color: #111 !important; color-scheme: light !important; }
+  .shell, .toast-region, dialog, .skip, .mobile-overlay { display: none !important; }
+  .print-packet { display: block !important; color: #111; font: 11pt/1.4 Georgia, "Times New Roman", serif; }
+  .print-packet h1 { font: 30pt/1.1 Georgia, serif; margin: 0 0 10pt; }
+  .print-packet h2 { font: 18pt Georgia, serif; border-bottom: 1.5pt solid #153a52; padding-bottom: 3pt; margin: 18pt 0 8pt; break-after: avoid; }
+  .print-packet h3 { font: bold 12pt Arial, sans-serif; margin: 0 0 4pt; break-after: avoid; }
+  .print-packet p { margin: 0 0 7pt; orphans: 3; widows: 3; }
+  .print-packet .multiline, .print-packet dd, .print-packet .pk-text p { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .pk-cover { min-height: 8.5in; display: flex; flex-direction: column; justify-content: center; break-after: page; }
+  .pk-cover .pk-sub { font-size: 14pt; color: #333; margin-bottom: 24pt; }
+  .pk-cover dl { display: grid; grid-template-columns: auto 1fr; gap: 4pt 14pt; font: 11pt Arial, sans-serif; }
+  .pk-cover dt { font-weight: bold; }
+  .pk-cover dd { margin: 0; }
+  .pk-note { border: 1pt solid #888; padding: 8pt 10pt; margin-top: 18pt; font: 10pt/1.4 Arial, sans-serif; }
+  .pk-start { break-after: page; }
+  .pk-text { font-size: 12.5pt; line-height: 1.5; }
+  .pk-section { margin-bottom: 14pt; }
+  .pk-record { border: 0.75pt solid #aaa; border-radius: 4pt; padding: 7pt 9pt; margin: 0 0 7pt; break-inside: avoid; }
+  .pk-record dl { display: grid; grid-template-columns: 1.6in 1fr; gap: 2pt 10pt; margin: 4pt 0 0; font: 10pt/1.35 Arial, sans-serif; }
+  .pk-record dt { color: #444; }
+  .pk-record dd { margin: 0; }
+  .pk-withheld { font-style: italic; color: #555; }
+  .pk-checks { list-style: none; padding: 0; margin: 0; font: 10.5pt/1.4 Arial, sans-serif; }
+  .pk-checks li { padding: 3pt 0 3pt 20pt; position: relative; break-inside: avoid; }
+  .pk-checks li::before { content: ""; position: absolute; left: 0; top: 5pt; width: 10pt; height: 10pt; border: 1pt solid #333; }
+  .pk-checks li.done::before { background: #333; }
+  .pk-checks small { display: block; color: #444; }
+  .pk-steps { margin: 4pt 0 0 16pt; padding: 0; font: 10.5pt/1.45 Arial, sans-serif; }
+  .pk-message { break-before: page; }
+  .pk-message .pk-text { margin-top: 10pt; }
+  .pk-empty { color: #555; font-style: italic; }
+  .pk-footer { margin-top: 24pt; border-top: 0.75pt solid #999; padding-top: 6pt; font: 9pt Arial, sans-serif; color: #444; }
+}

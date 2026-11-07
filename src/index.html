@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="dark light">
+<meta name="referrer" content="no-referrer">
+<meta name="description" content="A private, local-first planner for the practical knowledge your family needs if you are no longer available to help.">
+<title>Family Continuity Planner</title>
+<script>(function(){var t;try{t=localStorage.getItem('familyContinuityPlanner.theme')}catch(e){}if(t!=='light'&&t!=='dark'){t=window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'}document.documentElement.setAttribute('data-theme',t);document.documentElement.style.colorScheme=t})();</script>
+</head>
+<body>
+<a class="skip" href="#main-content">Skip to content</a>
+<div class="mobile-overlay" id="mobile-overlay"></div>
+<div class="shell" id="app">
+  <aside class="sidebar" id="sidebar" aria-label="Sections">
+    <div class="brand"><div class="brand-mark" aria-hidden="true">C</div><div><strong>Family Continuity</strong><span>Planner</span></div></div>
+    <nav aria-label="Plan sections"><ul class="nav-list" id="nav"></ul></nav>
+    <div class="side-foot"><div class="local-badge"><span class="local-dot" aria-hidden="true"></span>Stored only in this browser</div><div>No account. No cloud. Export a backup regularly.</div></div>
+  </aside>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <main class="content" id="main-content" tabindex="-1">
+      <div class="banners" id="banners"></div>
+      <div id="view"></div>
+    </main>
+  </div>
+</div>
+<section class="print-packet" id="print-packet" aria-hidden="true"></section>
+<div class="toast-region" id="toast-region">
+  <div id="live-status" role="status" aria-live="polite"></div>
+  <div id="live-alert" role="alert" aria-live="assertive"></div>
+</div>
+<noscript><p class="content">Family Continuity Planner needs JavaScript turned on. Nothing is sent anywhere; the app runs entirely in this browser.</p></noscript>
+<script type="module" src="./main.ts"></script>
+</body>
+</html>
