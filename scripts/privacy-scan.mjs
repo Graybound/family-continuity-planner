@@ -16,7 +16,9 @@ import { existsSync, readFileSync, statSync } from 'node:fs';
 
 const BINARY = /\.(png|jpe?g|gif|webp|ico|pdf|zip|woff2?)$/i;
 const SKIP = new Set(['package-lock.json']);
-const ALLOWED_EMAIL_DOMAINS = /@(example\.(com|org|net|invalid)|users\.noreply\.github\.com|anthropic\.com)$/i;
+// Placeholder domains, GitHub noreply identities (including bots such as Dependabot), and
+// GitHub's own bot addresses that appear in automated commits and sign-offs.
+const ALLOWED_EMAIL_DOMAINS = /(@(example\.(com|org|net|invalid)|users\.noreply\.github\.com|anthropic\.com)|^(noreply|support)@github\.com)$/i;
 
 const RULES = [
   { name: 'email address (use @example.com)', re: /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g, allow: (m) => ALLOWED_EMAIL_DOMAINS.test(m) },
