@@ -40,7 +40,8 @@ jobs:
           if [ "$GITHUB_EVENT_NAME" = "push" ] && [ "$GITHUB_REF_NAME" != "$TAG" ]; then
             echo "Tag $GITHUB_REF_NAME does not match package.json version $TAG"; exit 1
           fi
-          if gh release view "$TAG" >/dev/null 2>&1; then
+          # Only published releases have a real tag; unpublished drafts are replaced below.
+          if gh api "repos/$GITHUB_REPOSITORY/releases/tags/$TAG" >/dev/null 2>&1; then
             echo "A release for $TAG already exists. Bump the version in package.json first."; exit 1
           fi
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
