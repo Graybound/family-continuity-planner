@@ -14,6 +14,19 @@ export function viewHead(opts: { eyebrow: string; title: string; description?: C
   );
 }
 
+export const WILL_NOTICE = {
+  title: 'This is not a will',
+  body: 'A will says who receives what and who is in charge. This planner explains how things work day to day. They do different jobs, so we recommend having both. If you do not have a will, or yours is out of date, talk with a qualified estate planning professional where you live. The rules differ from place to place.',
+};
+
+/** Calm, visible reminder that the planner works alongside a will and does not replace one. */
+export function willNotice(): HTMLElement {
+  return h('aside', { class: 'callout will-notice', attrs: { 'aria-labelledby': 'will-notice-h' } },
+    h('strong', { attrs: { id: 'will-notice-h' } }, WILL_NOTICE.title),
+    h('p', null, WILL_NOTICE.body),
+  );
+}
+
 export function goTarget(t: Target): void {
   if (t.view === 'section') {
     go({ name: 'section', section: t.section });

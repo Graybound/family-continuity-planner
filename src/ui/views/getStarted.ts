@@ -7,7 +7,7 @@ import { recommend, type Recommendation } from '../../core/recommend';
 import { AREA_IDS, AREA_LABELS, SECTIONS } from '../../core/sections';
 import { h } from '../dom';
 import { getPlan, go, mutate } from '../store';
-import { button, viewHead } from './common';
+import { WILL_NOTICE, button, viewHead } from './common';
 
 const STEPS = ['Why this matters', 'Who handles what', 'What would stop', 'Where to start'] as const;
 const HANDLER_LABELS: Record<AreaHandler, string> = {
@@ -23,6 +23,7 @@ function stepWhy(): HTMLElement {
     h('p', null, h('strong', null, 'You do not need to document your entire life today. Start with the information only you know.')),
     h('p', null, 'Most estate planning focuses on what you own. This planner focuses on what you know: how the bills get paid, who fixes the furnace, where the important papers are, and the hundred small routines that keep a household running.'),
     h('p', null, 'If you were suddenly unavailable, the people you care about would have to work all of that out at the hardest possible time. A few written pages can spare them a lot of stress, confusion, and unnecessary work.'),
+    h('p', null, h('strong', null, `${WILL_NOTICE.title}. `), WILL_NOTICE.body),
     h('p', null, 'The next two steps take about five minutes. They help find where your family depends on you most, so you can start there. Every question is optional and you can change your answers later.'),
   );
 }

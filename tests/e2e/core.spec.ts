@@ -221,3 +221,16 @@ test('sample data: load, identify, remove; erase everything', async ({ app }) =>
   await expect.poll(async () => (await storedPlan(app)).records.people.length).toBe(0);
   await expect(app.getByText('All plan data was erased from this browser.')).toBeVisible();
 });
+
+test('the "not a will" notice appears on the overview, in Get started, in Documents, and in print', async ({ app }) => {
+  const notice = app.getByRole('complementary', { name: 'This is not a will' });
+  await expect(notice).toBeVisible();
+  await expect(notice).toContainText('we recommend having both');
+  await nav(app, 'Get started');
+  await expect(app.getByText(/This is not a will\./)).toBeVisible();
+  await nav(app, 'Documents');
+  await expect(app.locator('.callout').filter({ hasText: 'Start with your will' })).toContainText('we recommend getting one');
+  await app.getByRole('button', { name: 'Print' }).first().click();
+  await app.getByRole('dialog').getByRole('button', { name: 'Print' }).click();
+  await expect.poll(() => app.locator('#print-packet').evaluate((n) => n.textContent ?? '')).toContain('This is not a will.');
+});

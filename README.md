@@ -19,6 +19,8 @@ When someone who quietly runs a household dies, becomes seriously ill, or simply
 
 A will says who gets what. This planner helps write down **how things work**, so the family can keep functioning.
 
+> **This is not a will.** Family Continuity Planner works alongside a will; it does not replace one. If you do not have a will, or yours is out of date, we recommend having one prepared with a qualified estate planning professional where you live. Laws differ from place to place.
+
 ## Who it is for
 
 Anyone who wants to make things easier for the people they would leave behind: single people, couples, parents, people without children, caregivers, adult children helping parents, blended families, pet owners, homeowners and renters, small business owners, and anyone whose technology or paperwork only they understand. It does not assume a family structure, country, religion, or financial situation.
@@ -85,7 +87,7 @@ Click **Print**. Choose whether to include private details (off by default), the
 
 ## Frequently asked questions
 
-**Is this a will?** No. It is an organizational and knowledge-transfer tool. Legal documents take priority over anything in it.
+**Is this a will?** No. It is an organizational and knowledge-transfer tool, and a will or other legal documents take priority over anything in it. We recommend having both: a will for who receives what and who is in charge, and this planner for how everything actually works. A qualified professional where you live can help with the will, and you can record where it is kept in the Documents section.
 
 **Should I store passwords in it?** No. Record which password manager you use, how a trusted person can get emergency access, and where recovery documents are kept. The review page flags text that looks like a password or card number.
 
@@ -104,6 +106,7 @@ Click **Print**. Choose whether to include private details (off by default), the
 - Data lives in one browser on one device. There is no sync, by design.
 - Nothing is encrypted, at rest or in backups.
 - Clearing browser data for the file or site erases the plan. Keep backups.
+- In automated tests, Chrome occasionally (about 2 to 7 percent of tries, on a heavily loaded test machine) failed to keep a save made just before the page was reloaded, but only when the app was opened as a file from disk, never over the web. This has not been confirmed on an ordinary desktop yet and is being investigated. Until then: pause a moment after saving before closing or reloading, and export backups regularly.
 - Readiness levels and review suggestions are simple, documented rules. They cannot know what is missing from your life; they never mean a plan is "complete."
 - Printing is designed for US Letter. A4 printing works but is not specifically tuned.
 - Tested in Chromium-based browsers. Firefox and Safari are expected to work but are not yet covered by automated tests.
@@ -147,4 +150,4 @@ The software is released under the [MIT License](LICENSE). The license covers th
 
 ## Disclaimer
 
-Family Continuity Planner is an organizational and knowledge-transfer tool. It is not a will and does not replace estate planning. It is not legal, financial, or medical advice, and it does not replace advice from an attorney, accountant, financial professional, healthcare professional, or other qualified professional. It is provided as is, without warranty.
+Family Continuity Planner is an organizational and knowledge-transfer tool. It is not a will and does not replace estate planning. We recommend using it alongside a will and any other estate documents that fit your situation, prepared with a qualified professional where you live. It is not legal, financial, or medical advice, and it does not replace advice from an attorney, accountant, financial professional, healthcare professional, or other qualified professional. It is provided as is, without warranty.

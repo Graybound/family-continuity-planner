@@ -56,8 +56,14 @@ TRY IT FIRST
   fictional family so you can look around. "Remove sample data" clears it.
 - sample-plan.json in this folder is the same sample as a backup file.
 
-This is an organizational tool, not a will and not legal, financial, or
-medical advice. See LICENSE.txt for the software license (MIT).
+THIS IS NOT A WILL
+- This planner works alongside a will; it does not replace one. If you do
+  not have a will, or yours is out of date, we recommend having one prepared
+  with a qualified estate planning professional where you live. Then record
+  where it is kept in the planner's Documents section.
+- It is also not legal, financial, or medical advice.
+
+See LICENSE.txt for the software license (MIT).
 `;
 
 const files = [

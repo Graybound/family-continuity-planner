@@ -4,7 +4,7 @@ import { SECTIONS, SECTION_IDS } from '../../core/sections';
 import { h } from '../dom';
 import { exportBackup } from '../backupFlow';
 import { getPlan, go } from '../store';
-import { button, goTarget } from './common';
+import { button, goTarget, willNotice } from './common';
 
 export function dashboardView(): HTMLElement {
   const plan = getPlan();
@@ -79,5 +79,7 @@ export function dashboardView(): HTMLElement {
     )
     : null;
 
-  return h('div', null, hero, nextList, findings, map);
+  const will = willNotice();
+  will.style.setProperty('margin-top', '20px');
+  return h('div', null, hero, will, nextList, findings, map);
 }

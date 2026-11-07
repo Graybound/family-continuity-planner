@@ -7,6 +7,11 @@ name: Release
 #   - Push a tag like v0.2.0 that matches package.json.
 on:
   workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish immediately instead of creating a draft
+        type: boolean
+        default: false
   push:
     tags: ['v*.*.*']
 
@@ -47,13 +52,21 @@ jobs:
       - run: npm run test:e2e
       - run: npm run privacy-scan
       - run: npm run release
-      - name: Create draft release
+      - name: Remove earlier unpublished drafts for this version
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ steps.tag.outputs.tag }}
         run: |
+          gh api "repos/$GITHUB_REPOSITORY/releases" --jq ".[] | select(.draft and .tag_name == \"$TAG\") | .id" |
+            while read -r id; do gh api -X DELETE "repos/$GITHUB_REPOSITORY/releases/$id"; echo "Removed draft $id"; done
+      - name: Create the release (draft unless publish was chosen)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.tag.outputs.tag }}
+          MODE: ${{ inputs.publish && '--latest' || '--draft' }}
+        run: |
           gh release create "$TAG" release/* \
-            --draft \
+            "$MODE" \
             --target "$GITHUB_SHA" \
             --title "Family Continuity Planner $TAG" \
-            --notes "Download Family-Continuity-Planner-$TAG.zip, extract it, and open Family-Continuity-Planner.html. See START-HERE.txt inside. Prefer not to install anything? Use it online at https://graybound.github.io/family-continuity-planner/. Changes: see CHANGELOG.md."
+            --notes "Download Family-Continuity-Planner-$TAG.zip, extract it, and open Family-Continuity-Planner.html. See START-HERE.txt inside. This is not a will; we recommend having one alongside it. Prefer not to install anything? Use it online at https://graybound.github.io/family-continuity-planner/. Changes: see CHANGELOG.md."

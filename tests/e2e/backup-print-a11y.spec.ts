@@ -163,10 +163,16 @@ const VIEWS = ['Overview', 'Get started', 'Start Here', 'Who handles what', 'Peo
 
 for (const theme of ['light', 'dark'] as const) {
   test(`no automatically detectable accessibility violations (${theme})`, async ({ app }) => {
-    await app.evaluate((t) => localStorage.setItem('familyContinuityPlanner.theme', t), theme);
+    // Nine full axe scans plus a dialog; allow time on slower CI machines.
+    test.setTimeout(120_000);
+    // Set the theme before the page's own scripts run, then load sample data without reloading,
+    // so no test step races Chromium's asynchronous localStorage commit.
+    await app.addInitScript((t) => localStorage.setItem('familyContinuityPlanner.theme', t), theme);
+    await app.reload();
+    expect(await app.evaluate(() => document.documentElement.dataset.theme)).toBe(theme);
     await nav(app, 'Settings and backup');
     await app.getByRole('button', { name: 'Load sample data' }).click();
-    await app.reload();
+    await expect(app.getByText('You are looking at fictional sample data')).toBeVisible();
     const results: string[] = [];
     for (const v of VIEWS) {
       await nav(app, v);

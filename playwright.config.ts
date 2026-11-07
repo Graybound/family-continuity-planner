@@ -10,6 +10,8 @@ export default defineConfig({
   testDir: 'tests/e2e',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
+  // One retry in CI. Chromium occasionally loses a localStorage write made just before
+  // reloading a page opened from disk (file://); see README Limitations and IMPORT_ISSUES.md.
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? [['list'], ['html', { open: 'never' }]] : 'list',
   use: {

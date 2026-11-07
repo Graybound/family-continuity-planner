@@ -207,6 +207,10 @@ export const SECTIONS: Record<SectionId, SectionDef> = {
     titleField: 'name',
     subtitleField: 'category',
     filterField: 'category',
+    callout: {
+      title: 'Start with your will',
+      body: 'Record where your will is kept and who prepared it, along with any power of attorney or healthcare directive. This planner does not replace those documents. If you do not have a will yet, we recommend getting one from a qualified professional where you live.',
+    },
     fields: [
       { key: 'name', label: 'Document', required: true, wide: true },
       { key: 'category', label: 'Category', type: 'select', options: ['Identity', 'Legal', 'Financial', 'Insurance', 'Property', 'Medical', 'Other'] },

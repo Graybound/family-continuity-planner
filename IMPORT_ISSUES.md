@@ -2,6 +2,12 @@
 
 Create these after the repository is public. Each has a title, description, acceptance criteria, dependencies, and labels.
 
+## 0. Investigate lost saves in Chrome when opened from disk (file://)
+
+Automated tests showed headless Chrome occasionally losing a localStorage write made shortly before a reload, only for `file://` pages (2 to 7 percent of 120 tries per run on a heavily loaded machine; 0 of 360 over HTTP). Some losses persisted after a further reload. Reproduce on ordinary Windows, macOS, and Linux desktops with headed Chrome, Edge, and Firefox. If confirmed, evaluate IndexedDB (which flushes transactions explicitly) as the storage layer for `file://`, keeping the v2 localStorage key readable for migration.
+- **Acceptance:** written reproduction results per browser; if confirmed, a storage change with tests that write, reload, and verify hundreds of times without loss.
+- **Depends on:** none. **Labels:** bug, backup-and-restore, testing
+
 ## 1. Manual screen-reader audit
 
 Run the main workflows (guided start, add and edit a record, checklist, restore, print dialog) with NVDA on Windows and VoiceOver on macOS and iOS. Record findings as separate issues.

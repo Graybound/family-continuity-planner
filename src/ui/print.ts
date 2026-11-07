@@ -70,7 +70,7 @@ export function buildPacket(plan: Plan, opts: PacketOptions): HTMLElement {
         h('div', { class: 'pk-note' },
           h('p', null, h('strong', null, 'Check that this is current. '), 'Details change. If something looks out of date, confirm it with a trusted contact before acting on it.'),
           h('p', null, h('strong', null, 'Keep this private. '), opts.includePrivate ? 'This copy includes private details. Store it somewhere secure and shred old copies.' : 'Private details were left out of this copy. Store it somewhere secure and shred old copies.'),
-          h('p', null, 'This is guidance, not a will or legal document.'),
+          h('p', null, h('strong', null, 'This is not a will. '), 'It is practical guidance, not a legal document. If there is a will or other legal paperwork, it takes priority over anything written here.'),
         ),
       ));
     } else if (part === 'start-here') {
