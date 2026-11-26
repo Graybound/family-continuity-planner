@@ -129,6 +129,18 @@ Revisit only if the no-secrets rule changes, which it should not.
 
 Status: **not built, awaiting Noah's decision** (issue linked in PR #26). Recommendation: **do not build it now.** Build the printed key sheet below instead, and revisit Locked only if the kill criteria at the end are met.
 
+### Framing: two paths, chosen by the creator
+
+1. **Pointers only (default).** The plan holds where each secret lives, who can get it, and the steps. This is the rule today.
+2. **Locked section (opt in).** For creators who want secrets in the plan. Secrets go only into the Locked section, encrypted.
+
+There is no third path of secrets stored unencrypted. One honest caveat: the app cannot enforce that. The secret warning never blocks, so a creator can still type a password into an ordinary field. The product stance is what the warning offers: once Locked exists, the warning gains a "Move this to the Locked section" option next to the existing advice to write a pointer instead. Before then it offers only the pointer advice.
+
+PROJECT_SPEC principle 2 must match the decision:
+
+- **If pointers only (A or C below):** keep today's wording: "The plan never stores secrets (passwords, PINs, recovery codes, full card or account numbers). It stores pointers: where the secret lives, who can get it, and the exact steps to get in."
+- **If Locked is built (B):** "The plan never stores secrets unencrypted. By default it stores pointers: where the secret lives, who can get it, and the exact steps to get in. A creator who wants secrets in the plan can put them only in the optional Locked section, which is encrypted and opened with a printed card. The app warns, never blocks, when ordinary text looks like a secret, and offers to move it to the Locked section." Also remove "Storing passwords, PINs, or recovery codes" from "Explicitly out of scope" and replace it with "Storing secrets outside the Locked section", and reword PRIVACY.md "Nothing is encrypted" to "Nothing outside the Locked section is encrypted".
+
 ### The idea
 
 An optional Locked section for households with no password manager. A few rarely changing keys go in it (phone PIN, computer login, email password, a password manager master password later). It is encrypted with WebCrypto AES-GCM. The app generates the passphrase (the creator does not choose it), prints it on a card, and the plan names where the card is kept (safe, drawer, attorney). Everything else stays readable, so the phone preview still works for the rest.
