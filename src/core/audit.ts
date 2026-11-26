@@ -36,8 +36,11 @@ export const RISK_TO_AREA: Record<RiskId, AreaId> = {
   business: 'work',
 };
 
-/** Matches labelled secrets such as a "PIN" or "password" followed by a colon or equals sign and a value. */
-const SECRET_LABEL = /\b(password|passcode|passwd|pwd|pin|security answer)\s*[:=]\s*\S+/i;
+/**
+ * Matches labelled secrets such as a "PIN" or "password" followed by a colon or equals sign and a value.
+ * A value that is a pointer to where the secret is kept ("Password: in the password manager") is not a secret.
+ */
+const SECRET_LABEL = /\b(password|passcode|passwd|pwd|pin|security answer)\s*[:=]\s*(?!(?:in|on|at|see|ask|stored|kept|saved|located|written|held|via|under)\b)\S+/i;
 /** 13 to 19 digits, optionally grouped, which looks like a full card number. */
 const CARD_LIKE = /\b\d(?:[ -]?\d){12,18}\b/;
 
