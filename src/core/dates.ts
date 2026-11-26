@@ -35,6 +35,16 @@ export function formatIsoTime(v: string, locale?: string): string {
   }
 }
 
+/** Date and time for display, e.g. "Thursday, November 26, 2026 at 2:32 PM" (wording depends on the browser's language). */
+export function formatIsoDateTime(v: string, locale?: string): string {
+  if (!v || !isValidIsoTime(v)) return '';
+  try {
+    return new Intl.DateTimeFormat(locale, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' }).format(new Date(v));
+  } catch {
+    return '';
+  }
+}
+
 /** Today's date in local time as YYYY-MM-DD. */
 export function todayString(now: Date = new Date()): string {
   const p = (n: number) => String(n).padStart(2, '0');
