@@ -2,7 +2,7 @@ import { formatDate, formatIsoTime, todayString } from '../../core/dates';
 import { LIMITS } from '../../core/normalize';
 import { KEYS, recoveryKeys } from '../../core/storage';
 import { h } from '../dom';
-import { chooseBackupFile, deleteRecoveryCopies, downloadRecoveryCopies, eraseEverything, exportBackup, loadSampleData, removeSampleData } from '../backupFlow';
+import { chooseBackupFile, deleteRecoveryCopies, downloadRecoveryCopies, eraseEverything, exportBackup, exportJsonBackup, loadSampleData, removeSampleData } from '../backupFlow';
 import { openPrintDialog } from '../printDialog';
 import { getPlan, getStorageRef, mutate, render } from '../store';
 import { applyTheme, currentTheme } from '../theme';
@@ -57,8 +57,9 @@ export function settingsView(): HTMLElement {
         }, { message: 'Plan marked as reviewed today' }), { cls: 'btn primary', focusKey: 'mark-reviewed' }),
       ),
       card('backup-h', 'Backup and restore', 'Your plan lives only in this browser. A backup file is the only way to move it or recover it.',
-        h('div', { class: 'setting-row' }, h('div', null, h('strong', null, 'Export a backup'), h('small', null, plan.info.lastExportedAt ? `Last exported ${formatIsoTime(plan.info.lastExportedAt)}.` : 'No backup exported yet.')), button('Export backup', exportBackup, { focusKey: 'export' })),
-        h('div', { class: 'setting-row' }, h('div', null, h('strong', null, 'Restore a backup'), h('small', null, 'You will see a preview and confirm before anything is replaced. Backups from the original version of this app work too.')), button('Restore from file', chooseBackupFile, { focusKey: 'restore' })),
+        h('div', { class: 'setting-row' }, h('div', null, h('strong', null, 'Export a backup'), h('small', null, `One file with the app and your whole plan inside. It opens offline by double-clicking it, with no website needed. ${plan.info.lastExportedAt ? `Last exported ${formatIsoTime(plan.info.lastExportedAt)}.` : 'No backup exported yet.'}`)), button('Export backup', exportBackup, { focusKey: 'export' })),
+        h('div', { class: 'setting-row' }, h('div', null, h('strong', null, 'Export plan data only'), h('small', null, 'A .json file with the plan and no app. Smaller, and readable in a text editor.')), button('Export .json', exportJsonBackup, { focusKey: 'export-json' })),
+        h('div', { class: 'setting-row' }, h('div', null, h('strong', null, 'Restore a backup'), h('small', null, 'Choose a file made with Export backup (.html) or a .json backup. You will see a preview and confirm before anything is replaced. Backups from the original version of this app work too.')), button('Restore from file', chooseBackupFile, { focusKey: 'restore' })),
         h('p', { class: 'help' }, 'Backup files are not encrypted. Anyone who opens one can read it. Keep backups on a drive or folder only you and trusted people can reach.'),
       ),
       card('print-h', 'Printed packet', 'A paper copy works when no computer is available. It starts with Start Here, then immediate actions and trusted contacts.',
@@ -86,7 +87,7 @@ export function settingsView(): HTMLElement {
           h('li', null, `Storage: browser localStorage, key "${KEYS.plan}" (about ${Math.max(1, Math.round(bytes / 1024))} KB).`),
           h('li', null, 'It is tied to this browser profile and, for a downloaded copy, this file location. Another browser or device will not see it.'),
           h('li', null, 'Clearing browsing data for this site or file will erase it. Keep backups.'),
-          h('li', null, `Version ${__APP_VERSION__}, data format ${plan.schemaVersion}. Project page and downloads: `, h('a', { attrs: { href: __REPO_URL__, target: '_blank', rel: 'noopener noreferrer' } }, 'GitHub'), '.'),
+          h('li', null, `Version ${__APP_VERSION__}, data format ${plan.schemaVersion}. Project page: `, h('a', { attrs: { href: __REPO_URL__, target: '_blank', rel: 'noopener noreferrer' } }, 'GitHub'), '.'),
         ),
         recovery.length ? h('div', { class: 'banner warn' },
           h('p', null, recovery.length === 1 ? 'A copy of saved data that could not be read is kept in this browser.' : `${recovery.length} copies of saved data that could not be read are kept in this browser.`),

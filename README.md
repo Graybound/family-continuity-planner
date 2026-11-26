@@ -6,10 +6,9 @@ It helps you document the practical knowledge your family may need if you are no
 
 It is a single file that runs in your web browser. No account, no subscription, no cloud, no internet connection. Your plan never leaves your computer unless you export it.
 
-**Two free ways to use it:**
+**How to use it:** open [graybound.github.io/family-continuity-planner](https://graybound.github.io/family-continuity-planner/). Nothing to install. Your plan is saved only in that browser on that device and is never sent to GitHub or anyone else.
 
-- **Online:** open [graybound.github.io/family-continuity-planner](https://graybound.github.io/family-continuity-planner/). Nothing to install. Your plan is saved only in that browser on that device and is never sent to GitHub or anyone else.
-- **Download:** get the latest zip from [Releases](https://github.com/Graybound/family-continuity-planner/releases/latest) and open it from your own computer or a USB drive. This is the most private option and keeps working even without internet.
+**Keep an offline copy:** click **Export backup**. It saves one file, like `WhenImGone_2026-11-26_1432.html`, that holds the whole app and your plan. Double-click it on any computer and the plan opens, with no internet and no website needed. Keep it on a USB drive or in a private folder.
 
 ![Overview with fictional sample data](docs/screenshots/overview-light.png)
 
@@ -56,34 +55,35 @@ Everything you type is stored in your browser's local storage on your computer a
 
 ## Quick start
 
-Want to try it first? Open the [online version](https://graybound.github.io/family-continuity-planner/) and load the sample data. To install it on your own computer:
+1. Open the [online version](https://graybound.github.io/family-continuity-planner/).
+2. Optional: go to **Settings and backup**, then **Load sample data**, to look around with a fictional family. Click **Remove sample data** when you are done.
+3. Start with **Get started**, or go straight to **Who handles what** and write down one thing only you know how to do.
+4. Click **Export backup** when you finish a session. The file it saves is your offline copy: the app and your plan in one file.
 
-1. Go to the [Releases page](https://github.com/Graybound/family-continuity-planner/releases/latest) and download `Family-Continuity-Planner-vX.Y.Z.zip`.
-2. Extract it somewhere you will remember: your Documents folder, a USB drive, or a private network drive.
-3. Double-click `Family-Continuity-Planner.html`. It opens in your browser.
-4. Optional: go to **Settings and backup**, then **Load sample data**, to look around with a fictional family. Click **Remove sample data** when you are done.
-5. Start with **Get started**, or go straight to **Who handles what** and write down one thing only you know how to do.
-6. Click **Export backup** when you finish a session.
+You do not need Git, Node.js, or any technical tools.
 
-You do not need Git, Node.js, or any technical tools. A single `Family-Continuity-Planner-vX.Y.Z.html` file is also attached to each release if you prefer one file without the zip.
+### Using a saved file from a USB drive, external drive, or NAS
 
-### Using it from a USB drive, external drive, or NAS
+Copy the file made by **Export backup** there and double-click it.
 
-Copy the extracted folder there and open the HTML file from it. Keep two things in mind:
-
-- Your plan is saved **in the browser on the computer you use**, not on the drive. Opening the file on another computer shows an empty plan. To move your plan, export a backup and restore it on the other computer.
-- Always open the file from the same place in the same browser. Some browsers tie saved data to the file's location. If the plan looks empty after you move the file, nothing is lost: open it from the original location or restore your latest backup.
+- A saved file always opens on the plan inside it.
+- Changes you make in it are kept in that browser as a draft, tied to that one file. They are **not** written into the file. Click **Export backup** again to save them as a new file with a later date and time in its name. If you close the file without doing that, it offers your unsaved changes back the next time you open the same file in the same browser.
+- If you have several copies, the one with the latest date and time in its name is the newest.
 
 ## Backing up and restoring
 
-- **Export:** the **Export backup** button (top bar, or Settings and backup) downloads `family-continuity-backup-YYYY-MM-DD.json`. Do this after any significant change. Readiness levels and the review page remind you when the last backup is old.
+- **Export:** the **Export backup** button (top bar, or Settings and backup) downloads `WhenImGone_YYYY-MM-DD_HHMM.html`: the whole app with your plan inside, which opens offline on its own. **Export .json** in Settings saves only the plan data. Do this after any significant change. Readiness levels and the review page remind you when the last backup is old.
 - **Store it privately.** The file is plain text and not encrypted. Keep it in a place only you and trusted people can reach, and tell one trusted person where it is. An encrypted USB drive or an encrypted folder is a good choice.
-- **Restore:** Settings and backup, then **Restore from file**. You will see what the file contains, any problems that were fixed, and how your current plan will be affected. You can export your current plan first. Nothing changes until you confirm.
+- **Restore:** Settings and backup, then **Restore from file**, and pick a saved `.html` file or a `.json` backup. You will see what the file contains, any problems that were fixed, and how your current plan will be affected. You can export your current plan first. Nothing changes until you confirm.
 - **Old backups** made by the original single-file version (the `version: 1` format) restore and are upgraded automatically. Details: [docs/backup-format.md](docs/backup-format.md).
 
 ## Printing
 
 Click **Print**. Choose whether to include private details (off by default), then use your browser's print window to print or save as PDF. The packet is designed to make sense without the app: it starts with a reassuring Start Here page, then immediate actions and trusted contacts, and shows the date printed, the last review date, and a reminder to check that information is current. Store printouts securely and shred old copies.
+
+## Other ways to get the app
+
+Each [release](https://github.com/Graybound/family-continuity-planner/releases/latest) also has the app on its own, with no plan inside, as a zip or a single HTML file. Most people don't need it: **Export backup** gives you the same app with your plan already in it.
 
 ## Frequently asked questions
 

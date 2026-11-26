@@ -6,6 +6,10 @@ All notable changes are listed here. The project follows [Semantic Versioning](h
 
 ### Changed
 
+- **Export backup saves the app and your plan as one file** (`WhenImGone_YYYY-MM-DD_HHMM.html`) that opens offline by double-clicking it. Restore accepts these files as well as `.json` backups. A saved file always opens on its own plan; changes made in it are kept as a draft tied to that file and offered back if it is closed without saving. **Export .json** in Settings still saves the plan data alone
+- The online-version notice points at Export backup instead of a GitHub download page
+- Backup file names now include the time: `WhenImGone_YYYY-MM-DD_HHMM.json`
+
 - On phones, the top bar shows short words (Menu, Privacy, Backup, Print) instead of bare symbols, and search fits on one line
 - While privacy mode is on, a banner says so on every screen, with a "Show hidden details" button
 - Overview buttons say where they lead ("Open Trusted contacts") instead of "Go"

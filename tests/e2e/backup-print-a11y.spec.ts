@@ -20,8 +20,8 @@ function tmpFile(name: string, text: string) {
 test('export and restore round trip with preview and confirmation', async ({ app }) => {
   await addRecord(app, 'People', { 'Full name': 'Alex Morgan', 'Address': '123 Example Street' });
   await nav(app, 'Settings and backup');
-  const [dl] = await Promise.all([app.waitForEvent('download'), app.getByRole('button', { name: 'Export backup' }).last().click()]);
-  expect(dl.suggestedFilename()).toMatch(/^family-continuity-backup-\d{4}-\d{2}-\d{2}\.json$/);
+  const [dl] = await Promise.all([app.waitForEvent('download'), app.getByRole('button', { name: 'Export .json' }).click()]);
+  expect(dl.suggestedFilename()).toMatch(/^WhenImGone_\d{4}-\d{2}-\d{2}_\d{4}(_\d{2})?\.json$/);
   const exported = JSON.parse(readFileSync(await dl.path(), 'utf8'));
   expect(exported.schema).toBe('family-continuity-planner');
   expect(exported.records.people[0].name).toBe('Alex Morgan');
@@ -222,6 +222,12 @@ test('online copy shows where data lives, and the notice can be acknowledged', a
   const notice = page.locator('.banner').filter({ hasText: 'You are using the online version' });
   await expect(notice).toBeVisible();
   await expect(notice).toContainText('never sent to GitHub');
+  // The notice points at Export backup, not at a GitHub download tutorial.
+  await expect(notice).toContainText('Export backup saves a copy of the app and your plan that opens offline');
+  await expect(notice.getByRole('button', { name: 'How to download' })).toHaveCount(0);
+  const [dl] = await Promise.all([page.waitForEvent('download'), notice.getByRole('button', { name: 'Export backup' }).click()]);
+  expect(dl.suggestedFilename()).toMatch(/^WhenImGone_.*\.html$/);
+  expect(readFileSync((await dl.path())!, 'utf8')).toContain('id="when-im-gone-plan"');
   await notice.getByRole('button', { name: 'Got it' }).click();
   await expect(notice).toHaveCount(0);
   await page.reload();
