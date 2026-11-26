@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs';
 const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as { version: string; repository: { url: string } };
 
 // The whole app is inlined into one HTML file so it can be opened directly from
-// disk (file://), a USB drive, or GitHub Pages under any path. "base: './'" keeps
+// disk (file://), a USB drive, or a web host under any path. "base: './'" keeps
 // any stray asset reference relative.
 export default defineConfig({
   root: 'src',
