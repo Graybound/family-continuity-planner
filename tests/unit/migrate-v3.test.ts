@@ -5,7 +5,7 @@ import { detectVersion } from '../../src/core/migrate';
 import { SCHEMA_VERSION } from '../../src/core/plan';
 import { samplePlan } from '../../src/core/sample';
 
-const V2 = readFileSync(new URL('../fixtures/v2-sample-backup.json', import.meta.url), 'utf8');
+const V2 = readFileSync(new URL('../fixtures/v2-sample-plan.json', import.meta.url), 'utf8');
 const V1 = readFileSync(new URL('../fixtures/legacy-v1-export.json', import.meta.url), 'utf8');
 
 describe('schema version 3', () => {
