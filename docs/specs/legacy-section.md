@@ -4,7 +4,7 @@ Status: ready for build. Roadmap: Phase 4, "Dedicated sections ... Legacy" ([ROA
 
 ## Decisions this spec makes (review these first)
 
-1. **Name it "Belongings", not "Legacy".** "Legacy" reads as a big, emotional or financial idea, and the reader has to guess what goes in it. "Belongings" says what it is. The section description carries the keep, sell or give framing. A second reason for the internal id: the codebase already uses "legacy" for the version 1 app (`legacy/`, `KEYS.legacy`, the `migrated-legacy` load status, `legacy-v1-export.json`). A section id `legacy` would make every search for v1 code noisy and invite mistakes. The section id is `belongings`. The roadmap line keeps working as a pointer to this spec.
+1. **Name it "Belongings", not "Legacy".** This is about clarity, not about avoiding a heavy word. "Legacy" is broad, and the reader has to guess whether it means money, values, or things. "Belongings" says what goes in it. The section description carries the keep, sell or give framing. A second reason for the internal id: the codebase already uses "legacy" for the version 1 app (`legacy/`, `KEYS.legacy`, the `migrated-legacy` load status, `legacy-v1-export.json`). A section id `legacy` would make every search for v1 code noisy and invite mistakes. The section id is `belongings`. The roadmap line keeps working as a pointer to this spec.
 2. **Bump the schema to version 3.** Adding a section is additive, so one could argue no bump is needed. It is needed anyway: `normalizePlan` in `src/core/normalize.ts` only reads known section keys, so a version 2 build opening a file that has `records.belongings` silently drops those records with no warning. With a bump, `detectVersion` in `src/core/migrate.ts` makes an older build refuse the file with the existing "made by a newer version" message instead. This also follows the project rule: any schema change gets a version bump, a migration, fixtures and tests.
 3. **Reuse the generic section machinery.** `SECTIONS` in `src/core/sections.ts` already drives the form, cards, filter, search and print. The section needs no custom view.
 4. **No new readiness requirement and no new audit rule.** See "Deliberately left out".
@@ -42,7 +42,7 @@ Add to `SECTIONS` in `src/core/sections.ts`. All values are strings, as for ever
 | `value` | Rough value | text | Help: "A range and when you checked, for example: $300 to $500 used, checked eBay sold listings in 2026." Free text, not a number. |
 | `firstSteps` | Do this first | textarea, wide | Help: "Anything that must happen before it leaves the house: copy photos off, wipe the drives, move a service that runs on it, remove it from an account." |
 | `howTo` | How to sell or pass it on | textarea, wide | Help: "Where to list it, who could help, what to include (cables, boxes, manuals), and a fair price to accept." |
-| `note` | Note for your family | textarea, wide | Help: "Why it matters, or permission to let it go." |
+| `note` | Note for your family | textarea, wide | Help: "The story behind it, why it mattered to you, or permission to let it go. It is fine if this is sad." |
 
 Section definition values: `id: 'belongings'`, `title: 'Belongings'`, `singular: 'item'`, `titleField: 'name'`, `subtitleField: 'decision'`, `filterField: 'decision'`. Icon: pick a single plain Unicode glyph in the style of the existing ones (for example `❖`); the build agent checks it renders in the bundled font stack and is announced sensibly or hidden from screen readers like the others.
 
@@ -146,4 +146,5 @@ Deliberately left out, with reasons:
 - **Readiness requirement for Belongings.** Belongings is not part of a basic or core emergency plan. Making it required would push creators toward inventory work, which the product says to avoid (knowledge before assets).
 - **Recommendation mapping.** `AREA_TO_SECTIONS` in `src/core/recommend.ts` has no area that clearly maps to belongings, so the section will rank as Optional. That is correct for most people.
 - **A numeric value field or totals.** A total invites estate math the product explicitly does not do, and ranges are more honest than single numbers.
+- **Tone.** Sad content is welcome here. Do not trim or soften what the creator writes in "Note for your family", and do not add copy that steers them away from grief or memories. The section's job is practical decisions, but the stories behind things are part of what the reader needs.
 - **Reader-specific layout.** Reader mode ([reader-mode.md](reader-mode.md)) should render Belongings like any other section. If reader mode groups by a field, `decision` is the natural grouping here.
