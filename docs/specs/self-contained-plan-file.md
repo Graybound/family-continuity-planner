@@ -19,12 +19,12 @@ She needs one file. Open it and the plan is there, offline. She can read it on a
 
 Recommended answers first. Each is argued in the section named.
 
-1. **Add a plan id to the schema** so two plans in one browser never mix. This is a schema change (version bump, migration, fixtures), and PRs #11 and #14 both claim v3. Recommended: one v3 that carries all three changes, landed in one PR, with the plan id in it. See "2. Editing and saving".
+1. **Each file is self-contained; no plan id** (Noah, 26 November 2026, replacing the earlier plan id design). Opening a file always shows the plan inside it. Browser storage only holds a crash-safety draft keyed to the file's own address. There is no newer/older comparison between files. See "2".
 2. **Save always makes a new, uniquely named file** (`WhenImGone_2026-11-26_1432.html`, Noah's naming decision). By default it downloads. On Chrome and Edge desktop, an optional setup lets Save write the new file straight into a chosen folder instead of Downloads. **Saving over the same file is dropped**: it would leave an old date in the name of the newest copy, which breaks "the latest date in the name is the newest". See "2" and "10".
 3. **iPhone: read in the preview, edit on a computer.** There is no built-in way to run a local HTML file's scripts on iPhone. The only free route found (an Apple Shortcut) can't keep changes between visits. See "5. Running it on phones".
 4. **No .webarchive.** It doesn't open on Windows, Android, Chrome or Firefox, and nothing shows it runs scripts on iPhone. See "7".
 5. **No passphrase.** Decided by Noah, 26 November 2026: no passphrase by default, and the plan never stores secrets. Final call from the secrets handoff work (PR #26): no passphrase, not even optional. This spec builds none. See "8".
-6. **Save makes an export set** (Noah's decision, 26 November 2026): the HTML file plus a PDF from the browser's print dialog, with the same timestamp in both names. Same HTML for every browser, no per-browser builds. Plus an in-app step to open the copy once on the family's own device, with a checkbox to record that it worked. The checkbox is a plan field, so it rides in the same schema bump as the plan id. See "6".
+6. **Save makes an export set** (Noah's decision, 26 November 2026): the HTML file plus a PDF from the browser's print dialog, with the same timestamp in both names. Same HTML for every browser, no per-browser builds. Plus an in-app step to open the copy once on the family's own device, with a checkbox to record that it worked. The checkbox is a plan field, so it rides in schema v3. See "6".
 
 ## 1. How the data is embedded
 
@@ -64,73 +64,45 @@ Size: the app is 111.8 KB today. The sample plan with a readable copy came to 12
 
 ## 2. Editing and saving
 
-A page can't rewrite its own file. So the file is where the plan travels, and the browser's storage is where changes live between saves.
+Noah's decision, 26 November 2026: drop the plan id and the newer/older comparison. Each file is fully self-contained. Built in PR #31.
 
-### Plan id (schema change)
+### Opening a file
 
-`info.planId`: a random id (`crypto.randomUUID()`, falling back to the existing id generator) set when a plan is created, kept by every save, export and import. It is the only reliable way to tell "another copy of my plan" from "someone else's plan" in shared storage.
+A saved file **always shows the plan inside it**, whatever this browser holds. Nothing in storage can replace what the file shows by itself.
 
-- Schema version bump, with a migration that gives existing plans a new id. Fixtures and tests per [ARCHITECTURE.md](../../ARCHITECTURE.md).
-- PRs #11 and #14 both claim v3. Do not ship three separate v3s. Recommended: whichever lands first becomes v3 and includes the plan id; the others build on it, or bump to v4.
-- "Start a new plan" and "Load sample plan" make a new id. Importing a file keeps the file's id.
+### The crash-safety draft
 
-### Storage keyed by plan
+A page can't rewrite its own file, so edits made in a saved file are kept in this browser as a draft:
 
-Chrome and Edge give every HTML file opened from disk one shared storage area ([SECURITY.md](../../SECURITY.md); tested). Two plan files must never overwrite each other there.
+- Key: `familyContinuityPlanner.draft.<address>`, where the address is the file's own location (its `file://` path, or the site URL online) without query or fragment. Two different files never share a draft, and a file never touches the main plan key, so opening a file can't overwrite another plan in Chrome's shared `file://` storage.
+- Next to the plan, the draft stores `draftOf` (the `savedAt` of the file it started from), and after Export backup, `savedAs` (the new file's name) and `savedAsUpdatedAt`.
+- The draft is written on the first edit, not on open.
 
-- Plans are stored under `<prefix>.plan.<planId>`. A separate key holds the id of the plan last opened by the plain app (no embedded data), so the hosted site and a plain `index.html` still open "my plan" as today.
-- The existing `familyContinuityPlanner.v2` key migrates into this on first start. This is a storage change; it is acceptable now because the rename pass is changing every key anyway and no real plans exist yet. Do it in the same release as the rename so keys change once.
-- Each stored plan also records `savedToFileAt`: when its contents were last written to a file (by Save or export). Device-only, not in the schema.
+On open, `decideDraft` in `src/core/embedded.ts` picks one case:
 
-### What happens on open
-
-The app looks for `#when-im-gone-plan`. No block: the normal app, as today. Block found: parse it with `parseBackup` (size limit, safe parse, version detection, migration, normalization) and compare it with storage for the same plan id. Call the file's plan F and the stored one S.
-
-| Situation | What she sees |
+| Case | What she sees |
 |---|---|
-| No S | F opens in the app and is saved to storage. |
-| S and F last changed at the same time | Opens. Nothing to say. |
-| S is newer than F | The "older copy" warning, below, before anything opens. |
-| F is newer, and S has nothing unsaved (`S.updatedAt <= savedToFileAt`) | F opens and replaces S. Banner: "Updated from this file, saved {date}." Nothing is lost: S's contents are already in an older file. |
-| F is newer, and S has unsaved changes | Both changed. A dialog, below. |
+| No draft, or nothing changed | The file's plan. |
+| Draft has changes never saved to a file | The file's plan, plus a banner: "You have unsaved changes from {date and time} that are not in this file. This page shows the plan as it was saved in the file. If you change anything before restoring them, those unsaved changes will be replaced." Buttons: **Restore my unsaved changes**, **Discard them**. |
+| Changes were saved to a newer file and nothing changed since | The file's plan, plus: "Changes made in this file were saved to a newer file, {name}. That file has the latest version of this plan." |
+| Draft is from a different file that used to be at this address (`draftOf` differs) | Ignored, and replaced on the first edit. |
 
-The "older copy" warning (Noah's decision: warn before using an older copy):
+This answers the coordinator's gap (closing without saving hides the draft): the draft is offered, never applied, so "always show the plan inside the file" holds.
 
-> **This is an older copy.**
-> This file was saved {F saved date and time}. This browser has a newer version of the same plan, last changed {S date and time}.
-> [Open the newer version] (default)
-> [Just read this older copy]
-> [Replace the newer version with this copy]
+Known limit: headless Chromium sometimes loses a `localStorage` write made just before a `file://` page reloads (IMPORT_ISSUES.md). The draft goes through that path, so the very last edit before a sudden close can be missed. Follow-up if confirmed on real desktops: IndexedDB for `file://`.
 
-"Replace" first downloads S as its own file, then asks once more ("The newer version was saved to your Downloads as {name}. Replace it in this browser with the older copy?"). "Just read" opens F read-only and changes nothing. Escape picks the default.
+### The plain app
 
-The "both changed" dialog:
-
-> **This file and this browser both have changes.**
-> This file was saved on {date}. This browser has changes from {date} that were never saved to a file.
-> [Save this browser's changes to a file, then open this one] (default)
-> [Keep this browser's version]
-> [Just read this file]
-
-The default can't lose anything: it downloads S as its own file first. Choosing "Keep" opens S and leaves F on disk. "Just read" opens F read-only in the reader view and touches nothing.
-
-Known limit: timestamps can't detect that S is newer but is missing edits made to F on another device. That case lands in "S is newer"; the warning's "Just read this older copy" lets her see the difference. A revision history would fix it and is not worth it now.
-
-Requirement: saving a file must not change `updatedAt` (today `exportBackup` writes `lastExportedAt` into the plan; make sure that write doesn't count as an edit, or the comparisons above break).
+The plain app (the website, or a copy of `index.html` with no plan inside) keeps today's behavior: its plan lives in `familyContinuityPlanner.v2`. Export backup from either produces a saved file.
 
 ### Saving
 
-One **Save** button in the top bar, replacing "Export backup".
+Every Export backup makes a new file with a unique, sortable name (section 10). Nothing is ever overwritten.
 
-Every Save makes a new file with a unique, sortable name (section 10). Nothing is ever overwritten.
-
-- **Everywhere (default):** downloads the new file. A message says: "Saved as {name} in your Downloads folder. If you have several copies, the one with the latest date in its name is the newest." Works in every browser that can run the app, including from `file://`.
-- **Chrome and Edge on a computer, optional:** "Save into a folder". The creator sets it up once in Settings ("Choose where saved copies go"): the browser asks for a folder (`showDirectoryPicker`), and the folder handle is kept in IndexedDB under the plan id. After that, Save writes the new file into that folder, for example the USB drive's plan folder, instead of Downloads. The browser asks permission again in a later session (exact prompt UNVERIFIED). If the handle fails for any reason, Save falls back to a download and says so.
-  - Tested: `showSaveFilePicker`, `showOpenFilePicker` and IndexedDB exist on `file://` in Chromium, and it counts as a secure context. Not tested: `showDirectoryPicker` and writing a file (they need a person to click).
-  - Why optional: setup shows a folder picker and a permission question. Fine for the creator, bad for a grieving reader. Also not in Firefox or Safari.
-  - Why not overwrite the opened file: the newest copy would keep an old date in its name (Noah's naming rule), and a bad write would destroy the only copy.
-- **Unsaved changes:** while S has changes newer than `savedToFileAt`, the top bar shows "Changes not saved to a file yet" next to Save, and closing the tab asks "Leave without saving?" (`beforeunload`). Storage still keeps the changes, so this is about the file, not about losing work today.
-- Browsers that don't keep storage for local files (UNVERIFIED which ones; Firefox and Safari rules for `file://` differ from Chrome) still work: edits last for the session and Save writes the file.
+- **Everywhere (default):** downloads the new file. The message says: "Saved {name}. It holds the app and your whole plan, and opens offline: double-click it. Keep it somewhere private."
+- **Chrome and Edge on a computer, optional, later slice:** "Save into a folder". The creator picks a folder once (`showDirectoryPicker`); the handle is kept in IndexedDB; Save writes the new file there instead of Downloads. Falls back to a download on any failure. Tested: the File System Access functions and IndexedDB exist on `file://` in Chromium. Not tested: the picker and writing (they need a person).
+- **Not** saving over the opened file: the newest copy would keep an old date in its name, and a bad write would destroy the only copy.
+- An "unsaved changes" indicator and a `beforeunload` prompt are a later slice.
 
 ## 3. The readable copy for previews
 
@@ -262,7 +234,7 @@ A step in Get started and in the continuity review (`src/core/audit.ts`), and of
 > Email it, put it on a shared drive or a USB stick, whatever they'd actually use. Open both files on their device. Check that the plan shows up.
 > [ ] It opened on their device
 
-- Ticking the box records the date in the plan: `info.familyOpenedAt` (`YYYY-MM-DD`). It is in the plan, not on the device, because it is the creator's record of a test on another device, and it should travel with every saved copy. Schema impact: one more field in the same bump as `info.planId`.
+- Ticking the box records the date in the plan: `info.familyOpenedAt` (`YYYY-MM-DD`). It is in the plan, not on the device, because it is the creator's record of a test on another device, and it should travel with every saved copy. Schema impact: one more field in schema v3.
 - The audit adds two rules, worded per [docs/readiness-and-audit.md](../readiness-and-audit.md): "Nobody has opened a saved copy on the family's device yet" when the date is empty, and "It has been over a year since a saved copy was opened on the family's device" after 365 days. Both are suggestions, dismissible like the others; neither blocks anything or affects readiness levels.
 - The box records a claim; the app can't verify it. That's fine: the point is to make the creator do it.
 - Wife test: the step text is written for the creator, but the steps it asks for are the same ones the reader will do later, so doing it once is a rehearsal.
@@ -331,16 +303,17 @@ Recommendation: no passphrase. The plan by design holds no passwords (PROJECT_SP
 - **Newer files in older apps.** An older app refuses a newer schema with a message; for HTML files it adds "This file can open on its own: double-click it." Apps from before this feature reject HTML as unreadable, which is fine since the file opens by itself.
 - **Welcome screen and reader-mode slice 2** ("opening a plan someone left for you") accept `.html` through the same import path. With this feature, double-clicking the file is the main path and slice 2 matters less.
 - **Plan id.** Old JSON backups and v2 plans get an id during migration. Two imports of the same old backup on different devices get different ids, which is acceptable (they then behave as two plans).
-- **Once real plans exist** (Noah's rule): the element ids, the escaping, the storage keys and the plan id rules are a format. Changing any of them needs code that still reads the old form plus a fixture of the old file. Keep a saved-file fixture from every release in `tests/fixtures/`.
+- **Once real plans exist** (Noah's rule): the element id, the escaping and the draft key are a format. Changing any of them needs code that still reads the old form plus a fixture of the old file. Keep a saved-file fixture from every release in `tests/fixtures/`.
 
 ## 10. Naming and where to keep copies
 
 Noah's decision, 26 November 2026.
 
-- **File name:** `WhenImGone_YYYY-MM-DD_HHMM.html`, 24-hour local time of the saving device, for example `WhenImGone_2026-11-26_1432.html`. JSON export uses the same pattern with `.json`. Sorts oldest to newest by name in any folder. No colons (Windows forbids them), no apostrophe, no spaces, no plan name (it would show in email subjects and shared folders).
-- **Seconds only on a clash:** if this browser already saved this plan in the same minute (from `savedToFileAt`), the name gets seconds after another underscore: `WhenImGone_2026-11-26_1432_05.html`. Not `_143205`: Windows Explorer and macOS Finder sort numbers by value, so `143205` would land after `1433` and the newest copy would no longer be last. With `_1432_05`, plain text sorting and number-aware sorting agree: `_1432.html`, then `_1432_05.html`, then `_1433.html` (`.` sorts before `_`; UNVERIFIED in every file manager, worth a look on Windows, Mac and Android Files). Clashes across two devices can't be seen; the browser's own " (1)" handles those.
-- **Saved time inside the file:** `exportedAt` is written as ISO 8601 with the saving device's offset (`2026-11-26T14:32:05-06:00`), not UTC `Z`. It is still a valid ISO time, and the banner can show the same wall-clock time as the file name no matter where the file is opened. Check that older apps accept the offset form on import (they only slice it for display; UNVERIFIED for the v1 app, which ignores it).
-- **Banner, in the app and at the top of the readable copy:** "This copy was saved Thursday, November 26, 2026 at 2:32 PM. If you have several copies, the one with the latest date in its name is the newest." The date is formatted with `Intl.DateTimeFormat` (weekday, month name, day, year, hour, minute) in the reader's language, from the wall-clock parts of `exportedAt`. In the app the banner stays for the session and can be collapsed, not removed.
+- **File name:** `WhenImGone_<Name>_YYYY-MM-DD_HHMM.html`, 24-hour local time of the saving device, for example `WhenImGone_Noah_Grayhek_2026-11-26_1432.html`, or `WhenImGone_2026-11-26_1432.html` when no owner name is entered. JSON export uses the same pattern with `.json`. Copies of one plan sort oldest to newest by name in any folder. No colons (Windows forbids them), no apostrophe.
+- **Owner name in the file name** (Noah, 26 November 2026): spaces become underscores; letters and digits in any language are kept (José, Zoë); everything else is dropped, including apostrophes and the characters Windows or macOS refuse; capped at 40 characters (`fileNamePart` in `src/core/embedded.ts`, built in PR #31). The owner name is a new plan field in schema v3.
+- **Seconds only on a clash:** if this plan was already exported in the same minute (from `info.lastExportedAt`), the name gets seconds after another underscore: `WhenImGone_2026-11-26_1432_05.html`. Not `_143205`: Windows Explorer and macOS Finder sort numbers by value, so `143205` would land after `1433` and the newest copy would no longer be last. With `_1432_05`, plain text sorting and number-aware sorting agree: `_1432.html`, then `_1432_05.html`, then `_1433.html` (`.` sorts before `_`). Tested in unit tests for plain and number-aware ordinal sorting. Not true for every sort: ICU collation, which ignores punctuation, puts `_1432_05` before `_1432`, and macOS Finder may sort that way (UNVERIFIED). Always adding seconds would fix every case; Noah chose seconds only on a clash. Clashes across two devices can't be seen; the browser's own " (1)" handles those.
+- **Saved time inside the file:** `savedAt`, ISO 8601 with the saving device's offset (`2026-11-26T14:32:05-06:00`). It is the file's version: it drives the file name and the banner. `exportedAt` stays in UTC for older apps. Built in PR #31.
+- **Banner, in the app and at the top of the readable copy:** "Noah Grayhek's plan, saved Thursday, November 26, 2026 at 2:32 PM. If you have several copies, the one with the latest date in its name is the newest." Without an owner name: "This plan was saved Thursday, ...". The date is formatted with `Intl.DateTimeFormat` (weekday, month name, day, year, hour, minute) in the reader's language, from the wall-clock parts of `savedAt`. In the app the banner stays for the session and can be collapsed, not removed.
 - **Page title:** "{plan name}, saved {date}", so the tab and the Quick Look header say which copy it is.
 - **Guidance**, two lines in the Save message and in full in README.md:
   1. Keep three current copies: a USB drive at home next to the printed packet; one with someone you trust (the executor or trusted contact); one in cloud storage the reader can still reach after you're gone (her own account, not yours, because your accounts may be locked).
@@ -351,12 +324,13 @@ Noah's decision, 26 November 2026.
 
 ## Acceptance criteria
 
-- [ ] Save downloads one file named like `WhenImGone_2026-11-26_1432.html` with the current local date and time; two saves in the same minute get different names; a folder of saved copies sorted by name puts the newest last.
-- [ ] The app and the readable copy both show "This copy was saved {weekday, date} at {time}" matching the file name, and the line about the latest date being the newest.
+- [ ] Save downloads one file named like `WhenImGone_Noah_Grayhek_2026-11-26_1432.html` (or `WhenImGone_2026-11-26_1432.html` without a name) with the current local date and time; two saves in the same minute get different names; a folder of saved copies sorted by name puts the newest last.
+- [ ] The app and the readable copy both show "{Name}'s plan, saved {weekday, date} at {time}" matching the file name, and the line about the latest date being the newest.
 - [ ] Offline, double-clicking it on Windows (Edge) and Mac (Safari) opens the full app on that plan. A change, then Save, gives a new file that opens with the change.
 - [ ] On Chrome, two different plan files opened one after the other each show their own plan; editing one never changes the other.
-- [ ] Opening an older copy of a plan that has a newer save in the browser shows the "older copy" warning before anything opens, and the default opens the newer version.
-- [ ] When both the file and the browser have changes, the dialog appears, and its default choice downloads the browser's version before opening the file.
+- [ ] Opening any saved file shows the plan inside it, whatever the browser holds.
+- [ ] Closing a file after editing without saving, then reopening it, shows the file's plan and offers the unsaved changes back; Restore brings them back, Discard forgets them.
+- [ ] After Export backup from a file, reopening the older file names the newer file.
 - [ ] With "Save into a folder" set up on Chrome, Save writes a new uniquely named file into that folder instead of downloading, and never overwrites a file.
 - [ ] Opened with scripts off, the file shows the opening instructions and the whole plan as readable text.
 - [ ] Each device test in section 4 has a recorded result, and the instruction copy matches the results.
@@ -383,33 +357,33 @@ Noah's decision, 26 November 2026.
 
 - `src/ui/selfCopy.ts` (new): capture the template, build the saved file.
 - `src/core/embedded.ts` (new): escaping, extraction, file name, open-time comparison (the table in section 2 as a pure function returning which case applies), banner text inputs. Unit tested.
-- `src/core/plan.ts`, `src/core/migrate.ts`, `src/core/normalize.ts`: `info.planId`, schema bump and migration.
-- `src/core/storage.ts`: keys by plan id, `savedToFileAt`, last-opened pointer, migration from the single-plan key.
+- `src/core/plan.ts`, `src/core/migrate.ts`, `src/core/normalize.ts`: schema v3 (owner name, opened-on-their-device date, new sections) and migration.
+- `src/core/storage.ts`, `src/ui/store.ts`: draft key per file address (PR #31).
 - `src/main.ts`: capture first, then branch on the embedded block.
 - `src/ui/backupFlow.ts`: Save, the conflict dialog, HTML in the file picker, optional file handle save.
 - `src/ui/store.ts`, `src/ui/app.ts`: Save button, unsaved indicator, banners, `beforeunload`.
 - `src/ui/recordView.ts` (from the reader-mode spec): render the readable copy.
 - `src/index.html`: theme script adds `js`; `<noscript>` handling.
 - `src/styles/app.css`: `.js .static-plan`, readable-copy styles.
-- Docs: `docs/backup-format.md` (saved file format, plan id), README.md (keeping copies, phones), PRIVACY.md and SECURITY.md (readable file, storage by plan, IndexedDB folder handle), ARCHITECTURE.md (selfCopy, the one `outerHTML` read, schema version), CHANGELOG.md, PROJECT_SPEC.md.
+- Docs: `docs/backup-format.md` (saved file format, `savedAt`), README.md (keeping copies, phones), PRIVACY.md and SECURITY.md (readable file, draft key, IndexedDB folder handle), ARCHITECTURE.md (selfCopy, the one `outerHTML` read, schema version), CHANGELOG.md, PROJECT_SPEC.md.
 
 ## Data, schema and migration impact
 
-- Schema: `info.planId` and `info.familyOpenedAt` added. Version bump, migration from v1 and v2, fixtures, tests. Coordinate the version number with PRs #11 and #14.
-- Storage: plan keys change to per-plan keys, `savedToFileAt` added, IndexedDB used for the optional folder handle. Ship with the rename pass so keys change once.
-- New fixtures: a saved HTML file from this version, kept forever.
+- PR #31: no schema change. Backups gain the informational `savedAt`. New storage key `familyContinuityPlanner.draft.<address>`.
+- Schema v3 (Noah approved, one bump): `info.ownerName` (for file names and the banner), `info.familyOpenedAt`, and the Belongings and Technology sections from PRs #11 and #14. Migration from v1 and v2 adds the empty fields and sections. No plan id.
+- New fixtures: a saved HTML file from each release, kept forever.
 
 ## Test plan
 
 Unit (Vitest):
 - Escaping round-trips a plan with hostile strings in every field; output has no `<`, `>`, `&`, U+2028, U+2029.
 - Extraction: attribute order, no block, truncated block, first block only.
-- Open-time comparison returns the right case for every row of the section 2 table, including equal timestamps and missing `savedToFileAt`.
-- Migration adds a valid plan id; import keeps an existing one; new and sample plans get new ones.
+- `decideDraft` returns the right case for every row of the section 2 table.
+- v3 migration adds the owner name, opened date and new sections empty; v1 and v2 fixtures still restore.
 - `familyOpenedAt` normalizes as a date; the two audit rules fire at empty and at 366 days, not at 364.
 - The PDF title stem equals the HTML file name stem for the same save, including the seconds case.
 - Storage: two plans with different ids never touch each other's keys; the single-plan key migrates once.
-- File name: local date and time, zero-padded, no colons or apostrophes; seconds added only when `savedToFileAt` is in the same minute; names sort in time order.
+- File name: local date and time, zero-padded, no colons or apostrophes; seconds added only when `lastExportedAt` is in the same minute; owner name made file-safe; names sort in time order.
 - `exportedAt` carries the local offset and the banner text built from it matches the file name's date and time, in two time zones.
 
 Browser (Playwright, built file over `file://`, Chromium, Firefox, WebKit):
@@ -419,7 +393,7 @@ Browser (Playwright, built file over `file://`, Chromium, Firefox, WebKit):
 - The "open it on their device" checkbox writes `familyOpenedAt` and clears the audit suggestion.
 - Hostile plan: saved file opens with `window.PWNED` undefined; text shows literally in the app and in the readable copy.
 - Two plan files in one Chromium profile: edit one, open the other, each shows its own data.
-- Each row of the section 2 table, set up through storage, shows the right banner or dialog; the "older copy" warning appears before any plan renders and its default opens the newer version; "Replace" and the conflict dialog's default trigger a download first.
+- A saved file shows its own plan when another plan is in storage, and editing it never touches that plan; unsaved changes are offered back; the saved-elsewhere banner names the newer file; two files never share a draft.
 - Copy of a copy: one data block and one readable copy, and it works.
 - Template purity: a saved blank plan's app shell matches the built file's (no rendered views leaked in).
 - Scripts off: readable copy and instructions visible, Start Here text and a phone number present, no CSP violations.
@@ -439,11 +413,14 @@ Every automated test must fail on the current main branch.
 
 ## Slices
 
-1. **Save and open.** Save as the export set (HTML, then the PDF step), the readable copy with instructions, open-time comparison, plan id and per-plan storage, import of HTML, Print or save as PDF next to Save, the "open it on their device" step, cross-engine tests. This is the useful version.
-2. **Save into a folder** on Chrome and Edge.
-3. **Phone follow-ups**, only after device tests: the iPhone Shortcut test; Android instructions.
+1. **Export and open** (PR #31): Export backup saves the app with the plan inside, Restore accepts it, a file always opens on its own plan, crash-safety drafts, cross-engine tests, online notice points at Export backup.
+2. **Schema v3**: owner name, opened-on-their-device date, room for Belongings and Technology; name in file names.
+3. **Readable preview** with per-device instructions, and the saved-at banner with the owner's name.
+4. **PDF in the export set**, and the "open it on their device once" step.
+5. **Save into a folder** on Chrome and Edge; unsaved indicator.
+6. **Phone follow-ups**, only after device tests.
 
-Depends on: reader-mode slice 1 for `recordView.ts` (or move the renderer out of `print.ts` here first), and on the v3 schema decision.
+Depends on: reader-mode slice 1 for `recordView.ts` (or move the renderer out of `print.ts` in slice 3).
 
 ## Proposed edits to other docs when this is approved
 
