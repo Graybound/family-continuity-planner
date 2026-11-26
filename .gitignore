@@ -44,6 +44,9 @@ tests/fixtures/private/
 Thumbs.db
 desktop.ini
 
+# Local Cloudflare dev server state
+.wrangler/
+
 # Logs and temporary files
 *.log
 npm-debug.log*

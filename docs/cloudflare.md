@@ -1,10 +1,24 @@
 # The online version on Cloudflare
 
-Status: **prepared, not live.** This replaces GitHub Pages as the hosted copy, at **https://whenimgone.grayhek.com/**. Until the cutover steps at the end are done, GitHub Pages (`.github/workflows/pages.yml`, [github-pages.md](github-pages.md)) is still the live online version.
+The app is published at **https://whenimgone.grayhek.com/**. Cloudflare builds and deploys it on every push to `main`. It replaced GitHub Pages in November 2026.
 
-The hosted copy is the same single HTML file as the download. Cloudflare only serves it. Plans stay in the visitor's browser and are never sent to Cloudflare.
+Anything below marked UNVERIFIED comes from Cloudflare's docs or memory and has not been checked against the deploy. `scripts/verify-cloudflare.mjs` is the real check.
 
-Anything below marked UNVERIFIED comes from Cloudflare's docs or memory and has not been checked against a real deploy yet. The verify script at the end is the real check.
+## What is the same as the download
+
+- It is the identical single HTML file, with the same Content Security Policy that blocks every network connection from the app.
+- Plans are saved only in the visitor's browser, on that device. Nothing is uploaded to Cloudflare or anywhere else.
+- No analytics, tracking, or cookies are added. Cloudflare features that would add them are turned off for this hostname (see below).
+
+## What is different
+
+1. **Cloudflare sees the page load.** Like any website, Cloudflare's servers receive ordinary request information when someone opens the page (IP address, browser type, time). Plan contents are never part of this.
+2. **Availability.** The online copy depends on Cloudflare being up. The download works forever, offline.
+3. **Separate saved data.** The online copy and a downloaded copy do not share a plan. Move between them with Export backup and Restore.
+
+The address is used only by this app, so unlike the old `graybound.github.io` copy, no other site shares its browser storage.
+
+The app shows a notice on the online version explaining where data is stored, with a link to the download. Visitors can acknowledge it once per browser.
 
 ## How it works
 
@@ -128,15 +142,9 @@ Then open the site in a browser with dev tools open: no console errors, and the 
 
 Also confirm the single origin: `https://family-continuity-planner.<account>.workers.dev/` should not serve the app.
 
-## Cutover (a separate change, after the site verifies)
+## Cutover from GitHub Pages (done)
 
-Not part of this change. Done in the follow-up that retires GitHub Pages:
-
-1. Remove `.github/workflows/pages.yml` and unpublish Pages in repository **Settings**, **Pages**. Plans saved on the github.io copy do not carry over; that is accepted while no real plan exists.
-2. Update every reference to the github.io address: `package.json` `homepage`, README, PRIVACY.md, docs/github-pages.md (delete or replace with this file), release notes text, issue templates.
-3. App copy: the online-version notice in `src/ui/app.ts` says plans are "never sent to GitHub", and the e2e test `online copy shows where data lives` checks that text and the github.io URL. Both need to say Cloudflare.
-4. PRIVACY.md: Cloudflare, not GitHub, now sees page loads (IP, browser, time). The custom domain removes the shared-origin issue that github.io had.
-5. Add `.wrangler/` to `.gitignore` (local `wrangler dev` creates it).
+The `pages.yml` workflow and `docs/github-pages.md` were removed and every github.io reference now points here. Plans saved on the github.io copy did not carry over; that was accepted while no real plan existed. Still to do by hand: unpublish Pages in repository **Settings**, **Pages**, and delete the old `whenimgone` Pages project once the verify script passes.
 
 ## Rename
 

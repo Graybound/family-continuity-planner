@@ -72,4 +72,4 @@ jobs:
             "$MODE" \
             --target "$GITHUB_SHA" \
             --title "Family Continuity Planner $TAG" \
-            --notes "Download Family-Continuity-Planner-$TAG.zip, extract it, and open Family-Continuity-Planner.html. See START-HERE.txt inside. This is not a will; we recommend having one alongside it. Prefer not to install anything? Use it online at https://graybound.github.io/family-continuity-planner/. Changes: see CHANGELOG.md."
+            --notes "Download Family-Continuity-Planner-$TAG.zip, extract it, and open Family-Continuity-Planner.html. See START-HERE.txt inside. This is not a will; we recommend having one alongside it. Prefer not to install anything? Use it online at https://whenimgone.grayhek.com/. Changes: see CHANGELOG.md."

@@ -29,13 +29,15 @@ function navItems(): (NavItem | 'sep')[] {
   const plan = getPlan();
   return [
     { view: { name: 'dashboard' }, label: 'Overview', glyph: '◎' },
-    { view: { name: 'get-started', step: 0 }, label: 'Get started', glyph: '➜' },
     { view: { name: 'start-here' }, label: 'Start Here', glyph: '✉' },
     'sep',
+    // Sections in the order the overview suggests them (SECTION_IDS is the writing order).
     ...SECTION_IDS.map((s): NavItem => ({ view: { name: 'section', section: s }, label: SECTIONS[s].title, glyph: SECTIONS[s].icon, count: () => plan.records[s].length, countLabel: 'entries' })),
     { view: { name: 'checklist' }, label: 'Checklist', glyph: '✓', count: () => plan.checklist.filter((c) => !c.done).length, countLabel: 'open items' },
     'sep',
-    { view: { name: 'review' }, label: 'Continuity review', glyph: '⚑', count: () => activeFindings(plan).active.length, countLabel: 'suggestions' },
+    // Tools for the person writing the plan. "Planning questions" is not next to "Start Here" on purpose: they sounded alike.
+    { view: { name: 'get-started', step: 0 }, label: 'Planning questions', glyph: '?' },
+    { view: { name: 'review' }, label: 'Suggestions', glyph: '⚑', count: () => activeFindings(plan).active.length, countLabel: 'suggestions' },
     { view: { name: 'settings' }, label: 'Settings and backup', glyph: '⚙' },
   ];
 }
@@ -198,7 +200,7 @@ function startFromStorage(fileError: string | null): void {
 
 function startCommon(): void {
 
-  // Online copy (GitHub Pages or any web host): say plainly where data lives and offer the download.
+  // Online copy (whenimgone.grayhek.com or any web host): say plainly where data lives and point at Export backup.
   const hosted = /^https?:$/.test(location.protocol) && !/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
   let noticeDismissed = false;
   try {
@@ -209,7 +211,7 @@ function startCommon(): void {
   if (hosted && !noticeDismissed) {
     addBanner({
       id: 'hosted', tone: 'info',
-      text: 'You are using the online version. Your plan is saved only in this browser on this device and is never sent to GitHub or anyone else. Export backup saves a copy of the app and your plan that opens offline, with no website needed.',
+      text: 'You are using the online version. Your plan is saved only in this browser on this device and is never sent anywhere. Export backup saves a copy of the app and your plan that opens offline, with no website needed.',
       actions: [
         { label: 'Export backup', run: exportBackup },
         { label: 'Got it', run: () => {

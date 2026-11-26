@@ -148,6 +148,6 @@ Audience-specific packets (executor, caregiver, technology helper, messages only
 
 `npm run build` runs type checks, builds `dist/index.html` with everything inlined, then `scripts/post-build.mjs` adds the hash-based CSP and fails if any external URL appears. `npm run release` writes `release/Family-Continuity-Planner-vX.Y.Z.html`, a `.zip` with the app, a plain-text START-HERE guide, the license, and sample backups, and `SHA256SUMS.txt`. The zip is written with Node's built-in zlib and fixed timestamps.
 
-## GitHub Pages
+## Online version (Cloudflare)
 
-The `GitHub Pages` workflow deploys `dist/` to https://graybound.github.io/family-continuity-planner/ on every push to `main` after all checks pass. When the app detects it is served over HTTP(S) from a non-local host, it shows a notice explaining where data is stored and linking to the download. See [docs/github-pages.md](docs/github-pages.md). The single file uses only relative references, so it works under any base path.
+Cloudflare Workers Builds deploys `dist/` to https://whenimgone.grayhek.com/ on every push to `main`, as an assets-only Worker configured in `wrangler.jsonc`. The build command runs lint, type checks and unit tests first; browser tests run in GitHub Actions. `scripts/cloudflare-headers.mjs` copies the build's CSP into `dist/_headers` so it is also sent as a response header, with `frame-ancestors 'none'` added. When the app detects it is served over HTTP(S) from a non-local host, it shows a notice explaining where data is stored and linking to the download. See [docs/cloudflare.md](docs/cloudflare.md). The single file uses only relative references, so it works under any base path.

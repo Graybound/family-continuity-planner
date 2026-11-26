@@ -9,14 +9,23 @@ All notable changes are listed here. The project follows [Semantic Versioning](h
 - **Export backup saves the app and your plan as one file** (`WhenImGone_YYYY-MM-DD_HHMM.html`) that opens offline by double-clicking it. Restore accepts these files as well as `.json` backups. A saved file always opens on its own plan; changes made in it are kept as a draft tied to that file and offered back if it is closed without saving. **Export .json** in Settings still saves the plan data alone
 - The online-version notice points at Export backup instead of a GitHub download page
 - Backup file names now include the time: `WhenImGone_YYYY-MM-DD_HHMM.json`
-
+- The online version moved to https://whenimgone.grayhek.com/, served by Cloudflare. The GitHub Pages copy is retired. Plans saved in the old online copy do not move over on their own: open the old copy, export a backup, and restore it in the new one.
+- The online-version notice now says your plan "is never sent anywhere" instead of naming GitHub.
 - On phones, the top bar shows short words (Menu, Privacy, Backup, Print) instead of bare symbols, and search fits on one line
 - While privacy mode is on, a banner says so on every screen, with a "Show hidden details" button
 - Overview buttons say where they lead ("Open Trusted contacts") instead of "Go"
 - Section pages show entries first; the filter appears only once a section has more than five entries, and Section status moves to the end of the page
 - Larger help text and record labels; record labels are no longer all caps
 - Checklist Edit and Delete sit under the task on phones
-- The "This is not a will" notice on the overview sits below the next steps
+- The overview has one button: the next step. "Take the continuity assessment" is now a quiet "Answer a few planning questions" link, and Export backup stays in the top bar
+- The sidebar lists sections in the order the next step asks for them: Trusted contacts, Emergency plans, Documents, Who handles what, Accounts, Home and utilities, People, Health, Notes
+- "Get started" is now "Planning questions" and sits with the creator tools, away from "Start Here"; "Continuity review" is now "Suggestions"
+- Readiness levels have plain names: Just started, Ready for an emergency, Covers everyday life, Thorough and up to date
+- The overview no longer asks for a trusted contact (or a backup) twice: a suggestion is hidden while the same thing is already a next step
+- "This is not a will" is no longer repeated on the overview; it stays in the planning questions, the Documents callout and print
+- "Your plan at a glance" appears once the plan has something in it
+- Planning questions: each area has a line of examples, the step "Who handles what" is now "Who does what today" so it no longer shares a name with a section, and buttons name the page they open
+- Suggestions page buttons name where they lead instead of "Go there"
 
 ### Fixed
 

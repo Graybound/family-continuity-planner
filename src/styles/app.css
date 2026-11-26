@@ -93,6 +93,8 @@ h2.section-h { font: 24px var(--font-display); margin: 30px 0 12px; }
 .hero p { color: #d6e1e6; margin: 0; max-width: 620px; }
 .hero .eyebrow { color: #ffb08f; }
 .hero .btn:not(.signal) { background: transparent; color: #fff; border-color: rgba(255, 255, 255, .45); }
+.hero .hero-aside { margin-top: 14px; font-size: 15px; }
+.hero .btn.link { color: #fff; padding: 0; font: inherit; }
 .readiness-panel { background: rgba(255, 255, 255, .07); border: 1px solid rgba(255, 255, 255, .18); border-radius: 16px; padding: 18px; }
 .readiness-panel h2 { font: 22px/1.15 var(--font-display); margin: 4px 0 6px; }
 .readiness-panel p { font-size: 14px; }

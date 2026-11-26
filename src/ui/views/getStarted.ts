@@ -4,12 +4,13 @@
  */
 import { AREA_HANDLERS, RISK_IDS, RISK_LABELS, type AreaHandler } from '../../core/plan';
 import { recommend, type Recommendation } from '../../core/recommend';
-import { AREA_IDS, AREA_LABELS, SECTIONS } from '../../core/sections';
+import { AREA_HINTS, AREA_IDS, AREA_LABELS, SECTIONS } from '../../core/sections';
 import { h } from '../dom';
 import { getPlan, go, mutate } from '../store';
 import { WILL_NOTICE, button, viewHead } from './common';
 
-const STEPS = ['Why this matters', 'Who handles what', 'What would stop', 'Where to start'] as const;
+// "Who does what today", not "Who handles what": that is the name of a section page.
+const STEPS = ['Why this matters', 'Who does what today', 'What would stop', 'Where to start'] as const;
 const HANDLER_LABELS: Record<AreaHandler, string> = {
   '': 'Not answered',
   'mostly-me': 'Mostly me',
@@ -32,17 +33,18 @@ function stepAreas(): HTMLElement {
   const plan = getPlan();
   const mine = AREA_IDS.filter((a) => plan.assessment.areas[a] === 'mostly-me');
   return h('div', null,
-    h('p', { class: 'lede' }, 'For each area, who handles it today? This shows where your family depends heavily on one person.'),
+    h('p', { class: 'lede' }, 'For each area, who takes care of it today? Skip any you are not sure about. Areas you mark "Mostly me" are where your family would miss you most, so the planner suggests starting there.'),
     h('div', { class: 'card card-pad' },
       h('div', { class: 'area-grid' }, AREA_IDS.map((a) => {
         const id = `area-${a}`;
-        const sel = h('select', { attrs: { id, 'data-focus-key': id } }, AREA_HANDLERS.map((v) => h('option', { props: { value: v, selected: (plan.assessment.areas[a] ?? '') === v } }, HANDLER_LABELS[v])));
+        const hintId = `${id}-hint`;
+        const sel = h('select', { attrs: { id, 'data-focus-key': id, 'aria-describedby': hintId } }, AREA_HANDLERS.map((v) => h('option', { props: { value: v, selected: (plan.assessment.areas[a] ?? '') === v } }, HANDLER_LABELS[v])));
         sel.addEventListener('change', () => mutate((p) => {
           const v = sel.value as AreaHandler;
           if (v) p.assessment.areas[a] = v;
           else delete p.assessment.areas[a];
         }, { touch: false }));
-        return h('div', { class: 'field' }, h('label', { attrs: { for: id } }, AREA_LABELS[a]), sel);
+        return h('div', { class: 'field' }, h('label', { attrs: { for: id } }, AREA_LABELS[a]), h('span', { class: 'help', attrs: { id: hintId } }, AREA_HINTS[a]), sel);
       })),
     ),
     h('div', { class: 'callout', style: { 'margin-top': '16px' }, attrs: { 'aria-live': 'polite' } },
@@ -56,7 +58,7 @@ function stepRisks(): HTMLElement {
   const plan = getPlan();
   return h('fieldset', { class: 'card card-pad' },
     h('legend', null, 'If you were unavailable tomorrow, what would stop working?'),
-    h('p', { class: 'help' }, 'Choose any that apply. There are no wrong answers.'),
+    h('p', { class: 'help' }, 'Choose any that apply, or none. There are no wrong answers.'),
     h('div', { class: 'choice-grid' }, RISK_IDS.map((r) => {
       const id = `risk-${r}`;
       const box = h('input', { attrs: { type: 'checkbox', id, 'data-focus-key': id }, props: { checked: plan.assessment.risks.includes(r) } });
@@ -75,7 +77,7 @@ function recList(title: string, intro: string, items: Recommendation[]): HTMLEle
     h('p', { class: 'help' }, intro),
     items.map((r) => h('div', { class: 'rec-item' },
       h('div', null, h('strong', null, r.title), h('p', null, r.reasons.join('. '))),
-      button('Open', () => go({ name: 'section', section: r.section }), { cls: 'btn small primary', ariaLabel: `Open ${r.title}` }),
+      button(`Open ${r.title}`, () => go({ name: 'section', section: r.section }), { cls: 'btn small primary' }),
       button('Does not apply', () => mutate((p) => {
         p.modules[r.section] = 'not-applicable';
       }, { message: `${r.title} marked as not applying` }), { cls: 'btn small', ariaLabel: `Does not apply: ${r.title}` }),
@@ -93,8 +95,8 @@ function stepRecommend(): HTMLElement {
       recList('Helpful', 'Worth doing once the priorities have something in them.', rec.helpful),
       recList('Optional', 'Add these when you have time, or not at all.', rec.optional),
       h('section', { class: 'rec-tier' },
-        h('h3', null, 'Personal messages'),
-        h('p', { class: 'help' }, 'Optional. A note for the people who will read this plan.'),
+        h('h3', null, 'Your letter to your family'),
+        h('p', { class: 'help' }, 'Start Here is the first page your family reads. You can write it in your own words whenever you are ready.'),
         button('Open Start Here', () => go({ name: 'start-here' }), { cls: 'btn small' }),
       ),
       rec.notApplicable.length ? h('p', { class: 'help' }, `Marked as not applying: ${rec.notApplicable.map((s) => SECTIONS[s].title).join(', ')}. Change this on each section's page.`) : null,
@@ -107,8 +109,8 @@ export function getStartedView(step: number): HTMLElement {
   const s = Math.max(0, Math.min(STEPS.length - 1, step));
   const body = [stepWhy, stepAreas, stepRisks, stepRecommend][s]!();
   return h('div', null,
-    viewHead({ eyebrow: 'Get started', title: 'Family continuity assessment', description: 'A short, optional guide to find where to begin.' }),
-    h('nav', { class: 'steps-nav', attrs: { 'aria-label': 'Assessment steps' } },
+    viewHead({ eyebrow: 'Planning questions', title: 'Where should you start?', description: 'About five minutes of optional questions. Your answers suggest which pages to fill in first. This is for you, not for the people who will read the plan.' }),
+    h('nav', { class: 'steps-nav', attrs: { 'aria-label': 'Question steps' } },
       h('ol', null, STEPS.map((label, i) => {
         const b = button(`${i + 1}. ${label}`, () => go({ name: 'get-started', step: i }), { cls: 'btn small', focusKey: `step:${i}` });
         if (i === s) b.setAttribute('aria-current', 'step');
@@ -120,10 +122,10 @@ export function getStartedView(step: number): HTMLElement {
       s > 0 ? button('Back', () => go({ name: 'get-started', step: s - 1 })) : null,
       s < STEPS.length - 1
         ? button('Next', () => go({ name: 'get-started', step: s + 1 }), { cls: 'btn primary' })
-        : button(plan.assessment.completedAt ? 'Done' : 'Finish assessment', () => {
+        : button(plan.assessment.completedAt ? 'Done' : 'Finish and see my next step', () => {
           mutate((p) => {
             p.assessment.completedAt = new Date().toISOString();
-          }, { message: 'Assessment saved. You can revisit it any time.', touch: false });
+          }, { message: 'Answers saved. You can change them any time.', touch: false });
           go({ name: 'dashboard' });
         }, { cls: 'btn primary' }),
     ),
