@@ -13,7 +13,7 @@ Today the app has no home for this. The creator can put a Wi-Fi note in "Who han
 A new section, **Technology**, with one record per thing: the home network, each self-hosted service, a domain or custom email, or anything else technical the family relies on. Every record answers three reader questions, in this order:
 
 1. What is this and does it affect me? (what it does, who uses it)
-2. Do I have to do anything soon? (when to act, what keeps it running, what to do if it stops)
+2. Do I have to do anything soon? (when it needs attention, what keeps it running, what to do if it stops)
 3. What happens to it later? (long-term plan, paid replacement, cost, migration steps)
 
 Plus a one-click **Wi-Fi starter** so the most common emergency is covered in the first minute of using the section.
@@ -38,7 +38,7 @@ Order matters: plain-language fields first, replacement fields next, the technic
 | `kind` | Kind | select: `Home network`, `Self-hosted service`, `Domain or email`, `Other` | no | |
 | `whatItDoes` | What it does for the family | textarea, wide | no | `One or two plain sentences. For example: Keeps a copy of every photo from our phones.` |
 | `dependsOnIt` | Who uses it and what stops without it | textarea, wide | no | `For example: The kids watch shows on it. Nothing important breaks if it is off.` |
-| `actWhen` | When to act | select: `First day`, `First week`, `First month`, `First year`, `No rush` | no | `How soon someone needs to do something about it.` |
+| `timeframe` | When does this need attention? | select: `TIMEFRAMES` (`First day`, `First week`, `First month`, `First year`, `No rush`) | no | `If you could not help tomorrow, how soon would someone need to deal with this?` |
 | `location` | Where it is | wide | yes | `The room or shelf it sits on, or the company that hosts it.` |
 | `access` | Where the login is stored | wide | yes | `The name of the entry in your password manager, or for Wi-Fi where the network name and password are written (such as a sticker on the router). Do not type passwords here.` |
 | `keepsRunning` | What it needs to keep working | textarea, wide | no | `Power, internet, a paid subscription, a domain renewal, a card on file. Include renewal dates.` |
@@ -51,6 +51,8 @@ Order matters: plain-language fields first, replacement fields next, the technic
 | `helperNotes` | Technical notes for a helper | textarea, wide | no | `Details only a technical helper needs, such as the machine, software, and where its data is stored.` |
 
 Field rules:
+
+- `timeframe` reuses the key, label, help text and `TIMEFRAMES` constant from the timeline spec (`docs/specs/timeline-guidance.md`), exported from `src/core/sections.ts`. Whichever spec is built first adds the constant; the other imports it. Do not define a second list.
 
 - `replacementCost` is free text on purpose. No currency parsing, no totals (see Out of scope).
 - `location` and `access` are private, so privacy mode hides them and print withholds them by default, same as every other private field.
@@ -73,7 +75,7 @@ The reader should see the urgent things first. Add `src/core/technology.ts` with
 export function orderTechnology(records: RecordItem[]): RecordItem[]
 ```
 
-Sort by `actWhen` in the order `First day`, `First week`, `First month`, `First year`, `No rush`, then empty, then by `name` (case-insensitive), with original order as the final tiebreaker so the sort is stable. The section view and the print packet both use it. Do not reorder the stored array.
+Sort by `timeframe` in `TIMEFRAMES` order (`First day`, `First week`, `First month`, `First year`, `No rush`), then blank, then by `name` (case-insensitive), with original order as the final tiebreaker so the sort is stable. The section view and the print packet both use it. Do not reorder the stored array.
 
 ### Wi-Fi starter
 
@@ -81,7 +83,7 @@ When the Technology section has no records, the empty state shows a primary butt
 
 - name: `Home Wi-Fi`
 - kind: `Home network`
-- actWhen: `First day`
+- timeframe: `First day`
 - whatItDoes: `Internet for every phone, TV, and computer in the house.`
 - ifItStops:
 
@@ -142,7 +144,7 @@ A non-developer can check each of these in the built app.
 Unit (vitest, `tests/unit/`), each failing without the change:
 
 - `orderTechnology`: timeframe order, empty last, name tiebreak, stability, input array not mutated.
-- Wi-Fi starter constant: kind `Home network`, actWhen `First day`, steps non-empty, contains no `[` placeholder.
+- Wi-Fi starter constant: kind `Home network`, timeframe `First day`, steps non-empty, contains no `[` placeholder.
 - Migration: the v2 fixture migrates to v3 with the expected action text and identical records in every existing section; a v3 file round-trips; a file claiming schema 4 is refused.
 - Normalize: unknown fields on a Technology record are dropped with a warning; select values outside the option list are handled exactly like other selects.
 - Audit: `technology-no-plan` fires once for several qualifying records, not for `Home network` or `Other`, not when every service has a plan; plural wording. `area-undocumented` for technology is cleared by a Technology record. `possible-secret` fires on a Technology record.
@@ -152,7 +154,7 @@ Unit (vitest, `tests/unit/`), each failing without the change:
 Browser (Playwright, `tests/e2e/`, built file over `file://`):
 
 - Wi-Fi starter flow: empty state, button, prefilled form, save, numbered steps on the card.
-- Add a self-hosted service, reload, record persists, order is by "When to act".
+- Add a self-hosted service, reload, record persists, order is by "When does this need attention?".
 - Print packet contains Technology after Home and utilities with private fields withheld.
 - Restore the v2 fixture: preview shows the new migration line.
 - axe check on the Technology section (empty state, form open, with records), matching the existing a11y spec in `tests/e2e/backup-print-a11y.spec.ts`.
@@ -187,7 +189,7 @@ Everything above is the smallest useful version, with one optional cut if time i
 - Conditional fields per kind (rejected above).
 - Links from a Technology record to a Trusted contact or Account record. That is IMPORT_ISSUES.md item 10 and should apply to every section at once.
 - Devices (phones, laptops, the server hardware itself) as things to keep, sell, or give away. That belongs in the Legacy section (`docs/specs/legacy-section.md`). Technology covers what a thing does for the family, not what it is worth.
-- Mapping "When to act" onto timeline guidance. The five values are chosen to match the timeframes in `docs/specs/timeline-guidance.md` (first day, week, month, year) so that spec can pull Technology items in later without a schema change. If that spec settles on different labels, align here before building.
+- Putting Technology records on the printed timeline. The field reuses the timeline spec's key (`timeframe`), label, and `TIMEFRAMES` constant (`docs/specs/timeline-guidance.md`), so `buildTimeline()` can include Technology records later with no schema change. That is a follow-up, not part of this spec.
 - Storing passwords, admin URLs with credentials, recovery codes, or Wi-Fi passwords. The `access` field points to where they live.
 - Any network check, router discovery, or status probe. The app makes no network requests.
 
@@ -196,5 +198,5 @@ Everything above is the smallest useful version, with one optional cut if time i
 Not blockers for the build agent; they affect how useful this is for your household.
 
 1. **Is your password manager self-hosted?** (UNVERIFIED, I don't know your setup.) If it is, the whole app's "point to the password manager" approach fails the day that server dies, and your wife loses access to everything else at once. No section design fixes that. Move it to a hosted manager with emergency access, or make sure an offline export exists and she knows where. This is the highest-risk item on the list.
-2. **Does any account recovery go through email on your own domain?** If the domain lapses or the mail host stops, password resets for her bank and Roth IRA stop arriving. Record the domain's renewal date and auto-renew card in `keepsRunning`, set `actWhen` to `First week`, and consider whether her critical accounts should recover to an address she controls without you.
+2. **Does any account recovery go through email on your own domain?** If the domain lapses or the mail host stops, password resets for her bank and Roth IRA stop arriving. Record the domain's renewal date and auto-renew card in `keepsRunning`, set `timeframe` to `First week`, and consider whether her critical accounts should recover to an address she controls without you.
 3. **Shrink the list while you're here.** The section makes your self-hosted stack legible, but the cheapest plan for her is fewer things to migrate. Any service whose answer is "Move to a paid replacement" and that she actually uses is a candidate to migrate now rather than document.
