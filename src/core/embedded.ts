@@ -11,6 +11,8 @@
  * changing them needs code that still reads the old form.
  */
 export const EMBED_ID = 'when-im-gone-plan';
+/** The readable copy of the plan for previews that run no scripts. */
+export const STATIC_ID = 'static-plan';
 
 /** Saved plan files may be larger than a JSON backup by the size of the app itself. */
 export const HTML_FILE_LIMIT_BYTES = 12 * 1024 * 1024;
@@ -145,4 +147,14 @@ export function decideDraft(draft: { meta: DraftMeta; updatedAt: string } | null
   if (draft.meta.savedAs && draft.meta.savedAsUpdatedAt === draft.updatedAt) return 'saved-elsewhere';
   if (draft.updatedAt === file.updatedAt) return 'none';
   return 'unsaved';
+}
+
+/** Tells a reader with several copies which one to trust. */
+export const NEWEST_COPY_LINE = 'If you have several copies, the one with the latest date in its name is the newest.';
+
+/** "Alex Morgan's plan, saved Thursday, November 26, 2026 at 2:32 PM." or "This plan was saved ...". */
+export function savedHeadline(ownerName: string, savedTime: string): string {
+  const name = ownerName.trim();
+  if (!savedTime) return name ? `${name}'s plan.` : '';
+  return name ? `${name}'s plan, saved ${savedTime}.` : `This plan was saved ${savedTime}.`;
 }

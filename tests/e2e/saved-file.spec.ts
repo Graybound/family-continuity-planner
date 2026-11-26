@@ -6,6 +6,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { chromium, firefox, webkit, type Browser, type BrowserType, type Page } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
 import { test, expect, nav, addRecord, storedPlan } from './fixtures';
 
 const HOSTILE = 'Call </script><script>window.PWNED=1</script><!-- & é 😀';
@@ -51,7 +52,9 @@ test('Export backup saves the app with the plan inside, named by local date and 
   const block = html.slice(html.indexOf('id="when-im-gone-plan"'));
   expect(block.slice(0, block.indexOf('</script>'))).not.toContain('<');
   // The page copy is the app as built, not this session's screen.
-  expect(html).not.toContain('Alex Morgan</h');
+  expect(html).toContain('<div id="view"></div>');
+  expect(html.match(/id="static-plan"/g)).toHaveLength(1);
+  expect(html).not.toMatch(/<html[^>]*\bjs\b/);
 });
 
 test('with Your name filled in, saved file names start with it', async ({ app }) => {
@@ -93,6 +96,74 @@ test('a saved file opens from disk with the same plan in every engine', async ({
   }
 });
 
+async function nameThePlan(page: Page, owner: string) {
+  await nav(page, 'Settings');
+  await page.getByLabel('Plan name').fill('The Morgan Household');
+  await page.getByLabel('Your name').fill(owner);
+  await page.getByRole('button', { name: 'Save details' }).click();
+}
+
+test('with scripts off, a saved file shows the whole plan to read and how to open it', async ({ app }) => {
+  await nameThePlan(app, 'Alex Morgan');
+  await addRecord(app, 'Trusted contacts', { 'Contact or organization': 'Pat Lee', Phone: '555-0140', Email: 'pat@example.com', 'When to contact': HOSTILE });
+  const { path } = await exportSavedFile(app);
+  for (const engine of openIn) {
+    const browser = await ENGINES[engine]!.launch(engine === 'chromium' && process.env.PW_CHROMIUM_PATH ? { executablePath: process.env.PW_CHROMIUM_PATH } : {});
+    try {
+      const ctx = await browser.newContext({ javaScriptEnabled: false });
+      const page = await ctx.newPage();
+      const errors: string[] = [];
+      page.on('console', (m) => m.type() === 'error' && !(m.text().includes('FaviconLoader') && m.text().includes('/favicon.ico')) && errors.push(m.text()));
+      await page.goto(pathToFileURL(path).href);
+      const copy = page.locator('#static-plan');
+      await expect(copy.getByRole('heading', { level: 1, name: 'This is The Morgan Household.' }), engine).toBeVisible();
+      await expect(copy, engine).toContainText(/Alex Morgan's plan, saved \w+day, \w+ \d{1,2}, \d{4} at \d{1,2}:\d{2}/);
+      await expect(copy, engine).toContainText('the one with the latest date in its name is the newest');
+      await expect(copy.getByText('On an iPhone or iPad:'), engine).toBeVisible();
+      await expect(copy.getByRole('heading', { name: 'Start here' }), engine).toBeVisible();
+      await expect(copy.getByRole('link', { name: '555-0140' }), engine).toHaveAttribute('href', 'tel:5550140');
+      await expect(copy.getByRole('link', { name: 'pat@example.com' }), engine).toHaveAttribute('href', 'mailto:pat@example.com');
+      await expect(copy.getByText(HOSTILE), engine).toBeVisible();
+      // The empty app shell and the "needs JavaScript" line stay out of the way.
+      await expect(page.locator('#app'), engine).toBeHidden();
+      await expect(page.getByText('needs JavaScript turned on'), engine).toBeHidden();
+      expect(await page.title(), engine).toMatch(/^Alex Morgan's plan, saved /);
+      expect(errors, `${engine}: no console errors or CSP violations`).toEqual([]);
+      await ctx.close();
+    } finally {
+      await browser.close();
+    }
+  }
+});
+
+test('the readable copy passes axe in both themes', async ({ app, browser }) => {
+  await nameThePlan(app, 'Alex Morgan');
+  await addRecord(app, 'Trusted contacts', { 'Contact or organization': 'Pat Lee', Phone: '555-0140' });
+  const { path } = await exportSavedFile(app);
+  // axe needs scripts, so show the page as a script-less preview would: the same file with its own scripts taken out.
+  const html = readFileSync(path, 'utf8').replace(/<script(?![^>]*application\/json)[^>]*>[\s\S]*?<\/script>/g, '');
+  const ctx = await browser.newContext();
+  const page = await ctx.newPage();
+  for (const theme of ['dark', 'light']) {
+    await page.setContent(html.replace('data-theme="dark"', `data-theme="${theme}"`));
+    await expect(page.locator('#static-plan')).toBeVisible();
+    const axe = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze();
+    expect(axe.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target).join(', ')}`), theme).toEqual([]);
+  }
+  await ctx.close();
+});
+
+test('with scripts on, the readable copy is gone and a banner says whose plan and when', async ({ app, browser }) => {
+  await nameThePlan(app, 'Alex Morgan');
+  const { path } = await exportSavedFile(app);
+  const { ctx, page, errors } = await openSaved(browser, path);
+  await expect(page.locator('#banners')).toContainText(/Alex Morgan's plan, saved \w+day, .* the latest date in its name is the newest\./);
+  await expect(page.locator('#static-plan')).toHaveCount(0);
+  await expect(page.locator('#view')).toBeVisible();
+  expect(errors).toEqual([]);
+  await ctx.close();
+});
+
 test('a copy saved from a saved file has one plan block and the newest plan', async ({ app, browser }) => {
   await addRecord(app, 'People', { 'Full name': 'First' });
   const first = await exportSavedFile(app);
@@ -101,6 +172,8 @@ test('a copy saved from a saved file has one plan block and the newest plan', as
   const second = await exportSavedFile(page);
   const html = readFileSync(second.path, 'utf8');
   expect(html.match(/id="when-im-gone-plan"/g)).toHaveLength(1);
+  expect(html.match(/id="static-plan"/g)).toHaveLength(1);
+  expect(html).toContain('Second</h3>');
   const reopened = await openSaved(browser, second.path);
   await nav(reopened.page, 'People');
   await expect(reopened.page.getByRole('heading', { name: 'Second' })).toBeVisible();

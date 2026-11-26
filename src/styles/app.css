@@ -279,3 +279,25 @@ dialog::backdrop { background: var(--overlay); }
 .handoff-methods li { margin-bottom: 12px; }
 .handoff-methods p { margin: 2px 0; }
 .handoff-label { font-weight: 600; }
+
+/* The readable copy in a saved plan file, for previews that run no scripts.
+   With scripts, the theme script adds .js before first paint and this stays hidden.
+   Without them, it replaces the empty app shell and the "needs JavaScript" line. */
+.js .static-plan { display: none; }
+html:not(.js) body:has(.static-plan) .shell,
+html:not(.js) body:has(.static-plan) noscript { display: none; }
+.static-plan { max-width: 760px; margin: 0 auto; padding: 24px 16px 64px; overflow-wrap: anywhere; }
+.static-plan h1 { font-size: 1.8rem; line-height: 1.2; margin: 0 0 12px; }
+.static-plan h2 { font-size: 1.35rem; margin: 32px 0 10px; padding-bottom: 4px; border-bottom: 1px solid var(--line); }
+.static-plan h3 { font-size: 1.05rem; margin: 0 0 6px; }
+.static-plan a { color: inherit; }
+.static-intro { padding: 16px; border: 1px solid var(--line); border-radius: 10px; margin-bottom: 8px; }
+.static-intro ul { padding-left: 20px; }
+.static-plan .pk-record { padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; margin: 0 0 10px; }
+.static-plan dl { display: grid; grid-template-columns: minmax(120px, 30%) 1fr; gap: 4px 12px; margin: 6px 0 0; }
+.static-plan dt { font-weight: 600; }
+.static-plan dd { margin: 0; white-space: pre-wrap; }
+.static-plan .pk-text p { white-space: pre-wrap; }
+.static-plan .pk-checks { padding-left: 20px; }
+.static-plan .pk-checks small { display: block; }
+@media (max-width: 520px) { .static-plan dl { grid-template-columns: 1fr; } .static-plan dd { margin-bottom: 6px; } }
