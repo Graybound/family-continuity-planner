@@ -173,7 +173,7 @@ Accessibility checks:
 - `src/core/recommend.ts`, `src/core/audit.ts`, `src/core/sample.ts`
 - `src/ui/views/section.ts` (empty-state starter button, ordering, steps rendering), `src/ui/print.ts`
 - `examples/sample-plan.json`, `tests/fixtures/` (v2 fixture), `tests/unit/`, `tests/e2e/`
-- `docs/backup-format.md`, `PROJECT_SPEC.md` (move Technology from planned to implemented), `ROADMAP.md`, `CHANGELOG.md`
+- `docs/backup-format.md`, `docs/readiness-and-audit.md` (rule 1 change, new rule), `PROJECT_SPEC.md` (move Technology from planned to implemented), `ROADMAP.md`, `CHANGELOG.md`
 
 No new runtime or dev dependency.
 
