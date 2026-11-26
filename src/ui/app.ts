@@ -79,24 +79,27 @@ function renderTopbar(): void {
   const bar = document.getElementById('topbar')!;
   clear(bar);
   const dark = currentTheme() === 'dark';
-  const btn = (label: string, glyph: string, onClick: () => void, extra: Record<string, string> = {}) =>
-    h('button', { class: 'btn', attrs: { type: 'button', title: label, 'data-focus-key': `top:${label}`, ...extra }, on: { click: onClick } }, icon(glyph), h('span', { class: 'label-collapse' }, label));
+  // Visible text stays a word, never a bare symbol: full label on wide screens, a short one on narrow screens.
+  // The accessible name is always the full label, which contains the short one.
+  const btn = (label: string, short: string, glyph: string, onClick: () => void, extra: Record<string, string> = {}, cls = '') =>
+    h('button', { class: ['btn top-btn', cls], attrs: { type: 'button', 'aria-label': label, 'data-focus-key': `top:${label}`, ...extra }, on: { click: onClick } },
+      icon(glyph), h('span', { class: 'label-full', attrs: { 'aria-hidden': 'true' } }, label), h('span', { class: 'label-short', attrs: { 'aria-hidden': 'true' } }, short));
   bar.append(
-    h('button', { class: 'btn mobile-menu', attrs: { id: 'menu-btn', type: 'button', 'aria-controls': 'sidebar', 'aria-expanded': 'false' }, on: { click: () => setMenu(true) } }, icon('☰'), h('span', { class: 'label-collapse' }, 'Menu')),
-    h('button', { class: 'search-btn', attrs: { type: 'button', 'data-focus-key': 'top:search', 'aria-keyshortcuts': 'Control+K Meta+K' }, on: { click: openSearch } }, icon('⌕'), h('span', null, 'Search your plan'), h('kbd', { attrs: { 'aria-hidden': 'true' } }, 'Ctrl K')),
+    h('button', { class: 'btn mobile-menu', attrs: { id: 'menu-btn', type: 'button', 'aria-controls': 'sidebar', 'aria-expanded': 'false' }, on: { click: () => setMenu(true) } }, icon('☰'), h('span', null, 'Menu')),
+    h('button', { class: 'search-btn', attrs: { type: 'button', 'data-focus-key': 'top:search', 'aria-keyshortcuts': 'Control+K Meta+K' }, on: { click: openSearch } }, icon('⌕'), h('span', { class: 'search-label' }, 'Search your plan'), h('kbd', { attrs: { 'aria-hidden': 'true' } }, 'Ctrl K')),
     h('div', { class: 'top-actions' },
-      btn(dark ? 'Light mode' : 'Dark mode', dark ? '☀' : '☾', () => {
+      btn(dark ? 'Light mode' : 'Dark mode', dark ? 'Light' : 'Dark', dark ? '☀' : '☾', () => {
         applyTheme(dark ? 'light' : 'dark');
         toast(dark ? 'Light mode on' : 'Dark mode on');
         render();
-      }),
-      btn('Privacy mode', '◉', () => {
+      }, {}, 'theme-btn'),
+      btn('Privacy mode', 'Privacy', '◉', () => {
         ui.privacy = !ui.privacy;
         toast(ui.privacy ? 'Privacy mode on: private details hidden' : 'Privacy mode off: private details shown');
         render();
       }, { 'aria-pressed': String(ui.privacy) }),
-      btn('Export backup', '⇩', exportBackup),
-      btn('Print', '⎙', openPrintDialog),
+      btn('Export backup', 'Backup', '⇩', exportBackup),
+      btn('Print', 'Print', '⎙', openPrintDialog),
     ),
   );
 }
@@ -108,6 +111,16 @@ function renderBanners(): void {
   const all = [...ui.banners];
   if (plan.info.isSample) {
     all.unshift({ id: 'sample', tone: 'info', text: 'You are looking at fictional sample data. Nothing here is real.', actions: [{ label: 'Remove sample data', run: removeSampleData }], dismissible: false });
+  }
+  // Privacy mode hides text in place. Say so on every screen, with a one-tap way back, so hidden details never look lost.
+  if (ui.privacy) {
+    all.unshift({ id: 'privacy', tone: 'info', text: 'Privacy mode is on, so some private details are hidden on this screen.', actions: [{ label: 'Show hidden details', run: () => {
+      ui.privacy = false;
+      toast('Privacy mode off: private details shown');
+      render();
+      // The banner and its button are gone after the render; keep keyboard focus on the page.
+      document.getElementById('main-content')?.focus();
+    } }], dismissible: false });
   }
   for (const b of all) {
     el.append(h('div', { class: ['banner', b.tone], attrs: { role: b.tone === 'warn' ? 'alert' : undefined } },
