@@ -3,264 +3,376 @@
 Status: proposed, waiting for Noah's approval. No code until approved.
 Related: reader view ([reader-mode.md](reader-mode.md), PR #13), first-run welcome screen (the "Make the flow obvious for anyone" work), Cloudflare hosting ([cloudflare.md](../cloudflare.md), PR #15), restore and schema fixes (PR #17), schema v3 claims (PRs #11 and #14).
 
+Everything marked UNVERIFIED was not tested. Everything marked "Tested" was run in this session against the current `main` build in headless Chromium 158 on Linux over `file://`. No phone, mail app, Safari or Firefox was tested.
+
 ## The problem, from the reader's side
 
-After the creator dies, the things the plan depends on go away one by one: the domain lapses, the Cloudflare and GitHub accounts close, the creator's computer gets wiped. Today the reader needs two things to see the plan on a new device: the app (from the website, or a copy of `index.html` someone remembered to keep) and a JSON backup, plus the knowledge of how to put them together. That is two files and a technical step, on the worst week of her life.
+After the creator dies, the things the plan depends on go away one by one: the domain lapses, the Cloudflare and GitHub accounts close, the creator's computer gets wiped. Today the reader needs the app (from the website, or a copy of `index.html` someone remembered to keep) plus a JSON backup, and has to know how to put them together. She also can't keep the plan up to date without the website.
 
-She needs one file. Double-click it and the plan is there, with no internet, no website and no setup.
+She needs one file. Open it and the plan is there, offline. She can read it on any device, and change it on a computer, with no website, no account and no upload.
 
 ## The idea
 
-**Save a copy** produces one HTML file: the full app with the plan embedded in it. Opened from disk it shows that plan read-only in the reader view. The same file can be imported into any copy of the app, like a JSON backup today. One file to keep instead of an app plus a backup.
-
-What this is not: a sync mechanism, a replacement for paper, or a way to keep editing a file. The file is a snapshot. It never changes after it is saved.
+**Save** produces one HTML file: the full app with the plan inside it. Double-click it on a computer and it is the normal, editable app, opened on that plan. Open it somewhere scripts can't run (a phone preview, a mail app) and it still shows the whole plan as a plain readable page, with instructions at the top for opening it properly. The same file imports into any copy of the app, like a JSON backup today.
 
 ## Decisions for Noah
 
 Recommended answers first. Each is argued in the section named.
 
-1. **No passphrase in the first version, and no passphrase by default ever.** The file's job is to open when everything else has failed. See "4. Privacy".
-2. **The file shows a plain-text copy of the plan when scripts can't run** (iPhone Mail and Files previews). This is the only way the file helps on a phone. See "3. Where it works".
-3. **Save a copy (HTML) becomes the main export; JSON moves under "Other formats".** Import accepts both forever. See "5. Backward compatibility".
-4. **No schema change.** The embedded data is the existing backup JSON, byte for byte. See "5".
+1. **Add a plan id to the schema** so two plans in one browser never mix. This is a schema change (version bump, migration, fixtures), and PRs #11 and #14 both claim v3. Recommended: one v3 that carries all three changes, landed in one PR, with the plan id in it. See "2. Editing and saving".
+2. **Save always makes a new, uniquely named file** (`WhenImGone_2026-11-26_1432.html`, Noah's naming decision). By default it downloads. On Chrome and Edge desktop, an optional setup lets Save write the new file straight into a chosen folder instead of Downloads. **Saving over the same file is dropped**: it would leave an old date in the name of the newest copy, which breaks "the latest date in the name is the newest". See "2" and "10".
+3. **iPhone: read in the preview, edit on a computer.** There is no built-in way to run a local HTML file's scripts on iPhone. The only free route found (an Apple Shortcut) can't keep changes between visits. See "5. Running it on phones".
+4. **No .webarchive.** It doesn't open on Windows, Android, Chrome or Firefox, and nothing shows it runs scripts on iPhone. See "7".
+5. **No passphrase.** An encrypted file can't show the readable preview, which makes it unreadable on every phone. See "8".
 
 ## 1. How the data is embedded
 
 ### File layout
 
-The saved file is the running app's own HTML with two additions just before `</body>`:
+Every saved file is the running app's own HTML with two additions:
 
 ```html
-<div id="static-plan" class="static-plan">...plain-text copy of the plan, see section 3...</div>
+<body>
+<div id="static-plan" class="static-plan">...readable plan plus opening instructions, section 3...</div>
+...the app's normal markup...
 <script type="application/json" id="when-im-gone-plan">{ ...backup JSON, escaped... }</script>
+</body>
 ```
 
-- The JSON is exactly what JSON export writes today (`serializeBackup` in [src/core/backup.ts](../../src/core/backup.ts)), including `schema`, `schemaVersion`, `exportedAt` and `exportedBy`. No wrapper, no new fields.
+- The JSON is exactly what JSON export writes (`serializeBackup` in [src/core/backup.ts](../../src/core/backup.ts)), including `schema`, `schemaVersion`, `exportedAt` and `exportedBy`. No wrapper.
 - `type="application/json"` makes it a data block. Browsers never run it, so it needs no CSP hash and the CSP is unchanged: `connect-src 'none'`, `default-src 'none'`, script and style hashes only.
 
 ### Escaping
 
-Before writing, the JSON text gets five replacements: `<` to `<`, `>` to `>`, `&` to `&`, U+2028 to ` `, U+2029 to ` `. These are valid JSON escapes, so `JSON.parse` gives back the identical value. With no `<` left, user text can't close the `<script>` element or open an HTML comment, whatever the creator typed. The text stays readable in a text editor, which matches the backup-format promise that a family can recover information without the app.
+The JSON text gets five replacements: `<` to `<`, `>` to `>`, `&` to `&`, U+2028 to ` `, U+2029 to ` `. These are valid JSON escapes, so `JSON.parse` gives back the identical value. With no `<` left, nothing the creator typed can close the `<script>` element or open a comment. The text stays readable in a text editor.
 
-Tested in this session (Chromium 158, headless, over `file://`): a message body of `x</script><script>window.PWNED=1</script><!-- <script>` plus U+2028, U+2029, `&`, accents and emoji round-trips exactly, no script runs, and there are no CSP violations or console errors.
+Tested: a message body of `x</script><script>window.PWNED=1</script><!-- <script>` plus U+2028, U+2029, `&`, accents and emoji round-trips exactly, no script runs, no CSP violations, no console errors.
 
 ### Where the app's own HTML comes from
 
-The app can't read its own file (`connect-src 'none'` blocks it, and that must not change). So it keeps a copy of its own page from startup:
+The app can't read its own file (`connect-src 'none'` blocks it, and that must not change). So it keeps a copy of its page from startup:
 
-- `src/ui/selfCopy.ts` (new). The first statement of `main.ts` calls `captureTemplate()`, which deep-clones `document.documentElement` before any rendering. At save time, the clone gets the two blocks above (built with `h()` and `textContent`, never HTML strings), any existing `#static-plan` and `#when-im-gone-plan` removed first, and the `style` attribute that the theme script sets on `<html>` removed. Then it is serialized with `"<!doctype html>\n" + clone.outerHTML`.
-- That `outerHTML` read is the one place app code touches `outerHTML`. It reads, it never assigns. It gets a single `eslint-disable-next-line` with the reason. The lint rule stays.
-- The data and the plain-text copy are built in a detached clone, so nothing user-written ever passes through an HTML parser in the live page.
+- `src/ui/selfCopy.ts` (new). The first statement of `main.ts` calls `captureTemplate()`, which deep-clones `document.documentElement` before anything renders. At save time it works on a fresh clone of that: removes any old `#static-plan` and `#when-im-gone-plan`, removes the `style` attribute and `js` class the theme script put on `<html>`, adds the two new blocks (built with `h()` and `textContent`, never HTML strings), and serializes with `"<!doctype html>\n" + clone.outerHTML`.
+- That `outerHTML` read is the only place app code touches `outerHTML`. It reads, never assigns, and gets one `eslint-disable-next-line` with the reason. The lint rule stays.
+- Nothing user-written passes through an HTML parser in the live page.
+- No module may change the DOM when it is imported, or that change lands in every saved file. A test guards it.
 
-Tested in this session: serializing a DOM snapshot of the built file (taken before any script ran) keeps every inline `<script>` byte-identical, so the CSP hashes still match and the saved file boots with no CSP violations. Requirement for the build: no module may change the DOM at import time, because that would land in the template. A test guards it (see Test plan).
+Tested: serializing a DOM snapshot of the built file keeps every inline `<script>` byte-identical, so the CSP hashes still match and the saved file boots with no violations.
 
-Why not a build-time copy of the HTML inside the app: a file can't contain itself, and storing a second copy doubles the size for nothing.
+Size: the app is 111.8 KB today. The sample plan with a readable copy came to 124 KB.
 
-The file is about 112 KB plus the plan (measured: `dist/index.html` on main is 111.8 KB).
+## 2. Editing and saving
 
-## 2. What happens on open
+A page can't rewrite its own file. So the file is where the plan travels, and the browser's storage is where changes live between saves.
 
-On startup the app looks for `#when-im-gone-plan`.
+### Plan id (schema change)
 
-**No block (the normal app):** unchanged.
+`info.planId`: a random id (`crypto.randomUUID()`, falling back to the existing id generator) set when a plan is created, kept by every save, export and import. It is the only reliable way to tell "another copy of my plan" from "someone else's plan" in shared storage.
 
-**Block found (a saved copy):**
+- Schema version bump, with a migration that gives existing plans a new id. Fixtures and tests per [ARCHITECTURE.md](../../ARCHITECTURE.md).
+- PRs #11 and #14 both claim v3. Do not ship three separate v3s. Recommended: whichever lands first becomes v3 and includes the plan id; the others build on it, or bump to v4.
+- "Start a new plan" and "Load sample plan" make a new id. Importing a file keeps the file's id.
 
-1. The text goes through the existing pipeline: `parseBackup` (size limit, safe parse, version detection, migration, normalization). Nothing new decides anything about the data. Pure logic lives in `src/core/embedded.ts` with unit tests.
-2. The plan is held in memory and shown in the reader view (reader-mode.md slice 1), opening on Start Here.
-3. **The saved copy never writes the plan to storage.** In Chromium every HTML file opened from disk shares one storage area ([SECURITY.md](../../SECURITY.md); confirmed in this session with a persistent Chromium profile). If the saved copy wrote its plan to storage, opening an old copy would overwrite the creator's working plan in the same browser. Theme and other device keys may still be written. Firefox and Safari storage rules for `file://`: UNVERIFIED, and it doesn't matter because the rule is "never write the plan".
-4. A banner that cannot be dismissed, at the top of every page:
+### Storage keyed by plan
 
-   > This is a copy of the plan saved on **28 November 2026**. It doesn't change. If you have a copy with a later date, use that one instead.
+Chrome and Edge give every HTML file opened from disk one shared storage area ([SECURITY.md](../../SECURITY.md); tested). Two plan files must never overwrite each other there.
 
-   When the copy is over a year old, add: "This copy is more than a year old. Some details may have changed." Honest, no alarm. The date is `exportedAt` (shown in the reader's local date format). If `exportedAt` is missing or invalid, use `info.updatedAt` and say "last changed on" instead.
+- Plans are stored under `<prefix>.plan.<planId>`. A separate key holds the id of the plan last opened by the plain app (no embedded data), so the hosted site and a plain `index.html` still open "my plan" as today.
+- The existing `familyContinuityPlanner.v2` key migrates into this on first start. This is a storage change; it is acceptable now because the rename pass is changing every key anyway and no real plans exist yet. Do it in the same release as the rename so keys change once.
+- Each stored plan also records `savedToFileAt`: when its contents were last written to a file (by Save or export). Device-only, not in the schema.
 
-5. If storage already holds a plan, a second line: "This browser also has a plan saved in it, last changed on {date}. [Open that one]". It opens the normal app with the stored plan. The saved copy doesn't guess whether they're the same plan; there is no plan id in the schema and adding one isn't worth a schema bump.
+### What happens on open
 
-### Editing means importing
+The app looks for `#when-im-gone-plan`. No block: the normal app, as today. Block found: parse it with `parseBackup` (size limit, safe parse, version detection, migration, normalization) and compare it with storage for the same plan id. Call the file's plan F and the stored one S.
 
-The reader view's footer link reads **"Make changes"** instead of "Switch to editing". It opens a dialog:
+| Situation | What she sees |
+|---|---|
+| No S | F opens in the app and is saved to storage. |
+| S and F last changed at the same time | Opens. Nothing to say. |
+| S is newer than F | The "older copy" warning, below, before anything opens. |
+| F is newer, and S has nothing unsaved (`S.updatedAt <= savedToFileAt`) | F opens and replaces S. Banner: "Updated from this file, saved {date}." Nothing is lost: S's contents are already in an older file. |
+| F is newer, and S has unsaved changes | Both changed. A dialog, below. |
 
-> Changes are saved in this browser, not in this file. This file stays as it is. When you're done, use Save a copy to make a new file.
+The "older copy" warning (Noah's decision: warn before using an older copy):
 
-- **Storage is empty:** one button, "Make changes in this browser". The plan is saved to storage like a restore, and the session switches to the normal app.
-- **Storage holds a plan:** the existing restore preview and acknowledgement (from `backupFlow.ts`), with both dates side by side: "In this browser: {name}, last changed {date}. In this file: {name}, saved {date}." If the stored plan changed after the file was saved, the first line of the dialog says so in bold, and the default button is "Keep the one in this browser". Replacing needs the existing acknowledgement checkbox.
+> **This is an older copy.**
+> This file was saved {F saved date and time}. This browser has a newer version of the same plan, last changed {S date and time}.
+> [Open the newer version] (default)
+> [Just read this older copy]
+> [Replace the newer version with this copy]
 
-Reopening the file later shows the saved copy again, read-only, with the "Open that one" link. That is the whole stale-snapshot guard: a saved copy can only replace newer data through a dialog that shows both dates and needs a checkbox.
+"Replace" first downloads S as its own file, then asks once more ("The newer version was saved to your Downloads as {name}. Replace it in this browser with the older copy?"). "Just read" opens F read-only and changes nothing. Escape picks the default.
 
-## 3. Where it works, and the fallback
+The "both changed" dialog:
 
-Two kinds of failure: the platform won't run the file's scripts (a preview), or it won't open an HTML file from disk at all (policy). The plain-text copy covers the first. Paper and PDF cover the second.
+> **This file and this browser both have changes.**
+> This file was saved on {date}. This browser has changes from {date} that were never saved to a file.
+> [Save this browser's changes to a file, then open this one] (default)
+> [Keep this browser's version]
+> [Just read this file]
 
-### The plain-text copy
+The default can't lose anything: it downloads S as its own file first. Choosing "Keep" opens S and leaves F on disk. "Just read" opens F read-only in the reader view and touches nothing.
 
-Inside `#static-plan`: the plan rendered as plain HTML (headings, paragraphs, lists) using the shared record renderer the reader-mode spec moves out of `print.ts` (`src/ui/recordView.ts`), in reader order, Start Here first, personal messages last. No scripts, no forms, no links except `tel:` and `mailto:`. It starts with the same saved-on line as the banner.
+Known limit: timestamps can't detect that S is newer but is missing edits made to F on another device. That case lands in "S is newer"; the warning's "Just read this older copy" lets her see the difference. A revision history would fix it and is not worth it now.
 
-- It is built with `h()` in the detached clone, so all user text is escaped by the serializer. It lives in a normal `<div>`, not `<noscript>`: when scripting is on, the serializer writes text that is a direct child of `<noscript>` without escaping, which is an injection risk.
-- It is styled only by classes in the existing hashed stylesheet. No `style` attributes, which the CSP would block.
-- When scripts run, it is hidden before first paint: the existing inline theme script in `<head>` also adds a `js` class to `<html>`, and the stylesheet hides `.js .static-plan`. The app then removes the element. The theme script's hash changes; post-build already recomputes it.
-- Private fields are included. The JSON in the same file already contains them in readable form, so hiding them here would only pretend.
-- The existing `<noscript>` "needs JavaScript" message is hidden when `#static-plan` is present.
+Requirement: saving a file must not change `updatedAt` (today `exportBackup` writes `lastExportedAt` into the plan; make sure that write doesn't count as an edit, or the comparisons above break).
 
-Smallest useful version: no styling beyond readable defaults. It's a fallback.
+### Saving
 
-### Platform matrix
+One **Save** button in the top bar, replacing "Export backup".
 
-Only the first row was tested. Everything else is UNVERIFIED and is the manual test Noah runs before release (see Acceptance criteria).
+Every Save makes a new file with a unique, sortable name (section 10). Nothing is ever overwritten.
 
-| Where | Expected | Source |
+- **Everywhere (default):** downloads the new file. A message says: "Saved as {name} in your Downloads folder. If you have several copies, the one with the latest date in its name is the newest." Works in every browser that can run the app, including from `file://`.
+- **Chrome and Edge on a computer, optional:** "Save into a folder". The creator sets it up once in Settings ("Choose where saved copies go"): the browser asks for a folder (`showDirectoryPicker`), and the folder handle is kept in IndexedDB under the plan id. After that, Save writes the new file into that folder, for example the USB drive's plan folder, instead of Downloads. The browser asks permission again in a later session (exact prompt UNVERIFIED). If the handle fails for any reason, Save falls back to a download and says so.
+  - Tested: `showSaveFilePicker`, `showOpenFilePicker` and IndexedDB exist on `file://` in Chromium, and it counts as a secure context. Not tested: `showDirectoryPicker` and writing a file (they need a person to click).
+  - Why optional: setup shows a folder picker and a permission question. Fine for the creator, bad for a grieving reader. Also not in Firefox or Safari.
+  - Why not overwrite the opened file: the newest copy would keep an old date in its name (Noah's naming rule), and a bad write would destroy the only copy.
+- **Unsaved changes:** while S has changes newer than `savedToFileAt`, the top bar shows "Changes not saved to a file yet" next to Save, and closing the tab asks "Leave without saving?" (`beforeunload`). Storage still keeps the changes, so this is about the file, not about losing work today.
+- Browsers that don't keep storage for local files (UNVERIFIED which ones; Firefox and Safari rules for `file://` differ from Chrome) still work: edits last for the session and Save writes the file.
+
+## 3. The readable copy for previews
+
+### What it is
+
+`#static-plan` is the whole plan rendered as plain HTML at every save: headings, paragraphs, definition lists, `tel:` and `mailto:` links, nothing else. It uses the shared record renderer that the reader-mode spec moves out of `print.ts` (`src/ui/recordView.ts`), in reader order, Start Here first, personal messages last. Private fields are included, because the JSON in the same file already has them in readable form.
+
+At the top, before the plan, the opening instructions below.
+
+When scripts run, the theme script in `<head>` adds a `js` class to `<html>`, the stylesheet hides `.js .static-plan` before first paint, and the app removes the element. When scripts don't run, the readable copy is all she sees, and the existing "needs JavaScript" `<noscript>` line is hidden by the same stylesheet when `#static-plan` is present.
+
+Rules:
+
+- Built with `h()` in the detached clone, so the serializer escapes all user text. A normal `<div>`, not `<noscript>`: when scripting is on, text directly inside `<noscript>` is serialized without escaping.
+- No `style` attributes. Tested: Chromium enforces the meta CSP even with scripts turned off, and blocks inline styles. Styling comes only from classes in the hashed stylesheet. Quick Look and other previews may ignore the stylesheet; the copy must read fine unstyled.
+- No reliance on the dark theme: with scripts off, `<html data-theme="dark">` from the template applies. The readable copy gets explicit light-on-dark-safe classes, or the template default changes to light. Check contrast both ways.
+
+### Opening instructions (copy, written for the reader)
+
+> **This is {plan name}.**
+> This copy was saved {Thursday, November 26, 2026 at 2:32 PM}. If you have several copies, the one with the latest date in its name is the newest.
+>
+> You can read everything on this page. To make changes, open it properly:
+>
+> - **On a Windows or Mac computer:** save this file, then double-click it. It opens in your web browser.
+> - **On an iPhone or iPad:** you can read it here, but you can't make changes on an iPhone. Use a computer for that.
+> - **On an Android phone:** save the file, open the Files app, tap the file, and choose Chrome if it asks.
+> - **If you're reading this inside an email:** download or save the attachment first, then follow the steps above.
+>
+
+The Android line depends on the test results below. If Android doesn't run it, it becomes the same as the iPhone line.
+
+## 4. Where it works
+
+### Tested in this session
+
+| Where | What rendered |
+|---|---|
+| Chromium, `file://`, scripts on | Full app on the embedded plan. No CSP violations. |
+| Chromium, `file://`, scripts off (stand-in for previews) | The readable copy with instructions, unstyled except the app's base stylesheet; the `<noscript>` line. Inline `style` attributes blocked by CSP. |
+
+### From research, not tested here
+
+| Where | What sources say | Confidence |
 |---|---|---|
-| Chromium (Chrome, Edge), Windows, Mac, Linux, double-click from disk | Full app, reader view, Make changes works. `isSecureContext` is true and `crypto.subtle` exists. | Tested in this session on Linux headless Chromium 158. Windows and Mac: UNVERIFIED but same engine. |
-| Firefox desktop, from disk | Full app. Storage per file or per folder. | UNVERIFIED. CI already runs Firefox; the e2e suite covers it. |
-| Safari on Mac, from disk | Full app. | UNVERIFIED. CI runs WebKit, which is close but not Safari. |
-| iPhone, Mail attachment preview | Quick Look shows the page with scripts off: the plain-text copy, readable. | UNVERIFIED. Belief: iOS Quick Look does not run JavaScript in HTML. |
-| iPhone, Files app | Same as Mail (Quick Look). There is no reliable way to run a local HTML file's scripts on iPhone without a third-party app. | UNVERIFIED |
-| Android, Gmail attachment / Files | Probably opens in Chrome with scripts on, or in a viewer with scripts off. Either way she sees the plan. Storage from a `content://` address may not work; the saved copy doesn't need it. | UNVERIFIED |
-| Chromebook, Files app | Opens in Chrome, full app. Managed (school or work) Chromebooks may block local files. | UNVERIFIED |
-| Webmail in a browser (Gmail, Outlook) preview | Preview strips scripts or refuses HTML; download then open. | UNVERIFIED |
-| Work email (Microsoft 365, Google Workspace) | HTML attachments are a common phishing vector and are often blocked, quarantined or flagged by policy. | UNVERIFIED, likely |
-| Locked-down browser (work laptop, kiosk, policy blocks `file://`) | May not open at all. | UNVERIFIED |
+| iPhone Files, tap a `.html` file | Quick Look preview. Renders HTML and CSS, runs no JavaScript, loads nothing from the web. No "Open in Safari", and "Open With" offers no apps. | Two independent sources (Apple Community answer for iOS 18.5; a vendor's iOS 26.3 simulator test). UNVERIFIED by us. |
+| iPhone Mail attachment | Same Quick Look viewer, by belief. | UNVERIFIED, no source tested Mail specifically. |
+| Gmail on the web, attachment preview | Shows the raw HTML code, not the page (changed by Google "for security reasons"). Download and open instead. | University IT note, July 2024. May have changed. UNVERIFIED. |
+| Gmail app, Outlook (web, app), Android Files preview | No source found. | UNVERIFIED |
+| Android, Files then Chrome | May open with scripts on, or show source, depending on the Files app. A Chromium bug reports local HTML access problems since Android 10. | Weak. UNVERIFIED |
+| Work email (Microsoft 365, Google Workspace) | HTML attachments are a common phishing vector and are often blocked or flagged. | UNVERIFIED, likely |
 
-**What this means for the reader:**
+### The real test: Noah runs it on real devices
 
-- On a computer: double-click works. That's the main path.
-- On a phone: she can read the plan, not use the app. No search, no private-details toggle. Say so plainly in the export guidance.
-- Don't rely on email to deliver the file. Email the PDF if email is the only way.
-- **Print and PDF stay the guaranteed fallback.** Paper works with no device. The Save a copy dialog ends with "Also print a copy" (opens the existing print dialog), and the guidance below keeps paper in the plan.
+`when-im-gone-preview-test.html` (sample data only, attached in the project thread) is the current app with the sample plan embedded and a plain readable copy at the top. Open it each way below and report, for each, which of these you saw: (a) the readable copy with instructions, (b) raw code, (c) the full app with a list of sections, (d) nothing or an error.
 
-The file is only as permanent as browsers' willingness to run local HTML. That has held for decades, but browser vendors do tighten `file://` from time to time (UNVERIFIED as a trend). Paper is the floor.
+1. iPhone: email it to yourself, tap it in Mail.
+2. iPhone: save to Files, tap it in Files.
+3. iPhone: Files, long press, Share: is Safari or any browser offered?
+4. Android: Gmail app attachment.
+5. Android: download, open from Files, choose Chrome. Does the app appear? Then make a change, close Chrome, open the file again: is the change still there?
+6. Gmail on the web, and Outlook on the web: preview the attachment.
+7. Windows (Edge) and Mac (Safari): double-click the downloaded file.
 
-## 4. Privacy
+The results go into this table and decide the final instruction copy in section 3. Until then, every row above stays UNVERIFIED.
 
-This file is the whole plan in readable form, and it will be emailed, put on USB drives and copied to cloud folders. Anyone who gets the file can read everything in it, including private fields, with a text editor. The export dialog says that in one sentence:
+## 5. Running it on phones
 
-> Anyone who has this file can read everything in it. Keep it where you'd keep a paper copy.
+### iPhone and iPad
 
-### Optional passphrase: evaluated, not recommended now
+There is no built-in way to open a local HTML file in Safari with scripts on. Every route found, ranked:
 
-A passphrase would be WebCrypto AES-GCM (256-bit key) with PBKDF2-SHA256 (at least 600,000 iterations, random 16-byte salt, random 12-byte IV), all in the browser, no dependency. `crypto.subtle` is available on `file://` in Chromium (tested in this session); Safari, Firefox and Android: UNVERIFIED.
+1. **Read in Quick Look, edit on a computer.** Works with no setup, by the sources above. Recommended.
+2. **An Apple Shortcut that opens the file in Safari.** Shortcuts is built into iOS and free. A shortcut can read the file from the share sheet and open it as a `data:` address in Safari, where scripts run (one blog describes this exact approach). Problems:
+   - A `data:` page has no storage of its own (opaque origin), so changes vanish when the tab closes unless she saves. Save would download a new file to Files; whether downloads work from a `data:` page is UNVERIFIED.
+   - Safari may limit the size of `data:` addresses (UNVERIFIED for a 150 to 500 KB file).
+   - Someone has to install the shortcut on her phone in advance, and it must be ours, not a stranger's iCloud link.
+   - Verdict: worth one real test on Noah's iPhone after slice 1 ships. If it works end to end, ship our own shortcut and add the steps to the instructions as an optional setup. Not in slice 1.
+3. **Third-party HTML viewer apps.** Exist; the ones found are ad-supported, paid after a trial, or a single developer's side project with unknown upkeep. Handing the whole plan to an app we don't control breaks "no network" in spirit. Not recommended.
+4. **Add to Home Screen from the website.** Would give a real offline app with storage on iPhone, but only with a service worker (the CSP forbids workers today), only if installed while the website still exists, and the plan would live only in that home-screen app's storage. It moves the plan's survival back onto the domain. Not recommended.
+5. **.webarchive.** See section 7.
 
-Against it:
+Bottom line: on iPhone she reads; she edits on a computer. Say so plainly in the instructions instead of hinting at a fragile workaround.
 
-1. **The failure it creates is worse than the one it prevents.** A forgotten or lost passphrase means the family loses the plan permanently, exactly when they need it. A leaked file means a stranger reads contact details, account names and where things are kept. By design it holds no passwords (PROJECT_SPEC.md principle 2).
-2. **It kills the phone fallback.** An encrypted file can't carry a plain-text copy, so iPhone previews show nothing useful.
-3. **The plan is already unencrypted** in the browser, on paper and in the PDF. Encrypting one copy changes little.
-4. **Getting the passphrase to her is the same problem the plan already solves.** It would have to sit in the password manager (she then needs emergency access, which the plan is supposed to explain) or on paper (next to the USB drive, which defeats it).
+### Android
 
-**Recommendation:** no passphrase in this feature. Default, if ever built: off. Revisit only if usability testing or a real incident shows copies leaking. If built later, these rules apply:
+Probably: download, open from the Files app, choose Chrome, and the full app runs. Whether storage persists for a file opened that way is unknown; Save still works if downloads do. Weak evidence either way, so this hangs on test 5 above. If it fails, Android gets the iPhone instructions.
 
-- The passphrase never travels with the file (not in the same email, not on the same drive).
-- It goes on the first page of the printed packet kept with the will, and in the password manager's emergency-access notes.
-- The file carries a plain-text page outside the encryption: "This plan is locked. The passphrase is in {hint the creator wrote}." No plan data in it.
-- A wrong passphrase gets a calm message and unlimited retries.
-- Saving an encrypted copy requires typing the passphrase twice and opening the file once to prove it works.
+## 6. Print and Save as PDF
 
-Guidance for the unencrypted file instead: keep fewer copies in fewer places (section 6), don't email it, use the private-fields marking for the most sensitive details, and use an encrypted USB drive if you want encryption (PRIVACY.md already says this).
+Next to Save, the top bar keeps **Print or save as PDF**, opening the existing print dialog. Its first line: "To make a PDF, choose Save as PDF (or Microsoft Print to PDF) as the printer." No silent fallback: print is a separate, visible choice, never something the app switches to.
 
-## 5. Backward compatibility
+## 7. Safari .webarchive
 
-- **Each file carries its own app.** A file saved today runs today's code forever, regardless of what later versions change. The version is in `exportedBy` and shown in the reader footer: "Saved with When I'm Gone 0.3.0".
-- **Import accepts both formats.** `chooseBackupFile` accepts `.json` and `.html` (`accept="application/json,.json,text/html,.html"`). `src/core/embedded.ts` exports `extractEmbeddedBackup(text): string | null`: find `<script ... id="when-im-gone-plan" ...>` and return the text up to the next `</script>` (safe because the writer escapes every `<`). The result goes into `parseBackup` like a JSON file. A `.html` file with no block: "This file doesn't contain a saved plan. Use a file made with Save a copy, or a backup ending in .json."
-- **Size limits.** The extracted JSON keeps the existing 10 MB limit. The whole HTML file is limited to 12 MB before extraction.
-- **Newer files in older apps.** An app older than the file's schema already refuses with a message. For HTML files, the message adds: "This file can open on its own: double-click it." Apps released before this feature reject HTML files as unreadable. That's acceptable because the file opens by itself.
-- **The welcome screen and reader-mode slice 2** ("opening a plan someone left for you") accept `.html` too. No change to their flow; they call the same import path.
-- **No schema change.** `schemaVersion` stays whatever the app is on when this ships (2 today; v3 if PR #11 or #14 lands first). The embedded JSON follows the schema of the app that saved it, and migrations apply on import as they already do. No fixture changes beyond adding HTML fixtures.
-- **The rename.** The element id uses the new name from the start (`when-im-gone-plan`), so the rename pass doesn't touch it. The backup `schema` id inside the JSON is the rename pass's decision; extraction doesn't look at it.
-- **Once real plans exist** (Noah's rule): the element id, the escaping and the `#static-plan` id become a format. Changing any of them needs extraction code that still reads the old form, plus a fixture of the old file.
+Recommendation: no.
 
-## 6. Naming and where to keep copies
+- It doesn't open in Chrome, Firefox or on Android at all, and Safari for Windows was discontinued in 2012 ([Wikipedia, Web Archive file format](https://en.wikipedia.org/wiki/Web_Archive_(file_format))). It would be a second file next to the HTML file, which defeats "one file".
+- iOS Safari has supported web archives since at least iOS 13 (same source), but nothing found says scripts run in one on iPhone, or how she would open one from Files or Mail (it may just be Quick Look again). UNVERIFIED.
+- It's a binary property list, not readable in a text editor, and the app would have to write that format itself.
 
-- **File name:** `when-im-gone-plan-YYYY-MM-DD.html`, local date. No plan name in the file name: the name is visible in email subjects, file lists and on shared drives. A second save on the same day gets the browser's usual " (1)".
-- **Inside the file:** the `<title>` is "{plan name}, saved {date}" so the browser tab says which copy it is.
-- **Guidance**, in the Save a copy dialog (two lines) and in README.md (full):
+It would only be worth a look if a real iPhone test showed a `.webarchive` opened from Files runs scripts and keeps storage. Even then it would be an extra iPhone-only export. Add it to the device test list if you want the evidence; I wouldn't build anything for it first.
 
-  1. Keep three current copies: a USB drive at home next to the printed packet; one with someone you trust (the executor, or the trusted contact) on a USB drive or in their own cloud storage; one in cloud storage the reader can still get into after you're gone (her own account, not yours: your accounts may be locked).
-  2. When you save a new copy, replace the old ones and delete them. An old copy in a drawer is the most likely way someone acts on out-of-date information. The banner date helps, but only if they compare.
-  3. Print a fresh packet at the same time. Paper doesn't need a working computer.
-  4. Don't email it. If you must, email the PDF.
+## 8. Privacy and the passphrase tradeoff
 
-The existing "Last backup is over N days old" check (`backup-old` in [src/core/audit.ts](../../src/core/audit.ts)) counts Save a copy as an export, through `info.lastExportedAt`, which both formats set.
+This file is the whole plan in readable form, including private fields, and it will be emailed, put on USB drives and copied to cloud folders. Anyone with the file can read all of it, in a browser or a text editor. The Save message says it once: "Anyone who has this file can read everything in it. Keep it where you'd keep a paper copy."
+
+### The tradeoff
+
+A passphrase would be WebCrypto AES-GCM (256-bit) with PBKDF2-SHA256 (at least 600,000 iterations, random salt and IV), no dependency. `crypto.subtle` exists on `file://` in Chromium (tested).
+
+The conflict: **an encrypted file can't contain a readable copy.** Anything readable without the passphrase is not protected. So:
+
+| | No passphrase (recommended) | Passphrase |
+|---|---|---|
+| iPhone preview | Whole plan readable | Only "This plan is locked" and opening instructions. No way to unlock on iPhone at all, because unlocking needs scripts. |
+| Android, Gmail, Outlook previews | Readable | Locked page only |
+| Computer | Opens | Opens after the passphrase |
+| Lost or forgotten passphrase | n/a | Plan gone for good |
+| Someone finds the USB or the email | Reads everything | Reads nothing |
+| Getting it to her | n/a | Must not travel with the file: on paper with the will, or in the password manager's emergency access. Both are things the plan itself is meant to explain. |
+
+In-between options, and why not:
+
+- Encrypt only private fields and show the rest: a second encryption path, a readable copy with holes in it, and the same lost-passphrase risk for the parts that matter most. More complexity than either pure option.
+- Two files, one plain and one encrypted: the plain one leaks everything, so the encrypted one protects nothing.
+
+Recommendation: no passphrase. The plan by design holds no passwords (PROJECT_SPEC.md principle 2), the plan is already unencrypted in the browser and on paper, and the failure a passphrase creates (she can't open it, on a phone not at all) is worse than the one it prevents. Use an encrypted USB drive or a private cloud folder for the copies that leave the house. If you choose a passphrase anyway, it has to be opt-in per save, typed twice, proven by opening the file once, and the locked page must say where the passphrase is kept.
+
+## 9. Backward compatibility
+
+- **Each file carries its own app.** A file saved today runs today's code forever. The version is in `exportedBy` and in the footer: "Saved with When I'm Gone 0.3.0".
+- **Import accepts both formats.** The file picker accepts `.json` and `.html`. `src/core/embedded.ts` exports `extractEmbeddedBackup(text): string | null`: find `<script ... id="when-im-gone-plan" ...>` and return the text up to the next `</script>` (safe because the writer escapes every `<`). The result goes into `parseBackup`. A `.html` file with no block: "This file doesn't contain a saved plan. Use a file made with Save, or a backup ending in .json."
+- **Size limits.** The extracted JSON keeps the 10 MB limit; the whole HTML file is limited to 12 MB before extraction.
+- **Newer files in older apps.** An older app refuses a newer schema with a message; for HTML files it adds "This file can open on its own: double-click it." Apps from before this feature reject HTML as unreadable, which is fine since the file opens by itself.
+- **Welcome screen and reader-mode slice 2** ("opening a plan someone left for you") accept `.html` through the same import path. With this feature, double-clicking the file is the main path and slice 2 matters less.
+- **Plan id.** Old JSON backups and v2 plans get an id during migration. Two imports of the same old backup on different devices get different ids, which is acceptable (they then behave as two plans).
+- **Once real plans exist** (Noah's rule): the element ids, the escaping, the storage keys and the plan id rules are a format. Changing any of them needs code that still reads the old form plus a fixture of the old file. Keep a saved-file fixture from every release in `tests/fixtures/`.
+
+## 10. Naming and where to keep copies
+
+Noah's decision, 26 November 2026.
+
+- **File name:** `WhenImGone_YYYY-MM-DD_HHMM.html`, 24-hour local time of the saving device, for example `WhenImGone_2026-11-26_1432.html`. JSON export uses the same pattern with `.json`. Sorts oldest to newest by name in any folder. No colons (Windows forbids them), no apostrophe, no spaces, no plan name (it would show in email subjects and shared folders).
+- **Seconds only on a clash:** if this browser already saved this plan in the same minute (from `savedToFileAt`), the name gets seconds after another underscore: `WhenImGone_2026-11-26_1432_05.html`. Not `_143205`: Windows Explorer and macOS Finder sort numbers by value, so `143205` would land after `1433` and the newest copy would no longer be last. With `_1432_05`, plain text sorting and number-aware sorting agree: `_1432.html`, then `_1432_05.html`, then `_1433.html` (`.` sorts before `_`; UNVERIFIED in every file manager, worth a look on Windows, Mac and Android Files). Clashes across two devices can't be seen; the browser's own " (1)" handles those.
+- **Saved time inside the file:** `exportedAt` is written as ISO 8601 with the saving device's offset (`2026-11-26T14:32:05-06:00`), not UTC `Z`. It is still a valid ISO time, and the banner can show the same wall-clock time as the file name no matter where the file is opened. Check that older apps accept the offset form on import (they only slice it for display; UNVERIFIED for the v1 app, which ignores it).
+- **Banner, in the app and at the top of the readable copy:** "This copy was saved Thursday, November 26, 2026 at 2:32 PM. If you have several copies, the one with the latest date in its name is the newest." The date is formatted with `Intl.DateTimeFormat` (weekday, month name, day, year, hour, minute) in the reader's language, from the wall-clock parts of `exportedAt`. In the app the banner stays for the session and can be collapsed, not removed.
+- **Page title:** "{plan name}, saved {date}", so the tab and the Quick Look header say which copy it is.
+- **Guidance**, two lines in the Save message and in full in README.md:
+  1. Keep three current copies: a USB drive at home next to the printed packet; one with someone you trust (the executor or trusted contact); one in cloud storage the reader can still reach after you're gone (her own account, not yours, because your accounts may be locked).
+  2. When you save a new copy, replace the old ones. An old copy in a drawer is the most likely way someone acts on out-of-date information.
+  3. Print a fresh packet at the same time.
+  4. Prefer a drive or shared folder over email. Some mail systems block HTML attachments.
+- The "Last backup is over N days old" check (`backup-old` in [src/core/audit.ts](../../src/core/audit.ts)) counts Save, through `info.lastExportedAt`.
 
 ## Acceptance criteria
 
-A non-developer can check each of these.
-
-- [ ] In the app, "Save a copy" downloads one file named `when-im-gone-plan-<today>.html`.
-- [ ] With the internet off, double-clicking that file on Windows (Edge or Chrome) and on a Mac (Safari) shows the plan's Start Here in the reader view, with the "saved on" banner and the right date.
-- [ ] Nothing in the saved copy changes the plan. After browsing it, the plan in the normal app on the same computer is unchanged, including its "last changed" date.
-- [ ] Opening an older saved copy while a newer plan is in the browser, then choosing Make changes, shows both dates and keeps the newer plan unless the checkbox is ticked and Replace is chosen.
-- [ ] Importing the HTML file into a copy of the app (Settings, Restore) works the same as importing the JSON backup of the same plan, and gives the same plan.
-- [ ] An existing JSON backup still imports.
-- [ ] On an iPhone, opening the file from Mail and from the Files app shows the plan as readable text (UNVERIFIED until tried; if it fails, the release notes and guidance say phones need the PDF).
-- [ ] On an Android phone, opening the file shows the plan (app or text).
-- [ ] Re-saving from a saved copy that was opened with Make changes produces a working file (a copy of a copy works).
-- [ ] **Wife test.** Give her a USB drive with only this file, on her own computer, offline, no help. She opens it, reads Start Here, finds who to call about the Wi-Fi, and can say how old the copy is. Run it in the usability test ([usability-test-plan.md](usability-test-plan.md)).
+- [ ] Save downloads one file named like `WhenImGone_2026-11-26_1432.html` with the current local date and time; two saves in the same minute get different names; a folder of saved copies sorted by name puts the newest last.
+- [ ] The app and the readable copy both show "This copy was saved {weekday, date} at {time}" matching the file name, and the line about the latest date being the newest.
+- [ ] Offline, double-clicking it on Windows (Edge) and Mac (Safari) opens the full app on that plan. A change, then Save, gives a new file that opens with the change.
+- [ ] On Chrome, two different plan files opened one after the other each show their own plan; editing one never changes the other.
+- [ ] Opening an older copy of a plan that has a newer save in the browser shows the "older copy" warning before anything opens, and the default opens the newer version.
+- [ ] When both the file and the browser have changes, the dialog appears, and its default choice downloads the browser's version before opening the file.
+- [ ] With "Save into a folder" set up on Chrome, Save writes a new uniquely named file into that folder instead of downloading, and never overwrites a file.
+- [ ] Opened with scripts off, the file shows the opening instructions and the whole plan as readable text.
+- [ ] Each device test in section 4 has a recorded result, and the instruction copy matches the results.
+- [ ] Print or save as PDF sits next to Save.
+- [ ] Importing the HTML file gives the same plan as importing the JSON backup of it. Existing JSON backups still import.
+- [ ] **Wife test.** On her own computer, offline, with only a USB drive holding this file: she opens it, finds who to call about the Wi-Fi, changes one phone number, saves, and opens the new file to check the change is there. On her phone, from an email: she can read Start Here and can say how to open it to make changes.
 
 ## Out of scope
 
-- Passphrase or encryption (section 4)
-- Editing inside the file, or writing changes back into the file
-- Detecting whether two copies are the same plan (no plan id)
-- Opening the app's scripts on iPhone (no reliable way without a third-party app)
-- Removing JSON export
-- Automatic reminders to save a new copy (review reminders is its own roadmap item)
-- Generating a PDF inside the app; the browser's print to PDF stays the way
+- Passphrase or encryption (section 8)
+- Editing on iPhone (section 5); the Shortcut is a follow-up test, not a feature
+- .webarchive (section 7)
+- Merging two diverged copies, or a revision history
+- Syncing between devices
+- Removing JSON export (it moves under "Other formats")
+- Generating a PDF inside the app
 
 ## Files likely touched
 
-- `src/ui/selfCopy.ts` (new): capture the template at startup, build the saved file.
-- `src/core/embedded.ts` (new): `escapeJsonForHtml`, `extractEmbeddedBackup`, `savedCopyFileName`, banner date and age logic. Pure, unit tested.
-- `src/main.ts`: `captureTemplate()` first, then branch on the embedded block.
-- `src/ui/backupFlow.ts`: `saveCopy()`, HTML in the file picker, the Make changes dialog (reusing the restore preview).
-- `src/ui/store.ts`: a read-only "saved copy" mode that never calls the plan save.
-- `src/ui/app.ts`: banner, "Open that one" link, Save a copy as the main export button.
-- `src/ui/recordView.ts` (from the reader-mode spec): render the plain-text copy.
-- `src/index.html`: theme script adds the `js` class; `<noscript>` text.
-- `src/styles/app.css`: `.js .static-plan { display: none }`, plain styles for `.static-plan`.
-- Docs: `docs/backup-format.md` (new section "Saved copy (HTML)"), README.md (where to keep copies), PRIVACY.md and SECURITY.md (the file is readable by anyone who has it; storage rule), ARCHITECTURE.md (selfCopy and the one `outerHTML` read), CHANGELOG.md, PROJECT_SPEC.md (status).
+- `src/ui/selfCopy.ts` (new): capture the template, build the saved file.
+- `src/core/embedded.ts` (new): escaping, extraction, file name, open-time comparison (the table in section 2 as a pure function returning which case applies), banner text inputs. Unit tested.
+- `src/core/plan.ts`, `src/core/migrate.ts`, `src/core/normalize.ts`: `info.planId`, schema bump and migration.
+- `src/core/storage.ts`: keys by plan id, `savedToFileAt`, last-opened pointer, migration from the single-plan key.
+- `src/main.ts`: capture first, then branch on the embedded block.
+- `src/ui/backupFlow.ts`: Save, the conflict dialog, HTML in the file picker, optional file handle save.
+- `src/ui/store.ts`, `src/ui/app.ts`: Save button, unsaved indicator, banners, `beforeunload`.
+- `src/ui/recordView.ts` (from the reader-mode spec): render the readable copy.
+- `src/index.html`: theme script adds `js`; `<noscript>` handling.
+- `src/styles/app.css`: `.js .static-plan`, readable-copy styles.
+- Docs: `docs/backup-format.md` (saved file format, plan id), README.md (keeping copies, phones), PRIVACY.md and SECURITY.md (readable file, storage by plan, IndexedDB folder handle), ARCHITECTURE.md (selfCopy, the one `outerHTML` read, schema version), CHANGELOG.md, PROJECT_SPEC.md.
 
 ## Data, schema and migration impact
 
-None. The embedded data is the current backup JSON. No new localStorage keys. New test fixtures: a saved copy HTML file from this version, kept forever.
+- Schema: `info.planId` added. Version bump, migration from v1 and v2, fixtures, tests. Coordinate the version number with PRs #11 and #14.
+- Storage: plan keys change to per-plan keys, `savedToFileAt` added, IndexedDB used for the optional folder handle. Ship with the rename pass so keys change once.
+- New fixtures: a saved HTML file from this version, kept forever.
 
 ## Test plan
 
-Unit (Vitest, `tests/unit/embedded.test.ts`):
-- `escapeJsonForHtml` output contains no `<`, `>`, `&`, U+2028 or U+2029, and `JSON.parse` of it equals the input, for a plan with hostile strings in every field type.
-- `extractEmbeddedBackup` finds the block regardless of attribute order; returns null with no block; returns the first block only; handles a file truncated mid-block (null, then the "damaged" message).
-- An HTML fixture and the JSON backup of the same plan give identical `parseBackup` results.
-- Banner date: `exportedAt` used when valid, falls back to `updatedAt`, the over-a-year line appears at 366 days and not at 364.
-- File name uses the local date.
+Unit (Vitest):
+- Escaping round-trips a plan with hostile strings in every field; output has no `<`, `>`, `&`, U+2028, U+2029.
+- Extraction: attribute order, no block, truncated block, first block only.
+- Open-time comparison returns the right case for every row of the section 2 table, including equal timestamps and missing `savedToFileAt`.
+- Migration adds a valid plan id; import keeps an existing one; new and sample plans get new ones.
+- Storage: two plans with different ids never touch each other's keys; the single-plan key migrates once.
+- File name: local date and time, zero-padded, no colons or apostrophes; seconds added only when `savedToFileAt` is in the same minute; names sort in time order.
+- `exportedAt` carries the local offset and the banner text built from it matches the file name's date and time, in two time zones.
 
-Browser (Playwright, built file over `file://`, Chromium, Firefox and WebKit):
-- Save a copy from the sample plan; open the download: reader view shows, banner date matches, no `securitypolicyviolation` events, no console errors, no network requests (existing fixture).
-- Hostile plan (message body `</script><script>window.PWNED=1</script>`, `<!--`, `</div>`, `</noscript>`): saved copy opens with `window.PWNED` undefined, and the text displays literally in the reader view and in the plain-text copy.
-- Storage snapshot before and after browsing the saved copy, in a context that already holds a different plan: identical.
-- Make changes with empty storage saves and switches to the app; with a newer stored plan, the dialog shows both dates and Cancel leaves storage identical.
-- Copy of a copy: save from a saved copy, open the result, it works and has exactly one data block and one plain-text block.
-- Template purity: open the built app, save a copy of a blank plan, and check the saved file's `<head>` and app shell match the built file's (no rendered views leaked into the template).
-- Scripts off (`javaScriptEnabled: false`): the plain-text copy is visible and contains Start Here text and a contact's phone number; the "needs JavaScript" message is hidden.
-- Import: Restore accepts the saved copy and an HTML file with no block shows the new message.
+Browser (Playwright, built file over `file://`, Chromium, Firefox, WebKit):
+- Save from the sample plan, open the download: full app, right plan, no CSP violations, console errors or network requests.
+- Hostile plan: saved file opens with `window.PWNED` undefined; text shows literally in the app and in the readable copy.
+- Two plan files in one Chromium profile: edit one, open the other, each shows its own data.
+- Each row of the section 2 table, set up through storage, shows the right banner or dialog; the "older copy" warning appears before any plan renders and its default opens the newer version; "Replace" and the conflict dialog's default trigger a download first.
+- Copy of a copy: one data block and one readable copy, and it works.
+- Template purity: a saved blank plan's app shell matches the built file's (no rendered views leaked in).
+- Scripts off: readable copy and instructions visible, Start Here text and a phone number present, no CSP violations.
+- Unsaved indicator appears after an edit and clears after Save.
+- File System Access save: unit-test the fallback decision; the picker itself is a manual check (UNVERIFIED in CI).
 
-Every test above must fail on the current main branch.
+Manual: the device list in section 4, and the wife test.
+
+Every automated test must fail on the current main branch.
 
 ## Accessibility checks
 
-- The saved-on banner is part of the page, read before the content (not a live region that repeats).
-- The plain-text copy has one `h1`, ordered `h2`/`h3`, and `lang` from the template.
-- axe on the saved copy, light and dark, and on the plain-text copy with scripts off.
-- Make changes dialog: focus moves into it, Escape cancels, the default button is the safe one.
+- Banners are part of the page, read before the content.
+- The conflict dialog: focus moves into it, Escape picks "Just read this file" (the choice that changes nothing), buttons say what they do.
+- Readable copy: one `h1`, ordered headings, `lang` set, readable unstyled, contrast checked with and without the stylesheet.
+- axe on the saved file, light and dark, and on the readable copy with scripts off.
 
-## Smallest useful version
+## Slices
 
-Slice 1: Save a copy, open read-only with the banner, Import accepts HTML, Make changes with the two-date dialog, the plain-text copy. That's the whole spec minus the passphrase.
+1. **Save and open.** Save (download), the readable copy with instructions, open-time comparison, plan id and per-plan storage, import of HTML, Print or save as PDF next to Save. This is the useful version.
+2. **Save into a folder** on Chrome and Edge.
+3. **Phone follow-ups**, only after device tests: the iPhone Shortcut test; Android instructions.
 
-Cutting the plain-text copy would make slice 1 smaller, but then the file does nothing on a phone, which is likely where the email lands. Keep it.
-
-Depends on: reader-mode slice 1 (the reader view and `recordView.ts`). If this ships first, open the saved copy in the normal app with editing controls hidden, and switch when the reader view lands.
+Depends on: reader-mode slice 1 for `recordView.ts` (or move the renderer out of `print.ts` here first), and on the v3 schema decision.
 
 ## Proposed edits to other docs when this is approved
 
-- ROADMAP.md, Phase 4: add "Save a copy: one HTML file with the plan inside that opens offline (docs/specs/self-contained-plan-file.md)".
-- ROADMAP.md: change "Encrypted backups (see SECURITY.md for the conditions)" to "Encrypted backups: not planned; see docs/specs/self-contained-plan-file.md, section 4".
-- reader-mode.md slice 2: "The file picker opens for a `.json` backup" becomes "for a saved copy (`.html`) or a `.json` backup".
+- ROADMAP.md, Phase 4: add "Save: one HTML file with the plan inside that opens and edits offline (docs/specs/self-contained-plan-file.md)".
+- ROADMAP.md: change "Encrypted backups (see SECURITY.md for the conditions)" to "Encrypted backups: not planned, because an encrypted file can't be read on a phone; see docs/specs/self-contained-plan-file.md, section 8".
+- reader-mode.md slice 2: "The file picker opens for a `.json` backup" becomes "for a saved plan file (`.html`) or a `.json` backup".
+- PROJECT_SPEC.md principle on local-first: add "Each saved plan file is the whole app and opens on its own."
