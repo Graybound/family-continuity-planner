@@ -195,12 +195,14 @@ export function normalizePlan(input: unknown, now: Date = new Date()): Normalize
     schemaVersion: SCHEMA_VERSION,
     info: {
       planName: str(own(meta, 'planName'), LIMITS.shortChars, c, 'plan details'),
+      ownerName: str(own(meta, 'ownerName'), LIMITS.shortChars, c, 'plan details'),
       region: str(own(meta, 'region'), LIMITS.shortChars, c, 'plan details'),
       trustedContact: str(own(meta, 'trustedContact'), LIMITS.shortChars, c, 'plan details'),
       createdAt: isoStr(own(meta, 'createdAt'), base.info.createdAt),
       updatedAt: isoStr(own(meta, 'updatedAt'), base.info.updatedAt),
       lastReviewedAt: dateStr(own(meta, 'lastReviewedAt'), c, 'plan details'),
       lastExportedAt: isoStr(own(meta, 'lastExportedAt'), ''),
+      familyOpenedAt: dateStr(own(meta, 'familyOpenedAt'), c, 'plan details'),
       isSample: bool(own(meta, 'isSample')),
     },
     preferences: {
@@ -221,6 +223,15 @@ export function normalizePlan(input: unknown, now: Date = new Date()): Normalize
   };
 
   const records = isPlainObject(own(raw, 'records')) ? (own(raw, 'records') as Obj) : {};
+  // A section this version does not know (for example from a newer copy of the app) is dropped.
+  // Say so plainly, with a count, so nobody loses entries without being told.
+  for (const k of Object.keys(records)) {
+    if (isSectionId(k)) continue;
+    const v = records[k];
+    const n = Array.isArray(v) ? v.length : 0;
+    const name = k.slice(0, 40);
+    c.add(`unknown-section-${name}`, `[unknown-section] The file has a section called "${name}" that this version of the app does not know${n ? `, with ${n} entr${n === 1 ? 'y' : 'ies'}` : ''}. It was not loaded. A newer version of the app may be able to open it.`);
+  }
   for (const s of SECTION_IDS) {
     const list = arr(own(records, s), c, SECTIONS[s].title);
     plan.records[s] = capped(

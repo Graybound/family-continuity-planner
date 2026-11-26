@@ -6,6 +6,9 @@ import { domId, h, icon, maybePrivate } from '../dom';
 import { openRecordDialog } from '../dialogs';
 import { getPlan, mutate, render, ui } from '../store';
 import { button, viewHead } from './common';
+import { handoffGuide } from './handoffGuide';
+
+const FILTER_MIN = 5;
 
 export function sectionView(section: SectionId): HTMLElement {
   const plan = getPlan();
@@ -14,8 +17,11 @@ export function sectionView(section: SectionId): HTMLElement {
   const filter = ui.filters[section] ?? { text: '', type: 'all' };
   const filterField = def.filterField ? def.fields.find((f) => f.key === def.filterField) : undefined;
 
-  const q = filter.text.trim().toLowerCase();
+  // Filters only help once a list is long; on short lists they push the content down. Hidden filters never apply.
+  const showFilter = all.length > FILTER_MIN;
+  const q = showFilter ? filter.text.trim().toLowerCase() : '';
   const items = all.filter((r) => {
+    if (!showFilter) return true;
     if (filterField && filter.type !== 'all' && r[filterField.key] !== filter.type) return false;
     if (!q) return true;
     const text = def.fields.filter((f) => !(ui.privacy && f.private)).map((f) => r[f.key] ?? '').join(' ').toLowerCase();
@@ -78,22 +84,24 @@ export function sectionView(section: SectionId): HTMLElement {
       actions: button([icon('+'), ` Add ${def.singular}`], () => openRecordDialog(section, null), { cls: 'btn primary', focusKey: `add:${section}` }),
     }),
     def.callout ? h('div', { class: 'callout' }, h('strong', null, def.callout.title), h('p', null, def.callout.body)) : null,
-    h('div', { class: 'tool-row' },
-      h('div', { class: 'field' }, h('label', { attrs: { for: statusId } }, 'Section status'), statusSelect),
-      all.length ? [
-        h('div', { class: 'field' }, h('label', { attrs: { for: textId } }, `Filter ${def.title.toLowerCase()}`), textInput),
-        typeSelect && filterField ? h('div', { class: 'field' }, h('label', { attrs: { for: typeId } }, filterField.label), typeSelect) : null,
-        h('p', { class: 'result-count', attrs: { 'aria-live': 'polite' } }, `Showing ${items.length} of ${all.length}`),
-      ] : null,
-    ),
+    section === 'accounts' ? handoffGuide() : null,
+    showFilter ? h('div', { class: 'tool-row' },
+      h('div', { class: 'field' }, h('label', { attrs: { for: textId } }, `Filter ${def.title.toLowerCase()}`), textInput),
+      typeSelect && filterField ? h('div', { class: 'field' }, h('label', { attrs: { for: typeId } }, filterField.label), typeSelect) : null,
+      h('p', { class: 'result-count', attrs: { 'aria-live': 'polite' } }, `Showing ${items.length} of ${all.length}`),
+    ) : null,
     all.length === 0
       ? h('div', { class: 'card empty' },
         h('strong', null, 'Nothing here yet'),
-        h('span', null, moduleStatus(plan, section) === 'not-applicable' ? 'You marked this section as not applying to you. That is fine.' : `Add the first ${def.singular}, or set the section status to "Does not apply" if it is not relevant to you.`),
+        h('span', null, moduleStatus(plan, section) === 'not-applicable' ? 'You marked this section as not applying to you. That is fine.' : `Add the first ${def.singular}. If this section is not relevant to you, set "Section status" below to "Does not apply".`),
         h('div', { style: { 'margin-top': '14px' } }, button(`Add ${def.singular}`, () => openRecordDialog(section, null), { cls: 'btn primary' })),
       )
       : items.length === 0
         ? h('div', { class: 'card empty' }, h('strong', null, 'No matches'), h('span', null, 'Try a different filter.'))
         : h('ul', { class: 'records', attrs: { 'aria-label': def.title } }, cards),
+    h('div', { class: 'section-status' },
+      h('div', { class: 'field' }, h('label', { attrs: { for: statusId } }, 'Section status'), statusSelect),
+      h('p', { class: 'help' }, 'For the person writing the plan. "Does not apply" tells readers this section was left empty on purpose.'),
+    ),
   );
 }

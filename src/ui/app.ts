@@ -7,10 +7,13 @@ import { activeFindings } from '../core/audit';
 import { SECTIONS, SECTION_IDS } from '../core/sections';
 import { KEYS } from '../core/storage';
 import { captureFocus, clear, h, icon, restoreFocus } from './dom';
-import { downloadRecoveryCopies, exportBackup, removeSampleData } from './backupFlow';
+import { parseBackup } from '../core/backup';
+import { downloadRecoveryCopies, exportBackup, removeSampleData, startSavedFile } from './backupFlow';
+import { embeddedBackupText } from './selfCopy';
+import { STATIC_ID } from '../core/embedded';
 import { openPrintDialog } from './printDialog';
 import { openSearch } from './searchDialog';
-import { addBanner, getPlan, go, init, removeBanner, render, ui, type View } from './store';
+import { addBanner, getPlan, getPlanKey, go, init, removeBanner, render, ui, type View } from './store';
 import { applyTheme, currentTheme } from './theme';
 import { toast } from './toast';
 import { checklistView } from './views/checklist';
@@ -27,13 +30,15 @@ function navItems(): (NavItem | 'sep')[] {
   const plan = getPlan();
   return [
     { view: { name: 'dashboard' }, label: 'Overview', glyph: '◎' },
-    { view: { name: 'get-started', step: 0 }, label: 'Get started', glyph: '➜' },
     { view: { name: 'start-here' }, label: 'Start Here', glyph: '✉' },
     'sep',
+    // Sections in the order the overview suggests them (SECTION_IDS is the writing order).
     ...SECTION_IDS.map((s): NavItem => ({ view: { name: 'section', section: s }, label: SECTIONS[s].title, glyph: SECTIONS[s].icon, count: () => plan.records[s].length, countLabel: 'entries' })),
     { view: { name: 'checklist' }, label: 'Checklist', glyph: '✓', count: () => plan.checklist.filter((c) => !c.done).length, countLabel: 'open items' },
     'sep',
-    { view: { name: 'review' }, label: 'Continuity review', glyph: '⚑', count: () => activeFindings(plan).active.length, countLabel: 'suggestions' },
+    // Tools for the person writing the plan. "Planning questions" is not next to "Start Here" on purpose: they sounded alike.
+    { view: { name: 'get-started', step: 0 }, label: 'Planning questions', glyph: '?' },
+    { view: { name: 'review' }, label: 'Suggestions', glyph: '⚑', count: () => activeFindings(plan).active.length, countLabel: 'suggestions' },
     { view: { name: 'settings' }, label: 'Settings and backup', glyph: '⚙' },
   ];
 }
@@ -79,24 +84,27 @@ function renderTopbar(): void {
   const bar = document.getElementById('topbar')!;
   clear(bar);
   const dark = currentTheme() === 'dark';
-  const btn = (label: string, glyph: string, onClick: () => void, extra: Record<string, string> = {}) =>
-    h('button', { class: 'btn', attrs: { type: 'button', title: label, 'data-focus-key': `top:${label}`, ...extra }, on: { click: onClick } }, icon(glyph), h('span', { class: 'label-collapse' }, label));
+  // Visible text stays a word, never a bare symbol: full label on wide screens, a short one on narrow screens.
+  // The accessible name is always the full label, which contains the short one.
+  const btn = (label: string, short: string, glyph: string, onClick: () => void, extra: Record<string, string> = {}, cls = '') =>
+    h('button', { class: ['btn top-btn', cls], attrs: { type: 'button', 'aria-label': label, 'data-focus-key': `top:${label}`, ...extra }, on: { click: onClick } },
+      icon(glyph), h('span', { class: 'label-full', attrs: { 'aria-hidden': 'true' } }, label), h('span', { class: 'label-short', attrs: { 'aria-hidden': 'true' } }, short));
   bar.append(
-    h('button', { class: 'btn mobile-menu', attrs: { id: 'menu-btn', type: 'button', 'aria-controls': 'sidebar', 'aria-expanded': 'false' }, on: { click: () => setMenu(true) } }, icon('☰'), h('span', { class: 'label-collapse' }, 'Menu')),
-    h('button', { class: 'search-btn', attrs: { type: 'button', 'data-focus-key': 'top:search', 'aria-keyshortcuts': 'Control+K Meta+K' }, on: { click: openSearch } }, icon('⌕'), h('span', null, 'Search your plan'), h('kbd', { attrs: { 'aria-hidden': 'true' } }, 'Ctrl K')),
+    h('button', { class: 'btn mobile-menu', attrs: { id: 'menu-btn', type: 'button', 'aria-controls': 'sidebar', 'aria-expanded': 'false' }, on: { click: () => setMenu(true) } }, icon('☰'), h('span', null, 'Menu')),
+    h('button', { class: 'search-btn', attrs: { type: 'button', 'data-focus-key': 'top:search', 'aria-keyshortcuts': 'Control+K Meta+K' }, on: { click: openSearch } }, icon('⌕'), h('span', { class: 'search-label' }, 'Search your plan'), h('kbd', { attrs: { 'aria-hidden': 'true' } }, 'Ctrl K')),
     h('div', { class: 'top-actions' },
-      btn(dark ? 'Light mode' : 'Dark mode', dark ? '☀' : '☾', () => {
+      btn(dark ? 'Light mode' : 'Dark mode', dark ? 'Light' : 'Dark', dark ? '☀' : '☾', () => {
         applyTheme(dark ? 'light' : 'dark');
         toast(dark ? 'Light mode on' : 'Dark mode on');
         render();
-      }),
-      btn('Privacy mode', '◉', () => {
+      }, {}, 'theme-btn'),
+      btn('Privacy mode', 'Privacy', '◉', () => {
         ui.privacy = !ui.privacy;
         toast(ui.privacy ? 'Privacy mode on: private details hidden' : 'Privacy mode off: private details shown');
         render();
       }, { 'aria-pressed': String(ui.privacy) }),
-      btn('Export backup', '⇩', exportBackup),
-      btn('Print', '⎙', openPrintDialog),
+      btn('Export backup', 'Backup', '⇩', exportBackup),
+      btn('Print', 'Print', '⎙', openPrintDialog),
     ),
   );
 }
@@ -108,6 +116,16 @@ function renderBanners(): void {
   const all = [...ui.banners];
   if (plan.info.isSample) {
     all.unshift({ id: 'sample', tone: 'info', text: 'You are looking at fictional sample data. Nothing here is real.', actions: [{ label: 'Remove sample data', run: removeSampleData }], dismissible: false });
+  }
+  // Privacy mode hides text in place. Say so on every screen, with a one-tap way back, so hidden details never look lost.
+  if (ui.privacy) {
+    all.unshift({ id: 'privacy', tone: 'info', text: 'Privacy mode is on, so some private details are hidden on this screen.', actions: [{ label: 'Show hidden details', run: () => {
+      ui.privacy = false;
+      toast('Privacy mode off: private details shown');
+      render();
+      // The banner and its button are gone after the render; keep keyboard focus on the page.
+      document.getElementById('main-content')?.focus();
+    } }], dismissible: false });
   }
   for (const b of all) {
     el.append(h('div', { class: ['banner', b.tone], attrs: { role: b.tone === 'warn' ? 'alert' : undefined } },
@@ -150,13 +168,29 @@ function renderApp(): void {
 }
 
 export function start(): void {
+  // The readable copy is for previews that run no scripts; the stylesheet already hides it here.
+  document.getElementById(STATIC_ID)?.remove();
+  // A saved plan file (the app with a plan inside) always opens on its own plan.
+  const embedded = embeddedBackupText();
+  const opened = embedded === null ? null : parseBackup(embedded);
+  if (opened?.ok) startSavedFile(renderApp, opened);
+  else startFromStorage(opened && !opened.ok ? opened.error : null);
+  startCommon();
+}
+
+function startFromStorage(fileError: string | null): void {
   const result = init(renderApp);
+  if (fileError) {
+    addBanner({ id: 'file-damaged', tone: 'warn', text: `This file is meant to contain a saved plan, but it could not be read (${fileError}) Showing the plan saved in this browser instead. If you have another copy of the file, try that one.`, actions: [], dismissible: true });
+  }
   if (result.status === 'migrated-legacy') {
     addBanner({ id: 'migrated', tone: 'info', text: 'Your plan from the original version of this app was upgraded. Nothing was deleted: the original saved copy is still in this browser. Exporting a fresh backup now is a good idea.', actions: [{ label: 'Export backup', run: exportBackup }], dismissible: true });
   } else if (result.status === 'damaged') {
     addBanner({
       id: 'damaged', tone: 'warn',
-      text: `Your saved plan could not be read (${result.error}) A copy of the damaged data was kept in this browser and has not been deleted. You can download it, restore a backup, or start fresh.`,
+      text: result.recoveryKey
+        ? `Your saved plan could not be read (${result.error}) A copy of the damaged data was kept in this browser and has not been deleted. You can download it, restore a backup, or start fresh.`
+        : `Your saved plan could not be read (${result.error}) There was no room to keep a separate copy, so the damaged data was left where it is and changes will not be saved over it. Download it first, then restore a backup.`,
       actions: [{ label: 'Download damaged data', run: downloadRecoveryCopies }, { label: 'Restore a backup', run: () => go({ name: 'settings' }) }],
       dismissible: true,
     });
@@ -165,8 +199,11 @@ export function start(): void {
   } else if (result.status === 'ok' && result.warnings.length) {
     addBanner({ id: 'warnings', tone: 'info', text: `Your saved plan loaded with ${result.warnings.length} minor problem${result.warnings.length === 1 ? '' : 's'} corrected: ${result.warnings.join(' ')}`, actions: [], dismissible: true });
   }
+}
 
-  // Online copy (GitHub Pages or any web host): say plainly where data lives and offer the download.
+function startCommon(): void {
+
+  // Online copy (whenimgone.grayhek.com or any web host): say plainly where data lives and point at Export backup.
   const hosted = /^https?:$/.test(location.protocol) && !/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
   let noticeDismissed = false;
   try {
@@ -177,9 +214,9 @@ export function start(): void {
   if (hosted && !noticeDismissed) {
     addBanner({
       id: 'hosted', tone: 'info',
-      text: 'You are using the online version. Your plan is saved only in this browser on this device and is never sent to GitHub or anyone else. For the most private setup, download the app and open it from your own computer.',
+      text: 'You are using the online version. Your plan is saved only in this browser on this device and is never sent anywhere. Export backup saves a copy of the app and your plan that opens offline, with no website needed.',
       actions: [
-        { label: 'How to download', run: () => window.open(`${__REPO_URL__}/releases/latest`, '_blank', 'noopener,noreferrer') },
+        { label: 'Export backup', run: exportBackup },
         { label: 'Got it', run: () => {
           try { localStorage.setItem(KEYS.hostedNotice, 'dismissed'); } catch { /* ignore */ }
           removeBanner('hosted');
@@ -190,13 +227,15 @@ export function start(): void {
   }
 
   window.addEventListener('storage', (e) => {
-    if (e.key === KEYS.plan) {
+    if (e.key === getPlanKey()) {
       addBanner({ id: 'other-tab', tone: 'warn', text: 'This plan was changed in another tab or window. Reload to see the latest version before making more changes, or the other changes may be overwritten.', actions: [{ label: 'Reload', run: () => location.reload() }], dismissible: true });
     }
   });
 
   document.addEventListener('keydown', (e) => {
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+      // Not over an open dialog: a search result would navigate underneath it and stack a second dialog.
+      if (document.querySelector('dialog[open]')) return;
       e.preventDefault();
       openSearch();
     } else if (e.key === 'Escape' && document.getElementById('sidebar')?.classList.contains('open')) {
