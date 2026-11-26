@@ -31,7 +31,8 @@ src/
     embedded.ts         saved plan file: escaping, extraction, file names, drafts
     storage.ts          localStorage load/save with damaged-data recovery
     readiness.ts        module status and readiness levels
-    audit.ts            continuity review rules
+    audit.ts            continuity review rules and the secret detector
+    handoff.ts          ways to hand over access, and the practice step
     recommend.ts        assessment to tiered section recommendations
     search.ts           search across records, checklist, messages
     sample.ts           fictional sample plan

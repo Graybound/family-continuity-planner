@@ -60,4 +60,4 @@ The shipped file has **no runtime dependencies**. Development tools (Vite, TypeS
 
 ## Encryption
 
-Encrypted backups are not implemented. They are on the roadmap with strict conditions: an established browser API (Web Crypto, AES-GCM with PBKDF2 or a stronger key derivation at well-documented settings), tests, documentation, and a clear warning that **a forgotten passphrase means the family permanently loses access**. Until then, the app does not claim any encryption.
+The app does not encrypt plans or backups and does not claim to. Encrypted backups were considered and decided against (2026-11-26): **a forgotten passphrase would permanently lock out the family**, and the plan is designed to hold no secrets. Protect the file with the place you keep it (an encrypted drive, a locked safe). Reasons in [docs/handoff-methods.md](docs/handoff-methods.md#passphrase-decision).

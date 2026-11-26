@@ -4,6 +4,12 @@ All notable changes are listed here. The project follows [Semantic Versioning](h
 
 ## [Unreleased]
 
+### Added
+
+- Accounts now explains how to hand over access without writing down passwords: seven ways, best first (password manager emergency access, a printed emergency kit, keeping the phone working, Apple Legacy Contact, Google Inactive Account Manager, Facebook legacy contact, and what to do about Microsoft accounts), each checked against the company's own help pages.
+- "Practice the handoff once" is on the starter checklist of new plans, and Accounts offers to add it to older plans. Accounts shows when it is done.
+- The entry form warns, while you type, when a field looks like a password, PIN, recovery code, or full card, account, or Social Security number. It never blocks saving.
+
 ### Changed
 
 - **Export backup saves the app and your plan as one file** (`WhenImGone_YYYY-MM-DD_HHMM.html`) that opens offline by double-clicking it. Restore accepts these files as well as `.json` backups. A saved file always opens on its own plan; changes made in it are kept as a draft tied to that file and offered back if it is closed without saving. **Export .json** in Settings still saves the plan data alone
@@ -26,6 +32,8 @@ All notable changes are listed here. The project follows [Semantic Versioning](h
 - "Your plan at a glance" appears once the plan has something in it
 - Planning questions: each area has a line of examples, the step "Who handles what" is now "Who does what today" so it no longer shares a name with a section, and buttons name the page they open
 - Suggestions page buttons name where they lead instead of "Go there"
+- The possible-secret suggestion now also catches "The PIN is 4821" style text, recovery codes, labelled account numbers, and Social Security numbers, and says which kind it found.
+- Encrypted backups are off the roadmap. A forgotten passphrase would lock out the family, and the plan holds no secrets.
 
 ### Fixed
 

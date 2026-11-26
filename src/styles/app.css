@@ -269,3 +269,10 @@ dialog::backdrop { background: var(--overlay); }
 @media (prefers-reduced-motion: reduce) {
   * { scroll-behavior: auto !important; transition: none !important; animation: none !important; }
 }
+.field-warning:not(:empty) { display: block; margin-top: 4px; padding: 6px 10px; border-left: 4px solid var(--signal); background: var(--pale-orange); color: var(--callout-text); font-size: 13px; border-radius: 0 8px 8px 0; }
+.handoff-guide { margin: 0 0 18px; }
+.handoff-guide h2 { margin-top: 0; }
+.handoff-guide h3 { margin: 18px 0 4px; }
+.handoff-methods li { margin-bottom: 12px; }
+.handoff-methods p { margin: 2px 0; }
+.handoff-label { font-weight: 600; }

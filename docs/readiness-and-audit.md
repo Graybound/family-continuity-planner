@@ -56,7 +56,7 @@ Each finding has a stable ID so it can be dismissed (hidden permanently) or defe
 | `document-expired:<id>` | A document's expiration or review date is before today | Documents |
 | `plan-stale:<id>` | An emergency plan's last reviewed date is more than 365 days ago | Emergency plans |
 | `checklist-overdue:<id>` | An unchecked item's due date is before today | Checklist |
-| `possible-secret:<id>` | An entry contains the word password, passcode, or PIN followed by a colon or equals sign and a value (not a pointer such as "Password: in the password manager"), or 13 to 19 digits that look like a card number | That section |
+| `possible-secret:<id>` | An entry looks like it holds a secret (`secretKind` in `src/core/audit.ts`): a password, passphrase, or PIN followed by a colon, equals sign, or "is" and a value (not a pointer such as "Password: in the password manager" or "PIN is kept in the safe"); a labelled recovery code, backup code, or secret key, or a 1Password Secret Key; 13 to 19 digits that look like a card number; "account number" followed by 8 or more digits; or a Social Security number. The title names which kind | That section |
 | `review-later:<section>` | A section is marked Review later | That section |
 | `backup-never` | The plan has entries and no backup was ever exported | Settings |
 | `backup-old` | The last export was more than 90 days ago | Settings |
