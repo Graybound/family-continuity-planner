@@ -194,6 +194,17 @@ The Android line depends on the test results below. If Android doesn't run it, i
 5. Android: download, open from Files, choose Chrome. Does the app appear? Then make a change, close Chrome, open the file again: is the change still there?
 6. Gmail on the web, and Outlook on the web: preview the attachment.
 7. Windows (Edge) and Mac (Safari): double-click the downloaded file.
+8. **Web archive (section 7).** On the Mac:
+   1. Double-click a freshly saved `WhenImGone_...html` so it opens in Safari. Don't edit anything yet.
+   2. In Safari: File, Save As, Format: Web Archive. Save it as `WhenImGone_test.webarchive`.
+   3. Send it to the iPhone twice: AirDrop it into Files (or save it to iCloud Drive), and email it to yourself.
+   4. On the iPhone, open it from Files, then from Mail. For each, record:
+      - Does it render? (readable copy, the full app, raw code, or nothing)
+      - Do scripts run? (you see the app with its list of sections and the saved-on banner, not the plain readable page)
+      - Can you edit? (change one contact's phone number)
+      - Does the edit survive? (close it completely, open the same file again from the same place, check the number)
+      - Does Save do anything? (where does the new file go, if anywhere)
+   5. Also note whether Files offers "Open in Safari" or any app for it.
 
 The results go into this table and decide the final instruction copy in section 3. Until then, every row above stays UNVERIFIED.
 
@@ -239,6 +250,7 @@ Rules:
 
 - **No new dependency, no in-app PDF generation.** The browser's print dialog is the only way to make the PDF. That means the PDF can't be made without a click, and the app can't confirm it was saved. "Skip for now" leaves a quiet line next to Save: "No PDF saved with this copy". The next save offers step 2 again.
 - **Private details in the PDF.** The print dialog keeps its existing "include private details" choice. In the export set it starts checked, with the line "This PDF is for your family. It includes private details, like the plan file does." Reason: the PDF exists to stand in for the HTML file where that can't run, and the HTML file already holds everything. Ordinary Print keeps today's default.
+- **The PDF is offered on every save, not only from a menu.** Step 2 appears after every Save, and after every export under "Other formats" (the JSON backup gets `WhenImGone_..._1432.json` plus the same PDF step). The only way past it is "Skip for now", which is a visible choice each time.
 - **Print or save as PDF** also stays as its own button next to Save, for printing paper at any time. No silent fallback to print anywhere: printing is always a visible choice.
 - On phones, printing to PDF is awkward (UNVERIFIED by device). The export set is a creator task on a computer; the instructions don't ask the reader to make one.
 
@@ -274,7 +286,14 @@ Recommendation: no.
 - iOS Safari has supported web archives since at least iOS 13 (same source), but nothing found says scripts run in one on iPhone, or how she would open one from Files or Mail (it may just be Quick Look again). UNVERIFIED.
 - It's a binary property list, not readable in a text editor, and the app would have to write that format itself.
 
-It would only be worth a look if a real iPhone test showed a `.webarchive` opened from Files runs scripts and keeps storage. Even then it would be an extra iPhone-only export. Add it to the device test list if you want the evidence; I wouldn't build anything for it first.
+Noah's question, 26 November 2026: offer it as a second export for Apple households, next to the HTML file (with the PDF still offered every time).
+
+Decision rule, from device test 8 in section 4:
+
+- **Scripts run and an edit survives closing and reopening, from Files or Mail:** spec `.webarchive` as an optional Apple export. The app would write it itself as an XML property list (no dependency): the HTML as the main resource, `text/html`, UTF-8, the `file://` URL as its address. Whether Safari accepts an XML plist web archive instead of a binary one is UNVERIFIED and gets its own test before anything is built. Noah gets told the result either way.
+- **Anything less** (renders without scripts, scripts run but edits vanish, or it only opens in Quick Look like the HTML file): it stays out. The HTML file already does everything a script-less web archive would, and the PDF covers the rest.
+
+Until the test runs, the answer stays no.
 
 ## 8. Privacy and the passphrase tradeoff
 
