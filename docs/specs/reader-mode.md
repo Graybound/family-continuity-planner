@@ -100,7 +100,7 @@ So the reader view leaves the checklist out entirely. Reader-facing steps by tim
 
 ### Out of scope for slice 1
 
-- Opening a backup file to read (slice 2)
+- Opening a backup on a new device (slice 2)
 - Ticking off checklist items or any other writing from the reader view
 - Reader-specific text size controls (browser zoom must work instead; see accessibility)
 - Audience-specific views (partner, executor, technology helper). The parts list is the hook for them later; build nothing for it now.
@@ -162,41 +162,49 @@ Every test above must fail on the current main branch.
 - The private-details button is a toggle with `aria-pressed`.
 - Manual NVDA and VoiceOver passes belong to the screen-reader audit item, not this spec. Add the reader view to that audit's workflow list.
 
-## Slice 2: open a plan to read on another device
+## Slice 2: open a plan someone left for you, on a new device
 
 ### The problem
 
-The plan lives in one browser on the creator's device ([PRIVACY.md](../../PRIVACY.md)). If the reader can't get into that computer, she has a backup file and the planner file, probably on a USB drive. Today her only path is Settings, "Restore a backup", a migration preview and an acknowledgement checkbox that warns about replacing data. That is a creator workflow. She would have to understand it on the worst day of her life.
+The plan lives in one browser on the creator's device ([PRIVACY.md](../../PRIVACY.md)). The most important reader will likely open the planner on her own device, with no saved data, holding a backup file. Today she lands on the creator's Overview and her only path is Settings, "Restore a backup", a migration preview and an acknowledgement checkbox about replacing data. That is a creator workflow.
+
+### Who owns what
+
+- **First-run welcome screen** (the flow thread, "Make the flow obvious for anyone"): when no plan data exists, it asks "Are you making a plan, or opening a plan someone left for you?" and handles the Safari storage-clearing notice. That thread owns the screen, its wording, and the decision of when it appears.
+- **This spec** owns what happens after she picks "opening a plan someone left for you": importing the backup and landing in the reader view.
 
 ### What it does
 
-- On an empty plan, the Overview and Get started show a clear button: "I was given a plan to read". The reader view's own Start Here, when the plan is empty, shows the same button.
-- It opens the file picker for a `.json` backup. The file goes through the existing pipeline (`parseBackup` in [src/core/backup.ts](../../src/core/backup.ts)): size limit, safe parse, version detection, migration, normalization. Nothing new decides anything about the data.
-- On success, the plan opens straight into the reader view, held in memory only. Nothing is written to localStorage. A calm banner says: "You are reading a plan from a file. Nothing is saved on this computer. To read it again later, open the same file again."
-- On failure, the existing plain-language error shows, ending with: "If you have another copy of the file, try that one."
-- "Switch to editing" is not shown while reading a file. Editing a file-only plan is the restore flow's job.
+1. She picks "opening a plan someone left for you". The file picker opens for a `.json` backup.
+2. The file goes through the existing pipeline (`parseBackup` in [src/core/backup.ts](../../src/core/backup.ts)): size limit, safe parse, version detection, migration, normalization. Nothing new decides anything about the data.
+3. Because storage is empty, there is nothing to replace, so there is no replace confirmation, no acknowledgement checkbox and no migration preview. The plan is saved to this browser like any restore, and `KEYS.openIn` is set to `reader` on this device.
+4. She lands on Start Here in the reader view. A one-time banner says: "This plan is now saved in this browser on this device. Keep the backup file too: browsers can clear saved data." Next time she opens the planner, it opens straight to the reader view (slice 1 device setting).
+5. On failure, the existing plain-language error shows, ending with: "If you have another copy of the file, try that one." She stays on the welcome screen and storage stays empty.
+
+Why save instead of reading in memory only (the earlier draft of this spec): she will come back to the plan many times over weeks and months. Making her find and reopen the file every visit fails the wife test. On an empty browser, saving risks nothing.
 
 ### Acceptance criteria
 
-- [ ] On a fresh browser, "I was given a plan to read" plus picking a backup shows that plan's Start Here in the reader view.
-- [ ] localStorage is empty before and after reading a backup this way, including after browsing every part.
-- [ ] Reloading the page returns to the empty planner, and the banner explained that beforehand.
-- [ ] A v1 backup opens the same way.
-- [ ] A malformed or malicious file shows the plain error and does not run script (reuse the existing malicious fixture).
+- [ ] On a browser with no plan data, choosing "opening a plan someone left for you" and picking a backup shows that plan's Start Here in the reader view, with no confirmation dialog in between.
+- [ ] She never sees the creator Overview, Get started, readiness levels or the continuity review on this path.
+- [ ] Closing and reopening the planner opens the reader view again, with the same plan.
+- [ ] A v1 backup works the same way.
+- [ ] A malformed or malicious file shows the plain error, runs no script, and leaves storage empty.
+- [ ] "Switch to editing" works afterward, so she can update the plan later if she wants to.
 - [ ] Wife test: given a USB drive with the planner file and a backup, on her own computer, she gets from double-clicking the planner to reading Start Here without help.
 
 ### Out of scope for slice 2
 
-- Saving the file-opened plan into this browser (use Restore in Settings)
+- The welcome screen itself (flow thread)
+- Opening a second plan when one is already saved (use Restore in Settings)
 - Encrypted backups
-- Remembering the file between visits
 
 ### Files likely touched
 
-- `src/ui/store.ts`: a read-only session flag. While it is set, `persist()` refuses to write and `mutate()` is unreachable from the reader view anyway. Add a test that `persist()` does not write when the flag is set.
-- `src/ui/backupFlow.ts`: `openBackupForReading()`, reusing the file picker and `parseBackup`.
-- `src/ui/views/dashboard.ts`, `src/ui/views/getStarted.ts`, `src/ui/views/reader.ts`: the entry button.
-- Docs: PRIVACY.md ("Reading a plan from a file" section: nothing is stored), README.md, CHANGELOG.md.
+- `src/ui/backupFlow.ts`: `importForReading()`, reusing the file picker and `parseBackup`, skipping the replace confirmation only when storage holds no plan.
+- `src/core/storage.ts` / store: set `KEYS.openIn` on success.
+- The welcome screen file from the flow thread: call `importForReading()`. Coordinate on the function name, not on the screen.
+- Docs: README.md, CHANGELOG.md.
 
 ### Data, schema and migration impact
 
@@ -204,8 +212,9 @@ None. Reads existing v1 and v2 backups through the existing migrations.
 
 ### Test plan
 
-- Unit: a store-level test that a read-only session never calls `setItem`.
-- Browser: fresh context, open a v2 backup and the v1 fixture for reading; assert reader view content; assert `localStorage.length === 0` throughout; malicious fixture shows the error and no dialog or script effect; reload returns to the empty app.
+- Unit: the "skip confirmation" decision (storage has no plan) lives in core and is tested both ways.
+- Browser: fresh context, import a v2 backup and the v1 fixture through the welcome path; assert reader view content and no dialog; reload and assert reader view again; malicious fixture shows the error and storage stays empty.
+- This slice depends on the welcome screen landing first, or on a test-only entry point to the same function.
 
 ## Setup the creator does (docs, not code)
 
@@ -221,3 +230,4 @@ Add to README.md under the reader view: on the computer the reader would use, tu
 1. "Open in reader view on this device" off by default, turned on by you on the computer she'd use. Recommended, because a default-on setting would drop you into reader view every time you open the planner to write.
 2. Checklist left out of the reader view until timeline guidance lands. Recommended for the reason in "Checklist decision".
 3. Slice 2 follows slice 1 rather than being cut. Recommended: if she can't get into your computer, slice 1 alone doesn't help her.
+4. Slice 2 saves the imported plan in her browser instead of holding it in memory, so she doesn't have to reopen the file each visit. Recommended; it matches your first-run flow.
