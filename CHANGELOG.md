@@ -14,6 +14,16 @@ All notable changes are listed here. The project follows [Semantic Versioning](h
 - Checklist Edit and Delete sit under the task on phones
 - The "This is not a will" notice on the overview sits below the next steps
 
+### Fixed
+
+- Long text could be cut short after a reload; fields now stop at the length a reload keeps
+- Escape, Close, or Cancel in a form with typed changes now asks before discarding them
+- Privacy mode no longer shows private fields in the edit dialog until "Show private details" is pressed; saving keeps them
+- A restore too big for browser storage no longer looks like it worked; the current plan stays and the dialog says why
+- Exporting while storage is full no longer shows a contradictory "export a backup" error
+- Ctrl+K is ignored while another dialog is open
+- The damaged-data message no longer claims a copy was kept when there was no room for one, and "Download damaged data" also downloads the unreadable data left in place
+
 ## [0.2.0] - 2026-11-07
 
 The first open-source release. The original single-file app was recovered, audited, and rebuilt as a maintainable repository.

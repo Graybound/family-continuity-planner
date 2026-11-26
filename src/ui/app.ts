@@ -169,7 +169,9 @@ export function start(): void {
   } else if (result.status === 'damaged') {
     addBanner({
       id: 'damaged', tone: 'warn',
-      text: `Your saved plan could not be read (${result.error}) A copy of the damaged data was kept in this browser and has not been deleted. You can download it, restore a backup, or start fresh.`,
+      text: result.recoveryKey
+        ? `Your saved plan could not be read (${result.error}) A copy of the damaged data was kept in this browser and has not been deleted. You can download it, restore a backup, or start fresh.`
+        : `Your saved plan could not be read (${result.error}) There was no room to keep a separate copy, so the damaged data was left where it is and changes will not be saved over it. Download it first, then restore a backup.`,
       actions: [{ label: 'Download damaged data', run: downloadRecoveryCopies }, { label: 'Restore a backup', run: () => go({ name: 'settings' }) }],
       dismissible: true,
     });
@@ -210,6 +212,8 @@ export function start(): void {
 
   document.addEventListener('keydown', (e) => {
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+      // Not over an open dialog: a search result would navigate underneath it and stack a second dialog.
+      if (document.querySelector('dialog[open]')) return;
       e.preventDefault();
       openSearch();
     } else if (e.key === 'Escape' && document.getElementById('sidebar')?.classList.contains('open')) {

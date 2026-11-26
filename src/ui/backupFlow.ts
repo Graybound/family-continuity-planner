@@ -9,7 +9,7 @@ import { LIMITS } from '../core/normalize';
 import { blankPlan, isEffectivelyEmpty } from '../core/plan';
 import { samplePlan } from '../core/sample';
 import { SECTION_IDS } from '../core/sections';
-import { recoveryKeys } from '../core/storage';
+import { KEYS, recoveryKeys } from '../core/storage';
 import { domId, h } from './dom';
 import { confirmDialog, openModal } from './dialogs';
 import { eraseAllLocalData, getPlan, getStorageRef, mutate, render, replacePlan } from './store';
@@ -28,9 +28,10 @@ function download(filename: string, text: string, type = 'application/json'): vo
 
 export function exportBackup(): void {
   const now = new Date();
+  // The export works even when saving does not; a "could not save, export a backup" error here would contradict it.
   mutate((p) => {
     p.info.lastExportedAt = now.toISOString();
-  }, { touch: false });
+  }, { touch: false, silentSaveError: true });
   download(backupFileName(now), serializeBackup(getPlan(), __APP_VERSION__, now));
   toast('Backup downloaded. Store it somewhere private.');
 }
@@ -91,8 +92,8 @@ function showRestorePreview(plan: ReturnType<typeof blankPlan>, pv: BackupPrevie
   exportFirst.addEventListener('click', () => exportBackup());
   cancel.addEventListener('click', m.close);
   replace.addEventListener('click', () => {
-    m.close();
-    replacePlan(plan, 'Backup restored');
+    // Keep the dialog open if the restore could not be saved, so it is clear nothing changed.
+    if (replacePlan(plan, 'Backup restored')) m.close();
   });
 }
 
@@ -155,9 +156,23 @@ export async function eraseEverything(): Promise<void> {
 export function downloadRecoveryCopies(): void {
   const storage = getStorageRef();
   if (!storage) return;
-  for (const k of recoveryKeys(storage)) {
-    const raw = storage.getItem(k);
+  const copies = recoveryKeys(storage).map((k) => [k, storage.getItem(k)] as const);
+  for (const [k, raw] of copies) {
     if (raw !== null) download(`family-continuity-damaged-data-${k.slice(-24).replace(/[^0-9A-Za-z-]/g, '-')}.txt`, raw, 'text/plain');
+  }
+  // When there was no room for a recovery copy, the unreadable data is still in the plan key itself.
+  const current = storage.getItem(KEYS.plan);
+  if (current !== null && !parses(current) && !copies.some(([, raw]) => raw === current)) {
+    download('family-continuity-damaged-data-current.txt', current, 'text/plain');
+  }
+}
+
+function parses(text: string): boolean {
+  try {
+    JSON.parse(text);
+    return true;
+  } catch {
+    return false;
   }
 }
 
