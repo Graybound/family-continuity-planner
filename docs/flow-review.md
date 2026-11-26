@@ -14,10 +14,10 @@ The bar is the wife test: not technical, possibly grieving, nobody to ask. Logge
 | # | What happens | Kind | Status |
 |---|---|---|---|
 | C1 | The overview hero has three buttons: "Next: Name at least one trusted contact", "Take the continuity assessment", "Export backup". Exporting an empty plan is not a sensible first move, and the assessment competes with the next step for the first click. | Competing actions | Fixed. One button: the next step. The questions are a quiet link under it. Export stays in the top bar. |
-| C2 | A trusted contact is asked for three times on one screen: the Next button, the first "To reach" item, and a "No trusted contacts yet" suggestion. A fourth place, "First person to contact" in Settings, asks for the same person in a different form. | Duplicate | Fixed for the overview (a suggestion is hidden while the same thing is already a next step). The Settings field is a schema question: issue. |
+| C2 | A trusted contact is asked for three times on one screen: the Next button, the first "To reach" item, and a "No trusted contacts yet" suggestion. A fourth place, "First person to contact" in Settings, asks for the same person in a different form. | Duplicate | Fixed for the overview (a suggestion is hidden while the same thing is already a next step). The Settings field is a schema question: #23. |
 | C3 | "Get started" and "Start Here" sit next to each other. One is a questionnaire for the creator, the other is the letter the family reads. | Labels sound alike | Fixed. "Get started" is now "Planning questions", moved down with the creator tools. |
 | C4 | Inside the questions, step 2 is called "Who handles what", which is also the name of a section page. | Labels sound alike | Fixed. The step is now "Who does what today". |
-| C5 | The sidebar is 13 flat items. Its section order (Who handles what, People, Trusted contacts...) disagrees with the Next button (Trusted contacts, Emergency plans, Documents...). Following Next makes you jump around the list. | No sense of order | Fixed for order: the sidebar now lists sections in the order the Next button asks for them, and a unit test keeps them in step. Group headings ("Do these first" / "Add when you can") change navigation structure: issue. |
+| C5 | The sidebar is 13 flat items. Its section order (Who handles what, People, Trusted contacts...) disagrees with the Next button (Trusted contacts, Emergency plans, Documents...). Following Next makes you jump around the list. | No sense of order | Fixed for order: the sidebar now lists sections in the order the Next button asks for them, and a unit test keeps them in step. Group headings ("Do these first" / "Add when you can") change navigation structure: #22. |
 | C6 | "This is not a will" shows on the overview and again on the first questions step, word for word. It is also in the Documents callout and in print. | Duplicate | Fixed. Removed from the overview. The creator still meets it in the questions, in Documents (which the first level sends them to), and in print. |
 | C7 | Jargon: "continuity assessment", "Continuity review", "Readiness", "Your continuity plan", "Basic Emergency Plan Ready", "Core Continuity Plan Ready". | Jargon | Fixed. "Planning questions", "Suggestions", "How ready your plan is", "Your plan", and levels named Just started, Ready for an emergency, Covers everyday life, Thorough and up to date. Internal ids are unchanged. |
 | C8 | On an empty plan, "Your plan at a glance" is nine cards that each say "0 entries, Not started". | Noise | Fixed. It appears once the plan has something in it. |
@@ -25,7 +25,7 @@ The bar is the wife test: not technical, possibly grieving, nobody to ask. Logge
 | C10 | Recommendations and Suggestions say "Open" or "Go there" without naming the page. | Unclear next step | Fixed. Buttons name the page ("Open Trusted contacts", "Add to Who handles what"). |
 | C11 | "Seasonal jobs" in "What would stop working" is vague. | Needs knowledge | Fixed: "Seasonal jobs, like clearing gutters or the furnace check". |
 | C12 | The checklist dialog says "Keep the next action concrete and assignable." | Jargon | Fixed: "One small, specific thing to do, such as ...". |
-| C13 | There is no welcome. A first open lands on the creator's overview whether you are writing a plan or were handed one. | Unclear next step | Issue (welcome screen and guided first steps). This is the centerpiece of the target flow below. |
+| C13 | There is no welcome. A first open lands on the creator's overview whether you are writing a plan or were handed one. | Unclear next step | #21 (welcome screen and guided first steps). This is the centerpiece of the target flow below. |
 | C14 | Start Here is never part of the suggested path. A creator can reach every level without writing a word of their own in the letter. | Missing step | Decision (readiness rule change). |
 | C15 | "Save details" in Settings and "Save introduction" in Start Here lose typing silently if you navigate away. | Data loss | Elsewhere (PR #18, item 9). |
 
@@ -60,9 +60,9 @@ One obvious next step at all times. No wizard framework and no new dependencies:
    - The screen also says that if you used the planner on this device before, the browser may have cleared it, and to open your latest backup.
 2. **Plan exists: open as today**, or in reader view on a device set up for reading (PR #13).
 3. **Overview: one button, "Next"**, which walks down the sidebar in order. Done in this PR.
-4. **Sidebar in two groups** ("Do these first": Start Here, Trusted contacts, Emergency plans, Documents; "Add when you can": the rest), then the creator tools. Order done in this PR; headings in the issue.
+4. **Sidebar in two groups** ("Do these first": Start Here, Trusted contacts, Emergency plans, Documents; "Add when you can": the rest), then the creator tools. Order done in this PR; headings in #22.
 
-The welcome screen and guided steps are sketched in the issue for a decision before anything is built.
+The welcome screen and guided steps are sketched in #21 for a decision before anything is built.
 
 ## Screenshots
 
