@@ -5,7 +5,7 @@ Roadmap item: Phase 4, "Digital reader mode: a calm read-only view of the plan f
 
 ## The problem, from the reader's side
 
-The person reading the plan opens the app and lands on the creator's workspace: an Overview with readiness levels, "Get started", a continuity review full of suggestions, open checklist counts, status dropdowns, "Add" and "Edit" buttons on every card, and an "Export backup" button. None of that is for her. It tells her the plan is unfinished, invites her to change things she should not change, and makes her hunt for the one thing she came for (who to call about the Wi-Fi, where the will is).
+The person reading the plan opens the app and lands on the creator's workspace: an Overview with readiness levels, "Planning questions", a list of suggestions, open checklist counts, status dropdowns, "Add" and "Edit" buttons on every card, and an "Export backup" button. None of that is for her. It tells her the plan is unfinished, invites her to change things she should not change, and makes her hunt for the one thing she came for (who to call about the Wi-Fi, where the will is).
 
 The printed packet solves this on paper, but paper goes stale, private details are withheld by default, and it cannot be searched.
 
@@ -51,7 +51,7 @@ Keep the printout. It is the fallback when no computer works. The reader view ad
 ### What the reader never sees
 
 - Readiness levels, percentages, "Not started", counts of entries or open items
-- Get started, Continuity review, Settings, Export backup
+- Planning questions, Suggestions, Settings, Export backup (nav labels as renamed in PR #20)
 - Add, Edit, Delete, status selects, filters, any form field other than search
 - Sections with no records, and sections marked "Does not apply" (even if they have records)
 - The checklist (see "Checklist decision" below)
@@ -180,15 +180,17 @@ The plan lives in one browser on the creator's device ([PRIVACY.md](../../PRIVAC
 3. Because storage is empty, there is nothing to replace, so there is no replace confirmation, no acknowledgement checkbox and no migration preview. The plan is saved to this browser like any restore, and `KEYS.openIn` is set to `reader` on this device.
 4. She lands on Start Here in the reader view. A one-time banner says: "This plan is now saved in this browser on this device. Keep the backup file too: browsers can clear saved data." Next time she opens the planner, it opens straight to the reader view (slice 1 device setting).
 5. On failure, the existing plain-language error shows, ending with: "If you have another copy of the file, try that one." She stays on the welcome screen and storage stays empty.
+6. **Storage unavailable** (load status `unavailable`, for example private browsing, which also shows the welcome screen): if the plan reads fine but cannot be saved, she still lands in the reader view with the plan held in memory for this visit. The save error is not shown as a failure. The one-time banner says instead: "This browser is not letting the planner save anything, so you will need to open the backup file again next time." The existing "cannot save" banner's "Export backup" action is not offered here, since she already has the file.
 
 Why save instead of reading in memory only (the earlier draft of this spec): she will come back to the plan many times over weeks and months. Making her find and reopen the file every visit fails the wife test. On an empty browser, saving risks nothing.
 
 ### Acceptance criteria
 
 - [ ] On a browser with no plan data, choosing "opening a plan someone left for you" and picking a backup shows that plan's Start Here in the reader view, with no confirmation dialog in between.
-- [ ] She never sees the creator Overview, Get started, readiness levels or the continuity review on this path.
+- [ ] She never sees the creator Overview, Planning questions, readiness levels or Suggestions on this path.
 - [ ] Closing and reopening the planner opens the reader view again, with the same plan.
 - [ ] A v1 backup works the same way.
+- [ ] In a private window where saving is blocked, picking a backup still lands in the reader view, with the banner explaining she must reopen the file next time.
 - [ ] A malformed or malicious file shows the plain error, runs no script, and leaves storage empty.
 - [ ] "Switch to editing" works afterward, so she can update the plan later if she wants to.
 - [ ] Wife test: given a USB drive with the planner file and a backup, on her own computer, she gets from double-clicking the planner to reading Start Here without help.
@@ -213,6 +215,7 @@ None. Reads existing v1 and v2 backups through the existing migrations.
 ### Test plan
 
 - Unit: the "skip confirmation" decision (storage has no plan) lives in core and is tested both ways.
+- Browser: a context where `localStorage.setItem` throws still lands in reader view with the plan and the "reopen the file next time" banner.
 - Browser: fresh context, import a v2 backup and the v1 fixture through the welcome path; assert reader view content and no dialog; reload and assert reader view again; malicious fixture shows the error and storage stays empty.
 - This slice depends on the welcome screen landing first, or on a test-only entry point to the same function.
 
