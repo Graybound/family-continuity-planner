@@ -125,6 +125,54 @@ Reasons:
 
 Revisit only if the no-secrets rule changes, which it should not.
 
+## Proposal under evaluation: a Locked section
+
+Status: **not built, awaiting Noah's decision** (issue linked in PR #26). Recommendation: **do not build it now.** Build the printed key sheet below instead, and revisit Locked only if the kill criteria at the end are met.
+
+### The idea
+
+An optional Locked section for households with no password manager. A few rarely changing keys go in it (phone PIN, computer login, email password, a password manager master password later). It is encrypted with WebCrypto AES-GCM. The app generates the passphrase (the creator does not choose it), prints it on a card, and the plan names where the card is kept (safe, drawer, attorney). Everything else stays readable, so the phone preview still works for the rest.
+
+### Compared with a printed emergency kit
+
+| | Printed kit or key sheet | Locked section |
+|---|---|---|
+| What the reader needs | One thing: the paper | Two things: the latest file and the card, plus a device that runs the app |
+| Works on her iPhone alone | Yes | Likely not. The self-contained plan file spec (PR #24) found that iPhone Quick Look does not run scripts and Files offers no route to Safari, so the section probably cannot be decrypted on the phone. Device test pending, so UNVERIFIED. Plan on her needing a computer |
+| Stays current | Only if rewritten by hand | Yes, edits are digital |
+| Lost carrier | Paper lost: same as losing the card, the keys are gone | Card lost: the keys are gone. File lost or only an old copy found: old keys |
+| Security code in the app | None | Key generation, encryption, locking, and every path that could leak plaintext |
+| Fits the spec | Yes | No. It reverses the rule adopted today ("the plan never stores secrets"), PROJECT_SPEC "Explicitly out of scope: storing passwords, PINs, or recovery codes", and "not a password manager" |
+
+The main upside is weaker than it looks. The keys proposed are exactly the ones that rarely change (phone PIN, computer login, email password, master password). Stale paper is a real risk for a list of 80 logins; it is a small risk for five keys that change once every few years. And the card itself is paper in a safe: if the household keeps a card in the safe, they can keep the five keys on paper in the same safe and skip the file dependency.
+
+### Requirements if it were ever built
+
+These are the minimum. Each one is a place a bug leaks a secret or locks the family out.
+
+1. **Never stored unlocked.** Ciphertext only in localStorage, backups and exported files. The decrypted text lives only in memory while the section is open, and the key is never written anywhere. Locks on a timer, on leaving the section, and when the tab is hidden.
+2. **Every existing plaintext path must be closed**, with a test each: search (`src/core/search.ts`), print (`src/ui/print.ts`), the activity log (`mutate` writes `log` text in `src/ui/store.ts`), the damaged-data recovery copies (`familyContinuityPlanner.recovery.*` in `src/core/storage.ts`), the possible-secret audit (which must skip the section rather than read it), undo, and the static phone preview of PR #24.
+3. **Key and format.** App-generated passphrase with at least 80 bits of entropy (for example 7 words from a fixed 2,048-word list, or 16 base32 characters in groups), so a slow key-derivation function matters less. PBKDF2-SHA-256 or HKDF to an AES-GCM 256 key, a fresh random 96-bit IV for every encryption, a stored salt, and a format version inside the encrypted blob. A schema bump with a migration, fixtures and tests (PROJECT_SPEC backup rule).
+4. **Last-updated date per entry**, stored outside the ciphertext (so it shows while locked) and shown on the printed plan: "Locked: email password, updated March 2027". No names of services beyond what the creator types as the label.
+5. **The card.** Printed with the plan name, the date it was made, a short fingerprint of the key (so the reader can tell which card matches which file), and plain steps: "Open the plan on a computer. Choose Locked. Type these words." Print two: one at home, one with the attorney.
+6. **Lost card.** While the creator is alive and the section is unlocked: generate a new card, re-encrypt, and the old card stops working (warn that old exported files still open with the old card). If the creator is alive and the section is locked: the keys inside are gone; the creator types them again under a new card. If the creator has died: permanent loss for those keys, by design. The plan must say so in plain words at setup and on the card, and the readable plan must still say what to do without them (call the carrier, use vendor recovery, Apple Legacy Contact).
+7. **Cross-engine proof.** Decrypt tests in Chromium, Firefox and WebKit from a file opened from disk. Verified here: Chromium treats `file://` as a secure context and `crypto.subtle` works there (2026-11-26). Firefox and WebKit on `file://`: UNVERIFIED.
+8. **An outside security review** before release. Rough size: 600 to 1,000 lines of code and tests (UNVERIFIED estimate), most of it in item 2.
+
+### Recommended instead: a printed key sheet, filled in by hand
+
+Smallest useful version, no secrets in the app:
+
+- A "Print a key sheet" button in Accounts that prints a blank form: rows for phone unlock code, computer login, email account and password, password manager master password, Wi-Fi, each with a "last changed" date line. Filled in with a pen. The app never sees what is written.
+- A pointer in the plan: where the sheet is kept and the date it was last checked (an Accounts entry, existing fields, no schema change).
+- When review reminders ship (roadmap), include "Check the key sheet is still right".
+
+This keeps one thing to find, works on any phone, and gets most of the "stays current" benefit through the review reminder.
+
+### Kill criteria: when to revisit Locked
+
+Revisit only if all of these hold: usability testing shows the reader can find and use a key sheet but households do not keep it current; the reader reliably has a computer, not only a phone; and someone commits to the security review in item 8. Otherwise, a household with no password manager is better served by the key sheet plus a nudge to get a password manager with emergency access.
+
 ## Acceptance (wife test)
 
 - Holding only the Accounts entry for the password manager, she can say which app has the passwords, how she requests access, and how long it takes. She has done it once before.
