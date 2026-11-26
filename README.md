@@ -8,7 +8,7 @@ It is a single file that runs in your web browser. No account, no subscription, 
 
 **Two free ways to use it:**
 
-- **Online:** open [graybound.github.io/family-continuity-planner](https://graybound.github.io/family-continuity-planner/). Nothing to install. Your plan is saved only in that browser on that device and is never sent to GitHub or anyone else.
+- **Online:** open [whenimgone.grayhek.com](https://whenimgone.grayhek.com/). Nothing to install. Your plan is saved only in that browser on that device and is never sent anywhere.
 - **Download:** get the latest zip from [Releases](https://github.com/Graybound/family-continuity-planner/releases/latest) and open it from your own computer or a USB drive. This is the most private option and keeps working even without internet.
 
 ![Overview with fictional sample data](docs/screenshots/overview-light.png)
@@ -56,7 +56,7 @@ Everything you type is stored in your browser's local storage on your computer a
 
 ## Quick start
 
-Want to try it first? Open the [online version](https://graybound.github.io/family-continuity-planner/) and load the sample data. To install it on your own computer:
+Want to try it first? Open the [online version](https://whenimgone.grayhek.com/) and load the sample data. To install it on your own computer:
 
 1. Go to the [Releases page](https://github.com/Graybound/family-continuity-planner/releases/latest) and download `Family-Continuity-Planner-vX.Y.Z.zip`.
 2. Extract it somewhere you will remember: your Documents folder, a USB drive, or a private network drive.
@@ -97,7 +97,7 @@ Click **Print**. Choose whether to include private details (off by default), the
 
 **Can my family read it if I am not there?** Yes, through the printed packet, a saved PDF, or by opening the planner on your computer. Tell a trusted person where the printout and backup are.
 
-**Is there an online version?** Yes: [graybound.github.io/family-continuity-planner](https://graybound.github.io/family-continuity-planner/). It is the same file as the download, served by GitHub Pages. Your plan stays in your browser either way. The download is a little more private and does not depend on GitHub staying online; see [docs/github-pages.md](docs/github-pages.md) for the difference.
+**Is there an online version?** Yes: [whenimgone.grayhek.com](https://whenimgone.grayhek.com/). It is the same file as the download, served by Cloudflare. Your plan stays in your browser either way. The download is a little more private and does not depend on the website staying online; see [docs/cloudflare.md](docs/cloudflare.md) for the difference.
 
 **What if I start online and later switch to the download (or the other way)?** Export a backup from one and restore it in the other. They do not share saved data.
 

@@ -6,6 +6,8 @@ All notable changes are listed here. The project follows [Semantic Versioning](h
 
 ### Changed
 
+- The online version moved to https://whenimgone.grayhek.com/, served by Cloudflare. The GitHub Pages copy is retired. Plans saved in the old online copy do not move over on their own: open the old copy, export a backup, and restore it in the new one.
+- The online-version notice now says your plan "is never sent anywhere" instead of naming GitHub.
 - On phones, the top bar shows short words (Menu, Privacy, Backup, Print) instead of bare symbols, and search fits on one line
 - While privacy mode is on, a banner says so on every screen, with a "Show hidden details" button
 - Overview buttons say where they lead ("Open Trusted contacts") instead of "Go"
