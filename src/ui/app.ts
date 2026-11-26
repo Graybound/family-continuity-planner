@@ -10,6 +10,7 @@ import { captureFocus, clear, h, icon, restoreFocus } from './dom';
 import { parseBackup } from '../core/backup';
 import { downloadRecoveryCopies, exportBackup, removeSampleData, startSavedFile } from './backupFlow';
 import { embeddedBackupText } from './selfCopy';
+import { STATIC_ID } from '../core/embedded';
 import { openPrintDialog } from './printDialog';
 import { openSearch } from './searchDialog';
 import { addBanner, getPlan, getPlanKey, go, init, removeBanner, render, ui, type View } from './store';
@@ -167,6 +168,8 @@ function renderApp(): void {
 }
 
 export function start(): void {
+  // The readable copy is for previews that run no scripts; the stylesheet already hides it here.
+  document.getElementById(STATIC_ID)?.remove();
   // A saved plan file (the app with a plan inside) always opens on its own plan.
   const embedded = embeddedBackupText();
   const opened = embedded === null ? null : parseBackup(embedded);

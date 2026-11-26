@@ -6,6 +6,8 @@ All notable changes are listed here. The project follows [Semantic Versioning](h
 
 ### Added
 
+- A saved plan file now carries a readable copy of the whole plan, with steps for opening it on a computer, iPhone, or Android phone. Places that show the file without running it (an iPhone preview, a mail app) show this instead of a blank page. Phone numbers and email addresses in it are tappable.
+- Opening a saved plan file shows whose plan it is and when it was saved, for example "Alex Morgan's plan, saved Thursday, November 26, 2026 at 2:32 PM", in the time the person who saved it saw.
 - Settings has a "Your name" field. Saved files are then named like `WhenImGone_Alex_Morgan_2026-11-26_1432.html`, so your family can tell whose plan a file is. Accented letters are kept.
 
 ### Compatibility

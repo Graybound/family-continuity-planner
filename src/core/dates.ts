@@ -45,6 +45,25 @@ export function formatIsoDateTime(v: string, locale?: string): string {
   }
 }
 
+/**
+ * A saved time as the person who saved it saw it: "Thursday, November 26, 2026 at 2:32 PM".
+ * Uses the wall-clock part of a local time with offset (savedAt), so the reader in
+ * another time zone sees the same time as the file name. A UTC time ("Z", from older
+ * files) is shown in the reader's own time zone instead.
+ */
+export function formatSavedTime(v: string, locale?: string): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::\d{2}(?:\.\d+)?)?[+-]\d{2}:\d{2}$/.exec(v);
+  if (!m) return formatIsoDateTime(v, locale);
+  const [y, mo, d, hh, mm] = m.slice(1, 6).map(Number) as [number, number, number, number, number];
+  const wall = new Date(Date.UTC(y, mo - 1, d, hh, mm));
+  if (Number.isNaN(wall.getTime())) return '';
+  try {
+    return new Intl.DateTimeFormat(locale, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'UTC' }).format(wall);
+  } catch {
+    return '';
+  }
+}
+
 /** Today's date in local time as YYYY-MM-DD. */
 export function todayString(now: Date = new Date()): string {
   const p = (n: number) => String(n).padStart(2, '0');
