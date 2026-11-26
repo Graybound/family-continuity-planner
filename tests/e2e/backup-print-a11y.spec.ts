@@ -88,7 +88,7 @@ test('a malicious backup cannot run script (v1 executed this)', async ({ app }) 
   expect(await app.evaluate(() => (window as unknown as { __xss?: number }).__xss)).toBeUndefined();
 });
 
-test('printed packet: Start Here first, private details withheld by default, controls removed', async ({ app }) => {
+test('printed packet: Start Here first, private details withheld by default, controls removed', async ({ app, browserName }) => {
   await addRecord(app, 'Accounts', { 'Institution or service': 'Sample Credit Union', 'Last four digits or safe hint': 'ends 0000', 'Where access instructions are stored': 'Password manager' });
   await addRecord(app, 'Emergency plans', { 'Plan name': 'Power outage', 'When to use this plan': 'Power out', 'Steps, one per line': 'Check breakers\nCall utility' });
   await app.getByRole('button', { name: 'Print' }).first().click();
@@ -110,8 +110,11 @@ test('printed packet: Start Here first, private details withheld by default, con
   await app.emulateMedia({ media: 'print' });
   await expect(app.locator('#app')).toBeHidden();
   await expect(packet).toBeVisible();
-  const pdf = await app.pdf({ format: 'Letter' });
-  expect(pdf.byteLength).toBeGreaterThan(1000);
+  // page.pdf() exists only in Chromium; the print-media checks above run in every browser.
+  if (browserName === 'chromium') {
+    const pdf = await app.pdf({ format: 'Letter' });
+    expect(pdf.byteLength).toBeGreaterThan(1000);
+  }
   await app.emulateMedia({ media: 'screen' });
 
   await app.getByRole('button', { name: 'Print' }).first().click();
