@@ -6,6 +6,8 @@ All notable changes are listed here. The project follows [Semantic Versioning](h
 
 ### Added
 
+- Every Export backup and Export .json is followed by "Step 2 of 2: save a PDF too". It opens the print window with the PDF named like the file (in Chrome and Edge), private details included, and the save time on the cover. "Skip for now" is always there.
+- A step to send a copy to the family's own phone or computer and open it there once, with an "It opened on their device" checkbox (in the export dialog until ticked, and in Settings). Suggestions remind you until it is ticked, and again after a year.
 - A saved plan file now carries a readable copy of the whole plan, with steps for opening it on a computer, iPhone, or Android phone. Places that show the file without running it (an iPhone preview, a mail app) show this instead of a blank page. Phone numbers and email addresses in it are tappable.
 - Opening a saved plan file shows whose plan it is and when it was saved, for example "Alex Morgan's plan, saved Thursday, November 26, 2026 at 2:32 PM", in the time the person who saved it saw.
 - Accounts now explains how to hand over access without writing down passwords: seven ways, best first (password manager emergency access, a printed emergency kit, keeping the phone working, Apple Legacy Contact, Google Inactive Account Manager, Facebook legacy contact, and what to do about Microsoft accounts), each checked against the company's own help pages.

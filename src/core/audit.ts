@@ -101,6 +101,7 @@ export function secretWarning(text: string): string | null {
 
 const BACKUP_STALE_DAYS = 90;
 const PLAN_STALE_DAYS = 365;
+const FAMILY_OPEN_STALE_DAYS = 365;
 export const DEFER_DAYS = 30;
 
 export function allFindings(plan: Plan, today: string = todayString()): Finding[] {
@@ -224,6 +225,13 @@ export function allFindings(plan: Plan, today: string = todayString()): Finding[
       out.push({ id: 'backup-never', rule: 'backup-never', title: 'No backup has been exported', why: 'Your plan exists only in this browser. Clearing browser data or losing this device would lose it.', target: { view: 'settings' } });
     } else if (/^\d{4}-\d{2}-\d{2}$/.test(exported) && daysBetween(exported, today) > BACKUP_STALE_DAYS) {
       out.push({ id: 'backup-old', rule: 'backup-old', title: `Last backup is over ${BACKUP_STALE_DAYS} days old`, why: `The most recent export was on ${exported}. Recent changes are not protected.`, target: { view: 'settings' } });
+    }
+    // Only once a copy exists: until then, backup-never says what to do first.
+    const opened = plan.info.familyOpenedAt;
+    if (plan.info.lastExportedAt && !opened) {
+      out.push({ id: 'family-not-opened', rule: 'family-not-opened', title: 'Nobody has opened a saved copy on your family\'s device yet', why: 'A copy that has only been opened on your computer might not open where your family will look. Send one to their phone or computer and open it there once.', target: { view: 'settings' } });
+    } else if (opened && daysBetween(opened, today) > FAMILY_OPEN_STALE_DAYS) {
+      out.push({ id: 'family-opened-old', rule: 'family-opened-old', title: 'It has been over a year since a saved copy was opened on your family\'s device', why: `It was last confirmed on ${opened}. Phones and computers change; check that a recent copy still opens there.`, target: { view: 'settings' } });
     }
     const reviewed = plan.info.lastReviewedAt;
     if (!reviewed || daysBetween(reviewed, today) > PLAN_STALE_DAYS) {

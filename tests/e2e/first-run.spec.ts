@@ -1,4 +1,4 @@
-import { test, expect, addRecord, nav } from './fixtures';
+import { test, expect, addRecord, nav, skipPdf } from './fixtures';
 import type { Page } from '@playwright/test';
 
 /** Visible sidebar labels, in order, without counts. */
@@ -65,6 +65,7 @@ test('following "Next" from a new plan goes down the sidebar in order, then to t
   await next().click();
   await expect(app.locator('#nav [aria-current="page"]')).toContainText('Settings and backup');
   await Promise.all([app.waitForEvent('download'), app.getByRole('button', { name: 'Export backup' }).last().click()]);
+  await skipPdf(app);
   await nav(app, 'Overview');
   await expect(app.getByRole('heading', { name: 'Ready for an emergency', level: 2 })).toBeVisible();
   // The next level starts with the next page in the sidebar.

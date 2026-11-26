@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import { test, expect, nav, addRecord, storedPlan, APP_URL } from './fixtures';
+import { test, expect, nav, addRecord, storedPlan, APP_URL, skipPdf } from './fixtures';
 
 test('works offline with no network access', async ({ browser }) => {
   const ctx = await browser.newContext();
@@ -146,6 +146,7 @@ test('readiness rises to Basic after a contact, plan, document, and backup', asy
   await nav(app, 'Overview');
   await expect(app.getByRole('heading', { name: 'Just started', level: 2 })).toBeVisible();
   await Promise.all([app.waitForEvent('download'), app.getByRole('button', { name: 'Export backup' }).first().click()]);
+  await skipPdf(app);
   await expect(app.getByRole('heading', { name: 'Ready for an emergency', level: 2 })).toBeVisible();
 });
 
