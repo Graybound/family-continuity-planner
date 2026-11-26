@@ -1,14 +1,16 @@
 {
   "schema": "family-continuity-planner",
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "info": {
     "planName": "The Morgan Household (sample)",
+    "ownerName": "Alex Morgan",
     "region": "Exampleville",
     "trustedContact": "Pat Lee, neighbor, 555-0140",
     "createdAt": "2026-11-01T12:00:00.000Z",
     "updatedAt": "2026-11-01T12:00:00.000Z",
     "lastReviewedAt": "",
     "lastExportedAt": "",
+    "familyOpenedAt": "",
     "isSample": true
   },
   "preferences": {
@@ -21,16 +23,86 @@
   },
   "messages": [
     {
-      "id": "r1g5j5v064r3f0a5a",
+      "id": "r19051f4h4c6o6d39",
       "audience": "Jordan",
       "title": "For you first",
       "body": "You know more of this than you think. Take it slowly, and lean on Pat and Casey."
     }
   ],
   "records": {
+    "contacts": [
+      {
+        "id": "r5m234b5v033f3a3y",
+        "name": "Pat Lee",
+        "role": "Neighbor with a spare key",
+        "priority": "Primary",
+        "phone": "555-0140",
+        "email": "",
+        "instructions": "Call first for anything at the house. Pat can let helpers in."
+      },
+      {
+        "id": "r6e6x315w4b5x2u11",
+        "name": "Casey Rivera, Example Tax Partners",
+        "role": "Accountant",
+        "priority": "Primary",
+        "phone": "555-0110",
+        "email": "casey@example.com",
+        "instructions": "Call within the first few weeks. Casey knows our finances well and can explain what needs attention."
+      },
+      {
+        "id": "r1l326j0s3b1r5g1c",
+        "name": "Sample Insurance Company",
+        "role": "Home and auto insurance",
+        "priority": "Service",
+        "phone": "555-0120",
+        "email": "",
+        "instructions": "Call for any claim. Policy details are in the fire safe."
+      },
+      {
+        "id": "r5j5h4k0h732o2f6e",
+        "name": "Example HVAC Services",
+        "role": "Heating and cooling",
+        "priority": "Service",
+        "phone": "555-0111",
+        "email": "",
+        "instructions": "Annual furnace check in October. Call if the heat stops."
+      }
+    ],
+    "plans": [
+      {
+        "id": "r5m1e0n4z6t5m5522",
+        "name": "If Alex is suddenly unavailable",
+        "trigger": "Alex is in the hospital or cannot be reached for more than a day",
+        "lead": "Jordan Morgan",
+        "backup": "Pat Lee",
+        "meetup": "Pat Lee’s house next door",
+        "steps": "Call Pat Lee to help with Riley and Biscuit\nCheck the \"First 24 hours\" checklist\nCall Casey Rivera only after the first week\nNothing financial is urgent in the first week",
+        "reviewed": "2026-11-01"
+      }
+    ],
+    "documents": [
+      {
+        "id": "r6x5s3y0g310o212w",
+        "name": "Will and estate documents",
+        "category": "Legal",
+        "owner": "Alex and Jordan",
+        "location": "Original with Example Law Office. Copy in fire safe.",
+        "expires": "2027-12-06",
+        "notes": ""
+      },
+      {
+        "id": "r66170f66342v245a",
+        "name": "Home insurance policy",
+        "category": "Insurance",
+        "owner": "Alex and Jordan",
+        "location": "Fire safe, top shelf.",
+        "expires": "2027-03-01",
+        "notes": ""
+      }
+    ],
     "responsibilities": [
       {
-        "id": "r5m0c0z6f412w2p1r",
+        "id": "r0s53232v144u4667",
         "name": "Paying the monthly bills",
         "domain": "Finances and bills",
         "frequency": "Monthly",
@@ -43,7 +115,7 @@
         "notes": "Consider moving the water bill to autopay so there is nothing to remember."
       },
       {
-        "id": "r67380h6z1w0v5j6q",
+        "id": "r6k3r3p4l182c2z6l",
         "name": "Preparing and filing taxes",
         "domain": "Taxes",
         "frequency": "Annually",
@@ -56,7 +128,7 @@
         "notes": ""
       },
       {
-        "id": "r53435j1r0p225251",
+        "id": "r5c4z4n1x223w181p",
         "name": "Home Wi-Fi and devices",
         "domain": "Technology and devices",
         "frequency": "As needed",
@@ -69,7 +141,7 @@
         "notes": ""
       },
       {
-        "id": "r3e690s614m696a2o",
+        "id": "r6t1l5k4114694n3h",
         "name": "Furnace filter and fall maintenance",
         "domain": "Home maintenance",
         "frequency": "Seasonal",
@@ -82,7 +154,7 @@
         "notes": ""
       },
       {
-        "id": "r2u032c6f3426255d",
+        "id": "r3n07613p160a5z2x",
         "name": "Feeding and walking Biscuit",
         "domain": "Pets",
         "frequency": "Weekly",
@@ -95,112 +167,9 @@
         "notes": ""
       }
     ],
-    "people": [
-      {
-        "id": "r300p203h4r645t10",
-        "name": "Alex Morgan",
-        "relationship": "Plan author",
-        "phone": "555-0100",
-        "email": "alex@example.com",
-        "address": "123 Example Street, Exampleville",
-        "needs": "",
-        "notes": "Wrote this plan and handles most paperwork."
-      },
-      {
-        "id": "r0g4v43185m5b6a27",
-        "name": "Jordan Morgan",
-        "relationship": "Partner",
-        "phone": "555-0101",
-        "email": "jordan@example.com",
-        "address": "123 Example Street, Exampleville",
-        "needs": "",
-        "notes": ""
-      },
-      {
-        "id": "r1v0x1h4c631m5j36",
-        "name": "Riley Morgan",
-        "relationship": "Child",
-        "phone": "",
-        "email": "",
-        "address": "",
-        "needs": "Riley does best with a clear daily schedule. School pickup is at 3:15.",
-        "notes": ""
-      }
-    ],
-    "contacts": [
-      {
-        "id": "r64572a095g6j232c",
-        "name": "Pat Lee",
-        "role": "Neighbor with a spare key",
-        "priority": "Primary",
-        "phone": "555-0140",
-        "email": "",
-        "instructions": "Call first for anything at the house. Pat can let helpers in."
-      },
-      {
-        "id": "r2n0b0c1o6l5u2r4b",
-        "name": "Casey Rivera, Example Tax Partners",
-        "role": "Accountant",
-        "priority": "Primary",
-        "phone": "555-0110",
-        "email": "casey@example.com",
-        "instructions": "Call within the first few weeks. Casey knows our finances well and can explain what needs attention."
-      },
-      {
-        "id": "r0k2m33355w5a6y07",
-        "name": "Sample Insurance Company",
-        "role": "Home and auto insurance",
-        "priority": "Service",
-        "phone": "555-0120",
-        "email": "",
-        "instructions": "Call for any claim. Policy details are in the fire safe."
-      },
-      {
-        "id": "r1m0a18673s287029",
-        "name": "Example HVAC Services",
-        "role": "Heating and cooling",
-        "priority": "Service",
-        "phone": "555-0111",
-        "email": "",
-        "instructions": "Annual furnace check in October. Call if the heat stops."
-      }
-    ],
-    "health": [
-      {
-        "id": "r003t3i1i5i4d1j4s",
-        "person": "Riley Morgan",
-        "recordType": "Provider",
-        "name": "Dr. Sam Example, Example Family Clinic",
-        "details": "",
-        "phone": "555-0160",
-        "instructions": "Annual checkup each August."
-      }
-    ],
-    "home": [
-      {
-        "id": "r0d5r6a420g4p4c59",
-        "name": "Water main shutoff",
-        "type": "Water",
-        "provider": "Exampleville Water",
-        "account": "",
-        "phone": "555-0170",
-        "location": "Basement, north wall, red handle.",
-        "instructions": "Turn clockwise a quarter turn to close."
-      },
-      {
-        "id": "r522h2p050141344k",
-        "name": "Home internet",
-        "type": "Internet",
-        "provider": "Example Fiber",
-        "account": "",
-        "phone": "555-0150",
-        "location": "",
-        "instructions": "Router is in the hall closet."
-      }
-    ],
     "accounts": [
       {
-        "id": "r5i5q0b5h5i1w0x3p",
+        "id": "r4o2k4w456v3b496q",
         "name": "Sample Credit Union",
         "type": "Banking",
         "owner": "Alex and Jordan",
@@ -211,7 +180,7 @@
         "notes": "Most bills autopay from this account."
       },
       {
-        "id": "r15163s6y27354b0q",
+        "id": "r693l4z6h4a1u526m",
         "name": "Family password manager",
         "type": "Digital",
         "owner": "Alex Morgan",
@@ -222,41 +191,74 @@
         "notes": "This is where every other login lives."
       }
     ],
-    "documents": [
+    "home": [
       {
-        "id": "r1a5f6w6a3p065p2q",
-        "name": "Will and estate documents",
-        "category": "Legal",
-        "owner": "Alex and Jordan",
-        "location": "Original with Example Law Office. Copy in fire safe.",
-        "expires": "2027-12-06",
+        "id": "r4h6p193i5l1x2d0t",
+        "name": "Water main shutoff",
+        "type": "Water",
+        "provider": "Exampleville Water",
+        "account": "",
+        "phone": "555-0170",
+        "location": "Basement, north wall, red handle.",
+        "instructions": "Turn clockwise a quarter turn to close."
+      },
+      {
+        "id": "r644r3m1547725p5w",
+        "name": "Home internet",
+        "type": "Internet",
+        "provider": "Example Fiber",
+        "account": "",
+        "phone": "555-0150",
+        "location": "",
+        "instructions": "Router is in the hall closet."
+      }
+    ],
+    "people": [
+      {
+        "id": "r6u5u644h2o5b1e5c",
+        "name": "Alex Morgan",
+        "relationship": "Plan author",
+        "phone": "555-0100",
+        "email": "alex@example.com",
+        "address": "123 Example Street, Exampleville",
+        "needs": "",
+        "notes": "Wrote this plan and handles most paperwork."
+      },
+      {
+        "id": "r0a6d5e4g2k2m1d45",
+        "name": "Jordan Morgan",
+        "relationship": "Partner",
+        "phone": "555-0101",
+        "email": "jordan@example.com",
+        "address": "123 Example Street, Exampleville",
+        "needs": "",
         "notes": ""
       },
       {
-        "id": "r2j6g0b4h6h3s654h",
-        "name": "Home insurance policy",
-        "category": "Insurance",
-        "owner": "Alex and Jordan",
-        "location": "Fire safe, top shelf.",
-        "expires": "2027-03-01",
+        "id": "r3j2y1g0i0u3p6w5o",
+        "name": "Riley Morgan",
+        "relationship": "Child",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "needs": "Riley does best with a clear daily schedule. School pickup is at 3:15.",
         "notes": ""
       }
     ],
-    "plans": [
+    "health": [
       {
-        "id": "r670f5p293z4s4h0c",
-        "name": "If Alex is suddenly unavailable",
-        "trigger": "Alex is in the hospital or cannot be reached for more than a day",
-        "lead": "Jordan Morgan",
-        "backup": "Pat Lee",
-        "meetup": "Pat Lee’s house next door",
-        "steps": "Call Pat Lee to help with Riley and Biscuit\nCheck the \"First 24 hours\" checklist\nCall Casey Rivera only after the first week\nNothing financial is urgent in the first week",
-        "reviewed": "2026-11-01"
+        "id": "r48004f0b6x714w4d",
+        "person": "Riley Morgan",
+        "recordType": "Provider",
+        "name": "Dr. Sam Example, Example Family Clinic",
+        "details": "",
+        "phone": "555-0160",
+        "instructions": "Annual checkup each August."
       }
     ],
     "notes": [
       {
-        "id": "r1w5x5865405a2p1o",
+        "id": "r1r1j6y3c0o3z3j2n",
         "name": "Trash and recycling",
         "category": "Routine",
         "details": "Trash goes out Tuesday night.\nRecycling every other Tuesday (green bin).",
@@ -266,7 +268,7 @@
   },
   "checklist": [
     {
-      "id": "r0e5l0c4a706x131w",
+      "id": "r206n443h0s2p603y",
       "group": "First 24 hours",
       "title": "Choose two trusted backup contacts",
       "note": "Confirm how they should be reached.",
@@ -274,7 +276,7 @@
       "done": false
     },
     {
-      "id": "r4x313m582l3x5j2s",
+      "id": "r2u4k5x694s445i22",
       "group": "Information to gather",
       "title": "Record utility shutoff locations",
       "note": "Include any tool needed to operate them.",
@@ -282,7 +284,7 @@
       "done": false
     },
     {
-      "id": "r3f5e3l290y5l5z44",
+      "id": "r1k111z3n253q2y3k",
       "group": "People to brief",
       "title": "Walk one trusted person through the plan",
       "note": "Show them where the current backup is stored.",
@@ -290,7 +292,7 @@
       "done": false
     },
     {
-      "id": "r0a1u5z1h1w6j4e2l",
+      "id": "r6e2c4z4f131l260j",
       "group": "Quarterly upkeep",
       "title": "Export an updated backup",
       "note": "Keep an offline copy somewhere protected.",

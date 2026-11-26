@@ -1,13 +1,29 @@
 # Backup format
 
-Backups are UTF-8 JSON files named `family-continuity-backup-YYYY-MM-DD.json`. They are readable in any text editor, so a family can recover information even without the app.
+Backups are UTF-8 JSON, readable in any text editor, so a family can recover information even without the app. They come in two files:
 
-## Version 2 (current)
+- **Saved plan file** (`WhenImGone_YYYY-MM-DD_HHMM.html`, made by Export backup): the whole app with the backup JSON inside `<script type="application/json" id="when-im-gone-plan">`. In that block, `<`, `>`, `&`, U+2028 and U+2029 are written as `\u003c`, `\u003e`, `\u0026`, `\u2028` and `\u2029`, which are ordinary JSON escapes. Restore reads the block and checks it exactly like a JSON file.
+- **JSON backup** (`WhenImGone_YYYY-MM-DD_HHMM.json`, made by Export .json): the same JSON on its own.
+
+Names use the local date and time of the save. A second save in the same minute adds seconds: `WhenImGone_2026-11-26_1432_05`.
+
+## Version 3 (current)
+
+Version 3 is version 2 plus two fields in `info`:
+
+- `ownerName`: whose plan this is, for example "Noah Grayhek". Optional, up to 500 characters. Used in saved file names so a family can tell whose plan a file is.
+- `familyOpenedAt`: the date (`YYYY-MM-DD`) someone confirmed a saved copy opened on the family's own phone or computer. Empty until then.
+
+Version 2 files are upgraded on restore: both fields start empty and the restore preview says so. Before a release ships version 3, the Belongings and Technology sections are added to this same upgrade, so there is one version bump, not three.
+
+Older app versions refuse version 3 files with "made by a newer version" and leave their current plan untouched.
+
+## Version 2
 
 ```json
 {
   "schema": "family-continuity-planner",
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "info": {
     "planName": "The Morgan Household (sample)",
     "region": "Exampleville",
@@ -16,7 +32,9 @@ Backups are UTF-8 JSON files named `family-continuity-backup-YYYY-MM-DD.json`. T
     "updatedAt": "2026-11-01T12:00:00.000Z",
     "lastReviewedAt": "2026-11-01",
     "lastExportedAt": "2026-11-01T12:00:00.000Z",
-    "isSample": true
+    "isSample": true,
+    "ownerName": "Alex Morgan",
+    "familyOpenedAt": ""
   },
   "preferences": { "privacyDefault": false, "includePrivateInPrint": false },
   "startHere": { "mode": "default", "customText": "" },
@@ -30,6 +48,7 @@ Backups are UTF-8 JSON files named `family-continuity-backup-YYYY-MM-DD.json`. T
   "assessment": { "areas": { "taxes": "mostly-me" }, "risks": ["bills"], "completedAt": "ISO time" },
   "audit": { "dismissed": ["no-contacts"], "deferred": { "backup-old": "2026-12-01" } },
   "activity": [{ "id": "r3", "text": "Added person", "at": "ISO time" }],
+  "savedAt": "local time with offset, e.g. 2026-11-26T14:32:05-06:00",
   "exportedAt": "ISO time",
   "exportedBy": "Family Continuity Planner 0.2.0"
 }
@@ -39,7 +58,7 @@ A complete example: [examples/sample-plan.json](../examples/sample-plan.json).
 
 ### Rules
 
-- `exportedAt` and `exportedBy` are informational and ignored on import.
+- `savedAt`, `exportedAt` and `exportedBy` are informational and ignored on import. `savedAt` (from 0.3) is the save's local time with its offset; `exportedAt` is the same moment in UTC.
 - Plan details live in `info`, not `meta` as in version 1. This is deliberate: the version 1 app accepted any file with a `meta` object and a `checklist` array, and would have "restored" a version 2 file while silently dropping every record. Without `meta`, version 1 rejects the file with an error instead.
 - Dates without times are `YYYY-MM-DD`. Times are ISO 8601.
 - Every record value is a string. Unknown fields are dropped with a warning.

@@ -28,7 +28,7 @@ body:
     id: how
     attributes:
       label: How are you opening the planner?
-      options: [Downloaded file opened from my computer, From a USB or network drive, GitHub Pages demo, Development server]
+      options: [Downloaded file opened from my computer, From a USB or network drive, Online version (whenimgone.grayhek.com), Development server]
   - type: input
     id: browser
     attributes:

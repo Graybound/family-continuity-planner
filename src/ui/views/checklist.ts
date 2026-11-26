@@ -47,7 +47,7 @@ export function checklistView(): HTMLElement {
                   mutate((p) => {
                     p.checklist = p.checklist.filter((x) => x.id !== c.id);
                   }, { message: 'Checklist item deleted' });
-                }, { cls: 'btn small danger', ariaLabel: `Delete ${c.title}` }),
+                }, { cls: 'btn small', ariaLabel: `Delete ${c.title}` }),
               ),
             );
           }))
