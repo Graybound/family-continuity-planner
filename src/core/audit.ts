@@ -37,15 +37,66 @@ export const RISK_TO_AREA: Record<RiskId, AreaId> = {
 };
 
 /**
- * Matches labelled secrets such as a "PIN" or "password" followed by a colon or equals sign and a value.
- * A value that is a pointer to where the secret is kept ("Password: in the password manager") is not a secret.
+ * Kinds of secret the plan should not hold. The plan stores pointers (where a secret is kept and
+ * who can get it), never the secret itself, because plans, backups and printouts are not encrypted.
  */
-const SECRET_LABEL = /\b(password|passcode|passwd|pwd|pin|security answer)\s*[:=]\s*(?!(?:in|on|at|see|ask|stored|kept|saved|located|written|held|via|under)\b)\S+/i;
+export type SecretKind = 'password' | 'recovery-code' | 'card-number' | 'account-number' | 'id-number';
+
+/**
+ * Words that start a pointer rather than a value: "Password: in the password manager",
+ * "PIN is kept in the safe", or a hint such as "the dog's name". privacy-scan: allow
+ */
+const POINTER = String.raw`(?!(?:in|on|at|see|ask|stored|kept|saved|located|written|held|via|under|the|my|our|with|not|same)\b)`;
+/** A password, PIN or similar, labelled and followed by a value, with a colon, equals sign or "is". */
+const PASSWORD_LABEL = new RegExp(String.raw`\b(?:password|passcode|passwd|pwd|passphrase|pin(?: code)?|security answer)\s*(?:[:=]|\bis\b)\s*${POINTER}\S+`, 'i');
+/** A labelled recovery code, backup code, secret key or recovery phrase. */
+const RECOVERY_LABEL = new RegExp(String.raw`\b(?:recovery|backup|secret|setup|seed)\s+(?:codes?|key|phrase|words)\s*(?:[:=]|\bis\b|\bare\b)\s*${POINTER}\S+`, 'i');
+/** The shape of a 1Password Secret Key, which starts with A3 and has dash-separated groups. */
+const ONEPASSWORD_SECRET_KEY = /\bA3(?:-[A-Z0-9]{5,6}){5,}\b/;
 /** 13 to 19 digits, optionally grouped, which looks like a full card number. */
 const CARD_LIKE = /\b\d(?:[ -]?\d){12,18}\b/;
+/** "Account number: 12345678" and similar: a labelled run of eight or more digits. Last four digits are fine. */
+const ACCOUNT_LABEL = /\b(?:account|acct)\s*(?:number|no\.?|num|#)?\s*(?:[:=#]|\bis\b)?\s*\d(?:[ -]?\d){7,}/i;
+/** A US Social Security number written in its usual shape, or labelled. */
+const SSN_LIKE = /\b\d{3}-\d{2}-\d{4}\b|\b(?:ssn|social security(?: number)?)\s*(?:[:=#]|\bis\b)?\s*\d{3}[ -]?\d{2}[ -]?\d{4}\b/i;
+
+/** The first kind of secret the text seems to contain, or null. A guess: callers warn, never block. */
+export function secretKind(text: string): SecretKind | null {
+  if (PASSWORD_LABEL.test(text)) return 'password';
+  if (RECOVERY_LABEL.test(text) || ONEPASSWORD_SECRET_KEY.test(text)) return 'recovery-code';
+  if (CARD_LIKE.test(text)) return 'card-number';
+  if (ACCOUNT_LABEL.test(text)) return 'account-number';
+  if (SSN_LIKE.test(text)) return 'id-number';
+  return null;
+}
 
 export function looksLikeSecret(text: string): boolean {
-  return SECRET_LABEL.test(text) || CARD_LIKE.test(text);
+  return secretKind(text) !== null;
+}
+
+/** Plain words for each kind, used in warnings and suggestions. */
+export const SECRET_KIND_LABELS: Record<SecretKind, string> = {
+  password: 'a password or PIN',
+  'recovery-code': 'a recovery code or secret key',
+  'card-number': 'a full card number',
+  'account-number': 'a full account number',
+  'id-number': 'a Social Security number',
+};
+
+/** What to write instead, for each kind. */
+export const SECRET_KIND_INSTEAD: Record<SecretKind, string> = {
+  password: 'Write where it is kept instead, for example "In the password manager, under Bank".', // privacy-scan: allow
+  'recovery-code': 'Write where the printed codes or kit are kept instead, for example "Recovery kit is in the fire safe".',
+  'card-number': 'Write the last four digits instead.',
+  'account-number': 'Write the last four digits instead.',
+  'id-number': 'Write where the card or paperwork is kept instead.',
+};
+
+/** A gentle warning for text that may hold a secret, or null. Never blocks saving. */
+export function secretWarning(text: string): string | null {
+  const kind = secretKind(text);
+  if (!kind) return null;
+  return `This looks like ${SECRET_KIND_LABELS[kind]}. Your plan is not encrypted, so anyone who gets the file or a printout could read it. ${SECRET_KIND_INSTEAD[kind]} You can still save it.`;
 }
 
 const BACKUP_STALE_DAYS = 90;
@@ -143,11 +194,12 @@ export function allFindings(plan: Plan, today: string = todayString()): Finding[
   for (const s of SECTION_IDS) {
     for (const r of recs[s]) {
       const text = Object.entries(r).filter(([k]) => k !== 'id').map(([, v]) => v).join('\n');
-      if (looksLikeSecret(text)) {
+      const kind = secretKind(text);
+      if (kind) {
         out.push({
           id: `possible-secret:${r.id}`, rule: 'possible-secret',
-          title: `${recordTitle(s, r)}: may contain a password or card number`,
-          why: 'Plans and backups are not encrypted. Keep secrets in a password manager and record only where to find them.',
+          title: `${recordTitle(s, r)}: may contain ${SECRET_KIND_LABELS[kind]}`,
+          why: `Plans and backups are not encrypted. ${SECRET_KIND_INSTEAD[kind]}`,
           target: { view: 'section', section: s },
         });
       }
