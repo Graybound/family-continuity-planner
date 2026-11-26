@@ -33,7 +33,7 @@ Node.js 20 or newer. Read [ARCHITECTURE.md](ARCHITECTURE.md) first; it is short.
 
 ## Writing style for in-app text
 
-Calm, plain, and kind. Short sentences. No jargon, no legal tone, no frightening or morbid wording, no shame for missing information, and never imply a plan is complete. Do not assume a family structure, religion, country, or gender.
+Calm, plain, and kind. Short sentences. No jargon, no legal tone, no gratuitous or graphic wording, no shame for missing information, and never imply a plan is complete. It is fine for the text to be sad: this app exists because someone is going to die. Say so plainly ("died", not "passed away") and do not soften or cut honest content because it feels heavy. Do not assume a family structure, religion, country, or gender.
 
 ## Good first issues
 
