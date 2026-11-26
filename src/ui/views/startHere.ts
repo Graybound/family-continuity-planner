@@ -1,4 +1,4 @@
-import { DEFAULT_START_HERE, startHereText } from '../../core/plan';
+import { DEFAULT_START_HERE, EXAMPLE_START_HERE_LETTER, startHereText } from '../../core/plan';
 import { h } from '../dom';
 import { openMessageDialog } from '../dialogs';
 import { getPlan, mutate } from '../store';
@@ -24,18 +24,18 @@ export function startHereView(): HTMLElement {
     viewHead({
       eyebrow: 'For the people reading your plan',
       title: 'Start Here',
-      description: 'The first page your family sees, before any accounts or checklists. It is your last message to them, followed by where to start.',
+      description: 'The first page your family sees, before any accounts or checklists. It is your chance to leave them a last message, followed by where to start.',
     }),
     h('div', { class: 'grid two' },
       h('section', { class: 'card card-pad', attrs: { 'aria-labelledby': 'intro-h' } },
         h('h2', { attrs: { id: 'intro-h' }, style: { 'margin-top': '0' } }, 'Introduction'),
         h('fieldset', null, h('legend', null, 'Which introduction should the plan use?'), radios),
         custom ? null : h('p', { class: 'help', attrs: { id: 'start-here-nudge' } },
-          'The default note is warm, but it is general. It will mean much more to them in your own words. Choose "Write or edit my own introduction" to start from it.'),
+          'The default only tells them where to start. A message in your own words will mean much more to them. Choose "Write or edit my own introduction" to add one.'),
         custom ? [
           h('div', { class: 'field full' }, h('label', { attrs: { for: 'start-here-text' } }, 'Your introduction'), ta,
             h('div', { class: 'help', attrs: { id: 'start-here-prompts' } },
-              h('p', null, 'Make it yours. Plain words and one real detail matter more than getting it perfect. Some things to say:'),
+              h('p', null, 'Write your message above the practical part. Plain words and one real detail matter more than getting it perfect. Some things to say:'),
               h('ul', null,
                 h('li', null, 'Who you are writing to, by name.'),
                 h('li', null, 'One memory you hold onto, in a sentence or two.'),
@@ -54,6 +54,11 @@ export function startHereView(): HTMLElement {
             }, { message: 'Introduction reset to the default text' })),
           ),
         ] : null,
+        h('details', { class: 'example-letter' },
+          h('summary', null, 'Read an example message for ideas'),
+          h('p', { class: 'help' }, 'This is only an example. It is not saved in your plan, and your family will not see it. Borrow what fits and say the rest your own way.'),
+          EXAMPLE_START_HERE_LETTER.split(/\n\s*\n/).map((p) => h('p', null, p.trim())),
+        ),
       ),
       h('section', { class: 'card card-pad start-text', attrs: { 'aria-labelledby': 'preview-h' } },
         h('h2', { attrs: { id: 'preview-h' }, style: { 'margin-top': '0' } }, 'What your family will read'),

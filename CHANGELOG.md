@@ -6,7 +6,7 @@ All notable changes are listed here. The project follows [Semantic Versioning](h
 
 ### Changed
 
-- The default Start Here note now reads first as a last message to the people you love, followed by where to start. The Start Here editor suggests what to say to make it your own.
+- Start Here: the default note is shorter and plainer about why the family is reading it. The editor now encourages you to open with a last message in your own words, suggests what to say, and offers an example message for ideas (the example is never saved in your plan).
 - Writing guidance: sad is allowed. "No morbid language" is now "no gratuitous or graphic language" (PROJECT_SPEC.md principle 3, CONTRIBUTING.md).
 
 ## [0.2.0] - 2026-11-07

@@ -183,14 +183,16 @@ test('section status can be set to Does not apply', async ({ app }) => {
 
 test('start here: default text, custom text, and personal messages', async ({ app }) => {
   await nav(app, 'Start Here');
-  await expect(app.locator('.start-text').getByText('To the people I love,')).toBeVisible();
   await expect(app.locator('.start-text').getByText('Very little here is urgent.')).toBeVisible();
-  // The creator is nudged to make the default note their own.
-  await expect(app.getByText('It will mean much more to them in your own words.')).toBeVisible();
+  // The example letter is offered for ideas but is not what the family reads.
+  await expect(app.locator('.start-text').getByText('To the people I love,')).toHaveCount(0);
+  await expect(app.getByText('A message in your own words will mean much more to them.')).toBeVisible();
+  await app.getByText('Read an example message for ideas').click();
+  await expect(app.locator('.example-letter').getByText('To the people I love,')).toBeVisible();
   await app.getByLabel('Write or edit my own introduction').check();
-  await expect(app.getByLabel('Your introduction')).toHaveValue(/^To the people I love,/);
+  await expect(app.getByLabel('Your introduction')).toHaveValue(/^This plan was written for you/);
   await expect(app.getByText('One memory you hold onto, in a sentence or two.')).toBeVisible();
-  await expect(app.getByText('It will mean much more to them in your own words.')).toHaveCount(0);
+  await expect(app.getByText('A message in your own words will mean much more to them.')).toHaveCount(0);
   await app.getByLabel('Your introduction').fill('Dear family,\n\nCall Pat first.');
   await app.getByRole('button', { name: 'Save introduction' }).click();
   await expect(app.locator('.start-text').getByText('Call Pat first.')).toBeVisible();

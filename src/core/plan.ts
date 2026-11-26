@@ -106,13 +106,27 @@ export interface Plan {
 }
 
 /**
- * The default Start Here note. It reads first as a last message to the family, then gives the
- * practical first steps. It is written to be replaced: the Start Here editor nudges the creator to
- * make it their own. Point to parts of the plan by what they are ("what to do first", "who to
- * call", "trusted contacts"), not by a page name, because print, reader view and navigation label
- * them differently.
+ * The default Start Here note: short practical guidance in a neutral voice, shown until the creator
+ * writes their own. It must not pretend to be the creator's personal words. Point to parts of the
+ * plan by what they are ("what to do first", "who to call", "trusted contacts"), not by a page
+ * name, because print, reader view and navigation label them differently.
  */
-export const DEFAULT_START_HERE = `To the people I love,
+export const DEFAULT_START_HERE = `This plan was written for you, so you would not have to work everything out alone. If you are reading it, the person who wrote it has died, or cannot be here to help right now. It is OK to grieve, and to take your time.
+
+Very little here is urgent. Start with what comes right after this page: what to do first, and who to call. Take the rest one step at a time, when you have the energy.
+
+The people listed as trusted contacts were chosen because they can help. Let them. You do not have to do this by yourself.
+
+This plan is guidance, not a legal document. If there is a will or other legal paperwork, it comes first. If something is unclear, ask a trusted contact or a professional.
+
+You only need to do the next thing.`;
+
+/**
+ * An example last message, shown in the Start Here editor for inspiration only. It is never saved
+ * into a plan or shown to the reader, because a generic letter presented as the creator's own
+ * words rings false.
+ */
+export const EXAMPLE_START_HERE_LETTER = `To the people I love,
 
 If you are reading this, I have died, or I can no longer be here to help. I am so sorry to leave you with this. I know it is hard, and I wish I could be with you for it.
 
