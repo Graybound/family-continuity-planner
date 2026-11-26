@@ -21,7 +21,7 @@ The creator enters the information. The output is primarily for the reader: a pa
 3. **Reduce overwhelm.** Guide and encourage. No walls of questions, no required sections, no forced linear flow, no shaming, no morbid language, no claims of completeness, no misleading overall percentage. A basic plan is useful on its own.
 4. **Design for the survivor.** The family-facing output opens with a reassuring Start Here section that explains what the document is, that not everything is urgent, that help exists, to focus on the next step, and that it is guidance, not a legal instruction. The creator can keep, edit, or replace it and add messages for different audiences.
 5. **Knowledge before assets.** Operational knowledge and helpful relationships come before lists of property.
-6. **Progressive usefulness.** Readiness levels (Getting Started, Basic Emergency Plan Ready, Core Continuity Plan Ready, Thorough Plan Ready) and module states (Not Started, In Progress, Completed, Review Later, Does Not Apply). Rules are deterministic, explainable, documented, and tested. No legal, financial, medical, or safety guarantees.
+6. **Progressive usefulness.** Readiness levels (Just started, Ready for an emergency, Covers everyday life, Thorough and up to date) and module states (Not Started, In Progress, Completed, Review Later, Does Not Apply). Rules are deterministic, explainable, documented, and tested. No legal, financial, medical, or safety guarantees.
 
 ## Status of functionality
 

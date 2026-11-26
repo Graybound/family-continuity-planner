@@ -6,7 +6,7 @@ import { defineConfig, devices } from '@playwright/test';
 //
 // PW_BROWSERS picks the browsers: a comma-separated list of chromium, firefox,
 // webkit, or "all". It defaults to chromium so `npm run test:e2e` keeps working
-// anywhere only Chromium is installed (local setup, pages.yml, release.yml).
+// anywhere only Chromium is installed (local setup, release.yml).
 // CI sets PW_BROWSERS=all. Install the others with
 // `npx playwright install firefox webkit`.
 //

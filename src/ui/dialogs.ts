@@ -6,8 +6,9 @@ import { newId } from '../core/ids';
 import type { ChecklistItem, Message } from '../core/plan';
 import { CHECKLIST_GROUPS, SECTIONS, recordTitle, type FieldDef, type SectionId } from '../core/sections';
 import { SECRET_KIND_LABELS, secretKind, secretWarning } from '../core/audit';
+import { LIMITS } from '../core/normalize';
 import { append, domId, h, type Child } from './dom';
-import { getPlan, mutate } from './store';
+import { getPlan, mutate, ui } from './store';
 
 export interface Modal {
   dialog: HTMLDialogElement;
@@ -26,6 +27,10 @@ export function openModal(opts: {
   onSubmit?: (form: HTMLFormElement, m: Modal) => void;
   initialFocus?: HTMLElement;
   className?: string;
+  /** Ask before Escape, Close, or Cancel throws away anything typed into the dialog. */
+  confirmDiscard?: boolean;
+  /** Buttons that close the dialog like Cancel does, subject to confirmDiscard. */
+  cancelButtons?: HTMLElement[];
 }): Modal {
   const opener = document.activeElement as HTMLElement | null;
   const titleId = domId('dlg-title');
@@ -34,17 +39,38 @@ export function openModal(opts: {
   const close = () => {
     if (dialog.open) dialog.close();
   };
+  let dirty = false;
+  let asking = false;
+  // Closing without saving: confirm first when something was typed, so a stray Escape cannot lose work.
+  const requestClose = async () => {
+    if (!opts.confirmDiscard || !dirty) return close();
+    if (asking) return;
+    asking = true;
+    const discard = await confirmDialog({ title: 'Discard your changes?', message: 'What you typed in this form has not been saved.', confirmLabel: 'Discard changes', cancelLabel: 'Keep editing', danger: true });
+    asking = false;
+    if (discard) close();
+  };
   const inner = opts.onSubmit ? h('form', { class: 'dialog-inner' }) : h('div', { class: 'dialog-inner' });
   dialog.append(inner);
   append(inner, [
       h('div', { class: 'dialog-head' },
         h('div', null, h('h2', { attrs: { id: titleId } }, opts.title), opts.description ? h('p', { attrs: { id: descId } }, opts.description) : null),
-        h('button', { class: 'close-btn', attrs: { type: 'button', 'aria-label': 'Close' }, on: { click: close } }, '×'),
+        h('button', { class: 'close-btn', attrs: { type: 'button', 'aria-label': 'Close' }, on: { click: () => void requestClose() } }, '×'),
       ),
       h('div', { class: 'dialog-body' }, opts.body),
       opts.footer ? h('div', { class: 'dialog-foot' }, opts.footer) : null,
   ]);
   const modal: Modal = { dialog, form: inner instanceof HTMLFormElement ? inner : null, close };
+  if (opts.confirmDiscard) {
+    inner.addEventListener('input', () => (dirty = true));
+    inner.addEventListener('change', () => (dirty = true));
+    dialog.addEventListener('cancel', (e) => {
+      if (!dirty) return;
+      e.preventDefault();
+      void requestClose();
+    });
+  }
+  for (const b of opts.cancelButtons ?? []) b.addEventListener('click', () => void requestClose());
   if (modal.form) {
     const form = modal.form;
     form.addEventListener('submit', (e) => {
@@ -66,14 +92,14 @@ export function openModal(opts: {
   return modal;
 }
 
-export function confirmDialog(opts: { title: string; message: string; confirmLabel: string; danger?: boolean; acknowledge?: string }): Promise<boolean> {
+export function confirmDialog(opts: { title: string; message: string; confirmLabel: string; cancelLabel?: string; danger?: boolean; acknowledge?: string }): Promise<boolean> {
   return new Promise((resolve) => {
     let result = false;
     const ackId = domId('ack');
     const ack = opts.acknowledge ? h('input', { attrs: { type: 'checkbox', id: ackId } }) : null;
     const ok = h('button', { class: ['btn', opts.danger ? 'danger' : 'primary'], attrs: { type: 'button' }, props: { disabled: !!ack } }, opts.confirmLabel);
     ack?.addEventListener('change', () => (ok.disabled = !ack.checked));
-    const cancel = h('button', { class: 'btn', attrs: { type: 'button' } }, 'Cancel');
+    const cancel = h('button', { class: 'btn', attrs: { type: 'button' } }, opts.cancelLabel ?? 'Cancel');
     const m = openModal({
       title: opts.title,
       body: [h('p', { class: 'multiline' }, opts.message), ack ? h('div', { class: 'check-row' }, ack, h('label', { attrs: { for: ackId } }, opts.acknowledge!)) : null],
@@ -90,7 +116,8 @@ export function confirmDialog(opts: { title: string; message: string; confirmLab
 }
 
 function fieldControl(f: FieldDef, value: string, id: string, describedBy: string | undefined): HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement {
-  const attrs = { id, name: f.key, required: !!f.required, 'aria-describedby': describedBy };
+  // Match the limit applied when a plan is loaded, so nothing typed is cut off later.
+  const attrs = { id, name: f.key, required: !!f.required, 'aria-describedby': describedBy, maxlength: f.type === 'date' || f.type === 'select' ? undefined : LIMITS.fieldChars };
   if (f.type === 'textarea') return h('textarea', { attrs: { ...attrs, rows: 4 }, props: { value } });
   if (f.type === 'select') {
     const opts = [...(f.options ?? [])];
@@ -107,29 +134,51 @@ export function openRecordDialog(section: SectionId, id: string | null, prefill:
   const values: Record<string, string> = existing ? { ...existing } : { ...prefill };
   const grid = h('div', { class: 'form-grid' });
   let firstControl: HTMLElement | null = null;
+  // In privacy mode, private values are not put in the page at all until asked for.
+  // Unrevealed private fields keep their saved value when the form is saved.
+  const masked = new Map<string, { slot: HTMLElement; build: () => HTMLElement }>();
   for (const f of def.fields) {
     const id2 = domId(`f-${f.key}`);
     const helpTexts = [f.help, f.private ? 'Private: hidden in privacy mode and left out of printouts unless you choose otherwise.' : ''].filter(Boolean);
     const helpId = helpTexts.length ? domId('help') : undefined;
+    const label = () => h('label', { attrs: { for: id2 } }, f.label, f.required ? h('span', { class: 'req-star' }, ' (required)') : null);
+    const help = () => (helpId ? h('span', { class: 'help', attrs: { id: helpId } }, helpTexts.join(' ')) : null);
     // Free-text fields get a gentle warning when the text looks like a secret. It never blocks saving.
     const checks = f.type !== 'select' && f.type !== 'date';
-    const warnId = checks ? domId('warn') : undefined;
-    const describedBy = [helpId, warnId].filter(Boolean).join(' ') || undefined;
-    const control = fieldControl(f, values[f.key] ?? '', id2, describedBy);
-    firstControl ??= control;
-    const warn = warnId ? h('span', { class: 'field-warning', attrs: { id: warnId, 'aria-live': 'polite' } }) : null;
-    if (warn) {
-      const update = () => { warn.textContent = secretWarning(control.value) ?? ''; };
-      control.addEventListener('input', update);
-      update();
+    const build = () => {
+      const warnId = checks ? domId('warn') : undefined;
+      const describedBy = [helpId, warnId].filter(Boolean).join(' ') || undefined;
+      const control = fieldControl(f, values[f.key] ?? '', id2, describedBy);
+      const warn = warnId ? h('span', { class: 'field-warning', attrs: { id: warnId, 'aria-live': 'polite' } }) : null;
+      if (warn) {
+        const update = () => { warn.textContent = secretWarning(control.value) ?? ''; };
+        control.addEventListener('input', update);
+        update();
+      }
+      return h('div', { class: ['field', f.wide && 'full'] }, label(), control, help(), warn);
+    };
+    if (ui.privacy && f.private && (values[f.key] ?? '') !== '') {
+      const slot = h('div', { class: ['field', f.wide && 'full'] },
+        h('span', { class: 'label' }, f.label),
+        h('span', { class: 'private-mask' }, 'Hidden while privacy mode is on'));
+      masked.set(f.key, { slot, build });
+      grid.append(slot);
+      continue;
     }
-    grid.append(h('div', { class: ['field', f.wide && 'full'] },
-      h('label', { attrs: { for: id2 } }, f.label, f.required ? h('span', { class: 'req-star' }, ' (required)') : null),
-      control,
-      helpId ? h('span', { class: 'help', attrs: { id: helpId } }, helpTexts.join(' ')) : null,
-      warn,
-    ));
+    const field = build();
+    firstControl ??= field.querySelector<HTMLElement>('input, select, textarea');
+    grid.append(field);
   }
+  const reveal = masked.size ? h('div', { class: 'banner info full' },
+    h('p', null, 'Privacy mode is on, so private details in this entry are hidden.'),
+    h('button', { class: 'btn small', attrs: { type: 'button' }, on: { click: () => {
+      for (const { slot, build } of masked.values()) slot.replaceWith(build());
+      masked.clear();
+      reveal?.remove();
+      grid.querySelector<HTMLElement>('input, select, textarea')?.focus();
+    } } }, 'Show private details'),
+  ) : null;
+  if (reveal) grid.prepend(reveal);
   const save = h('button', { class: 'btn primary', attrs: { type: 'submit' } }, 'Save');
   const cancel = h('button', { class: 'btn', attrs: { type: 'button' } }, 'Cancel');
   const del = existing ? h('button', { class: 'btn danger spacer', attrs: { type: 'button' } }, 'Delete') : null;
@@ -139,10 +188,12 @@ export function openRecordDialog(section: SectionId, id: string | null, prefill:
     body: [grid, h('p', { class: 'help' }, 'Do not enter passwords, PINs, or full account numbers. Record where they are kept instead.')],
     footer: [del, cancel, save],
     initialFocus: firstControl ?? undefined,
+    confirmDiscard: true,
+    cancelButtons: [cancel],
     onSubmit: (form) => {
     const fd = new FormData(form);
     const rec: Record<string, string> & { id: string } = { id: existing?.id ?? newId() };
-    for (const f of def.fields) rec[f.key] = String(fd.get(f.key) ?? '').trim();
+    for (const f of def.fields) rec[f.key] = masked.has(f.key) ? (values[f.key] ?? '') : String(fd.get(f.key) ?? '').trim();
     const secret = secretKind(def.fields.map((f) => rec[f.key]).join('\n'));
     mutate((p) => {
       const list = p.records[section];
@@ -153,7 +204,6 @@ export function openRecordDialog(section: SectionId, id: string | null, prefill:
     m.close();
     },
   });
-  cancel.addEventListener('click', m.close);
   del?.addEventListener('click', async () => {
     const yes = await confirmDialog({ title: `Delete ${def.singular}?`, message: `"${recordTitle(section, existing!)}" will be removed from this plan. This cannot be undone unless you restore a backup.`, confirmLabel: 'Delete', danger: true });
     if (!yes) return;
@@ -175,12 +225,12 @@ export function openChecklistDialog(item: ChecklistItem | null, defaultGroup: st
       h('div', { class: 'field full' }, h('label', { attrs: { for: ids.title } }, 'Task', h('span', { class: 'req-star' }, ' (required)')), title),
       h('div', { class: 'field' }, h('label', { attrs: { for: ids.group } }, 'Group'), h('select', { attrs: { id: ids.group, name: 'group' } }, groups.map((g) => h('option', { props: { value: g, selected: g === group } }, g)))),
       h('div', { class: 'field' }, h('label', { attrs: { for: ids.due } }, 'Due date (optional)'), h('input', { attrs: { id: ids.due, name: 'due', type: 'date' }, props: { value: item?.due ?? '' } })),
-      h('div', { class: 'field full' }, h('label', { attrs: { for: ids.note } }, 'Note'), h('textarea', { attrs: { id: ids.note, name: 'note', rows: 3 }, props: { value: item?.note ?? '' } })),
+      h('div', { class: 'field full' }, h('label', { attrs: { for: ids.note } }, 'Note'), h('textarea', { attrs: { id: ids.note, name: 'note', rows: 3, maxlength: LIMITS.fieldChars }, props: { value: item?.note ?? '' } })),
     ),
   );
   const cancel = h('button', { class: 'btn', attrs: { type: 'button' } }, 'Cancel');
   const save = h('button', { class: 'btn primary', attrs: { type: 'submit' } }, item ? 'Save' : 'Add item');
-  const m = openModal({ title: item ? 'Edit checklist item' : 'Add checklist item', description: 'Keep the next action concrete and assignable.', body, footer: [cancel, save], initialFocus: title, onSubmit: (form) => {
+  const m = openModal({ title: item ? 'Edit checklist item' : 'Add checklist item', description: 'One small, specific thing to do, such as "Tell Sam where the spare key is".', body, footer: [cancel, save], initialFocus: title, confirmDiscard: true, cancelButtons: [cancel], onSubmit: (form) => {
     const fd = new FormData(form);
     const next: ChecklistItem = {
       id: item?.id ?? newId(),
@@ -197,24 +247,23 @@ export function openChecklistDialog(item: ChecklistItem | null, defaultGroup: st
     }, { message: item ? 'Checklist item saved' : 'Checklist item added' });
     m.close();
   } });
-  cancel.addEventListener('click', m.close);
 }
 
 export function openMessageDialog(msg: Message | null): void {
   const ids = { audience: domId('ma'), title: domId('mt'), body: domId('mb') };
-  const audience = h('input', { attrs: { id: ids.audience, name: 'audience', required: true, autocomplete: 'off', 'aria-describedby': `${ids.audience}-h` }, props: { value: msg?.audience ?? '' } });
+  const audience = h('input', { attrs: { id: ids.audience, name: 'audience', required: true, autocomplete: 'off', maxlength: LIMITS.shortChars, 'aria-describedby': `${ids.audience}-h` }, props: { value: msg?.audience ?? '' } });
   const body = h('div', null,
     h('div', { class: 'form-grid' },
       h('div', { class: 'field' }, h('label', { attrs: { for: ids.audience } }, 'Who is it for?', h('span', { class: 'req-star' }, ' (required)')), audience,
         h('span', { class: 'help', attrs: { id: `${ids.audience}-h` } }, 'For example: Everyone, My partner, The kids, My executor.')),
-      h('div', { class: 'field' }, h('label', { attrs: { for: ids.title } }, 'Title'), h('input', { attrs: { id: ids.title, name: 'title', autocomplete: 'off' }, props: { value: msg?.title ?? '' } })),
-      h('div', { class: 'field full' }, h('label', { attrs: { for: ids.body } }, 'Message', h('span', { class: 'req-star' }, ' (required)')), h('textarea', { attrs: { id: ids.body, name: 'body', rows: 10, required: true }, props: { value: msg?.body ?? '' } })),
+      h('div', { class: 'field' }, h('label', { attrs: { for: ids.title } }, 'Title'), h('input', { attrs: { id: ids.title, name: 'title', autocomplete: 'off', maxlength: LIMITS.shortChars }, props: { value: msg?.title ?? '' } })),
+      h('div', { class: 'field full' }, h('label', { attrs: { for: ids.body } }, 'Message', h('span', { class: 'req-star' }, ' (required)')), h('textarea', { attrs: { id: ids.body, name: 'body', rows: 10, required: true, maxlength: LIMITS.fieldChars * 5 }, props: { value: msg?.body ?? '' } })),
     ),
   );
   const cancel = h('button', { class: 'btn', attrs: { type: 'button' } }, 'Cancel');
   const save = h('button', { class: 'btn primary', attrs: { type: 'submit' } }, 'Save message');
   const del = msg ? h('button', { class: 'btn danger spacer', attrs: { type: 'button' } }, 'Delete') : null;
-  const m = openModal({ title: msg ? 'Edit message' : 'Add a personal message', description: 'Messages print on their own pages at the end of the packet.', body, footer: [del, cancel, save], initialFocus: audience, onSubmit: (form) => {
+  const m = openModal({ title: msg ? 'Edit message' : 'Add a personal message', description: 'Messages print on their own pages at the end of the packet.', body, footer: [del, cancel, save], initialFocus: audience, confirmDiscard: true, cancelButtons: [cancel], onSubmit: (form) => {
     const fd = new FormData(form);
     const next: Message = { id: msg?.id ?? newId(), audience: String(fd.get('audience') ?? '').trim(), title: String(fd.get('title') ?? '').trim(), body: String(fd.get('body') ?? '') };
     mutate((p) => {
@@ -224,7 +273,6 @@ export function openMessageDialog(msg: Message | null): void {
     }, { message: 'Message saved' });
     m.close();
   } });
-  cancel.addEventListener('click', m.close);
   del?.addEventListener('click', async () => {
     if (!(await confirmDialog({ title: 'Delete message?', message: 'This message will be removed from the plan.', confirmLabel: 'Delete', danger: true }))) return;
     m.close();

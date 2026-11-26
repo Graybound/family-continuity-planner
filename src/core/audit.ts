@@ -128,7 +128,7 @@ export function allFindings(plan: Plan, today: string = todayString()): Finding[
       id: `area-undocumented:${area}`,
       rule: 'area-undocumented',
       title: `${label}: how it works is not written down yet`,
-      why: `In the continuity assessment ${reasons.join(', and ')}. Nothing in "Who handles what" covers this area yet.`,
+      why: `In the planning questions ${reasons.join(', and ')}. Nothing in "Who handles what" covers this area yet.`,
       target: { view: 'section', section: 'responsibilities', prefill: { domain: label } },
     });
   }
@@ -247,4 +247,22 @@ export function activeFindings(plan: Plan, today: string = todayString()): { act
 
 export function deferUntil(today: string = todayString()): string {
   return addDays(today, DEFER_DAYS);
+}
+
+/**
+ * Findings that say the same thing as a readiness requirement. On the
+ * overview, a finding is left out while its twin requirement is already
+ * listed as a next step, so the same gap is not asked for twice. The
+ * Suggestions page still lists every finding.
+ */
+export const FINDING_TWINS: Record<string, string> = {
+  'no-contacts': 'basic-contact',
+  'backup-never': 'basic-backup',
+  'backup-old': 'thorough-backup-recent',
+  'plan-not-reviewed': 'thorough-reviewed',
+};
+
+export function withoutTwins(findings: Finding[], shownRequirementIds: readonly string[]): Finding[] {
+  const shown = new Set(shownRequirementIds);
+  return findings.filter((f) => !(FINDING_TWINS[f.rule] && shown.has(FINDING_TWINS[f.rule]!)));
 }

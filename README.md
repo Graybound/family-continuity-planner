@@ -8,7 +8,7 @@ It is a single file that runs in your web browser. No account, no subscription, 
 
 **Two free ways to use it:**
 
-- **Online:** open [graybound.github.io/family-continuity-planner](https://graybound.github.io/family-continuity-planner/). Nothing to install. Your plan is saved only in that browser on that device and is never sent to GitHub or anyone else.
+- **Online:** open [whenimgone.grayhek.com](https://whenimgone.grayhek.com/). Nothing to install. Your plan is saved only in that browser on that device and is never sent anywhere.
 - **Download:** get the latest zip from [Releases](https://github.com/Graybound/family-continuity-planner/releases/latest) and open it from your own computer or a USB drive. This is the most private option and keeps working even without internet.
 
 ![Overview with fictional sample data](docs/screenshots/overview-light.png)
@@ -31,8 +31,8 @@ Anyone who wants to make things easier for the people they would leave behind: s
 - **Guided start.** A short, optional assessment finds where your family depends on you most and recommends a manageable place to begin, grouped into Priority, Helpful, and Optional.
 - **Life-area sections.** People, trusted contacts, health, home and utilities, accounts (as a locator, never passwords), documents, emergency plans, and notes.
 - **Start Here.** A calm introduction your family reads first, with a default you can keep, edit, or replace, plus optional personal messages for specific people.
-- **Readiness levels instead of a misleading percentage.** Getting Started, Basic Emergency Plan Ready, Core Continuity Plan Ready, Thorough Plan Ready. Each level lists exactly what it needs.
-- **Continuity review.** Plain, explainable suggestions about likely gaps ("You said taxes are mostly handled by you, but nothing describes how"), each with a reason, a link, and options to dismiss or snooze.
+- **Readiness levels instead of a misleading percentage.** Just started, Ready for an emergency, Covers everyday life, Thorough and up to date. Each level lists exactly what it needs.
+- **Suggestions.** Plain, explainable suggestions about likely gaps ("You said taxes are mostly handled by you, but nothing describes how"), each with a reason, a link, and options to dismiss or snooze.
 - **Checklist** for first-24-hours actions, information to gather, people to brief, and quarterly upkeep.
 - **Printed packet** on US Letter paper: cover page, Start Here, immediate actions, trusted contacts, then each section. Private details are withheld unless you choose to include them.
 - **Backup and restore** to a documented JSON file, with a preview and confirmation before anything is replaced. Backups from the original version of the app still restore.
@@ -56,13 +56,13 @@ Everything you type is stored in your browser's local storage on your computer a
 
 ## Quick start
 
-Want to try it first? Open the [online version](https://graybound.github.io/family-continuity-planner/) and load the sample data. To install it on your own computer:
+Want to try it first? Open the [online version](https://whenimgone.grayhek.com/) and load the sample data. To install it on your own computer:
 
 1. Go to the [Releases page](https://github.com/Graybound/family-continuity-planner/releases/latest) and download `Family-Continuity-Planner-vX.Y.Z.zip`.
 2. Extract it somewhere you will remember: your Documents folder, a USB drive, or a private network drive.
 3. Double-click `Family-Continuity-Planner.html`. It opens in your browser.
 4. Optional: go to **Settings and backup**, then **Load sample data**, to look around with a fictional family. Click **Remove sample data** when you are done.
-5. Start with **Get started**, or go straight to **Who handles what** and write down one thing only you know how to do.
+5. Press the **Next** button on the overview. It starts with a trusted contact and walks down the sidebar from there. If you are not sure where to begin, answer the optional **Planning questions** first.
 6. Click **Export backup** when you finish a session.
 
 You do not need Git, Node.js, or any technical tools. A single `Family-Continuity-Planner-vX.Y.Z.html` file is also attached to each release if you prefer one file without the zip.
@@ -97,7 +97,7 @@ Click **Print**. Choose whether to include private details (off by default), the
 
 **Can my family read it if I am not there?** Yes, through the printed packet, a saved PDF, or by opening the planner on your computer. Tell a trusted person where the printout and backup are.
 
-**Is there an online version?** Yes: [graybound.github.io/family-continuity-planner](https://graybound.github.io/family-continuity-planner/). It is the same file as the download, served by GitHub Pages. Your plan stays in your browser either way. The download is a little more private and does not depend on GitHub staying online; see [docs/github-pages.md](docs/github-pages.md) for the difference.
+**Is there an online version?** Yes: [whenimgone.grayhek.com](https://whenimgone.grayhek.com/). It is the same file as the download, served by Cloudflare. Your plan stays in your browser either way. The download is a little more private and does not depend on the website staying online; see [docs/cloudflare.md](docs/cloudflare.md) for the difference.
 
 **What if I start online and later switch to the download (or the other way)?** Export a backup from one and restore it in the other. They do not share saved data.
 

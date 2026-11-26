@@ -10,7 +10,7 @@ export function openPrintDialog(): void {
   const cancel = h('button', { class: 'btn', attrs: { type: 'button' } }, 'Cancel');
   const go = h('button', { class: 'btn primary', attrs: { type: 'button' } }, 'Print');
   const m = openModal({
-    title: 'Print the continuity packet',
+    title: 'Print your plan',
     description: 'The packet starts with a cover page and Start Here, then immediate actions, trusted contacts, and each section. Use your browser\'s print window to print or save as PDF.',
     body: [
       h('div', { class: 'check-row' }, box, h('div', null,
