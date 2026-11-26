@@ -19,7 +19,8 @@ The app contains one external address: a plain link to the project's GitHub page
 | Damaged data that could not be read | `familyContinuityPlanner.recovery.<time>` | No |
 | Light or dark theme choice | `familyContinuityPlanner.theme` | No |
 | Online-version notice acknowledged | `familyContinuityPlanner.hostedNotice` | No |
-| Exported backups | Wherever you save the `.json` file | No |
+| Unsaved changes made in a saved plan file | `familyContinuityPlanner.draft.<file address>` | No |
+| Exported backups | Wherever you save the `.html` or `.json` file. The `.html` file holds the whole plan in readable form. | No |
 | Printouts and saved PDFs | Paper, or wherever you save the PDF | No |
 
 `localStorage` is part of your browser profile on your computer. It is not synced by the planner. Some browsers can sync or back up browser profiles; check your browser's settings if that matters to you.
@@ -62,18 +63,18 @@ The app contains one external address: a plain link to the project's GitHub page
 
 ## Passwords and secrets
 
-The planner is not a password vault and asks you not to use it as one. Record which password manager you use, how a trusted person can get emergency access, and where recovery documents are kept. The continuity review flags text that looks like a password, PIN, or full card number.
+The planner is not a password vault and asks you not to use it as one. Record which password manager you use, how a trusted person can get emergency access, and where recovery documents are kept. While you type, the entry form gently warns when text looks like a password, PIN, recovery code, or full card, account, or Social Security number, and the continuity review lists those entries. The warning never blocks saving, and the check runs only on your device. [docs/handoff-methods.md](docs/handoff-methods.md) explains better ways to hand over access.
 
-## The online version (GitHub Pages)
+## The online version
 
-The app is also published at https://graybound.github.io/family-continuity-planner/. It is the same static file served from GitHub. Your plan still stays in your browser and is never sent to GitHub. However:
+The app is also published at https://whenimgone.grayhek.com/. It is the same static file, served by Cloudflare. Your plan still stays in your browser and is never sent to Cloudflare or anyone else. However:
 
-- GitHub receives normal web server information when the page loads (such as your IP address and browser type), as it does for any website. The planner adds no tracking of its own.
-- Browser storage on `<account>.github.io` is shared by **every** GitHub Pages site under that account. Another project published by the same account could read the planner's data.
+- Cloudflare receives normal web server information when the page loads (such as your IP address and browser type), as it does for any website. The planner adds no tracking of its own, and Cloudflare features that add tracking or change the page are turned off for this address.
+- The address is used only by this app, so no other website shares its browser storage.
+- The online copy depends on Cloudflare being available. The download does not.
+- The online copy and a downloaded copy do not share a plan. Move between them with Export backup and Restore.
 
-- The online copy depends on GitHub Pages being available. The download does not.
-
-The online version is fine for real use, and it shows a notice explaining all this. The download is the most private option. See [docs/github-pages.md](docs/github-pages.md).
+The online version is fine for real use, and it shows a notice explaining where your plan is kept. The download is the most private option. See [docs/cloudflare.md](docs/cloudflare.md).
 
 ## Changes to this document
 

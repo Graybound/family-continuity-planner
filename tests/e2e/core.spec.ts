@@ -17,9 +17,9 @@ test('works offline with no network access', async ({ browser }) => {
   await ctx.close();
 });
 
-test('empty plan shows Getting Started with clear next steps', async ({ app }) => {
-  await expect(app.getByRole('heading', { name: 'Getting Started', level: 2 })).toBeVisible();
-  await expect(app.getByRole('heading', { name: 'To reach Basic Emergency Plan Ready' })).toBeVisible();
+test('empty plan shows Just started with clear next steps', async ({ app }) => {
+  await expect(app.getByRole('heading', { name: 'Just started', level: 2 })).toBeVisible();
+  await expect(app.getByRole('heading', { name: 'To reach Ready for an emergency' })).toBeVisible();
   await expect(app.locator('.req-list').first().getByText('Name at least one trusted contact')).toBeVisible();
   await expect(app.getByText('%')).toHaveCount(0);
 });
@@ -124,7 +124,7 @@ test('a legacy v1 plan in browser storage is upgraded on first load and the orig
   await expect(app.getByRole('heading', { name: 'Alex Morgan' })).toBeVisible();
   await addRecord(app, 'Notes', { Title: 'New note', Note: 'Hello' });
   expect(await app.evaluate(() => localStorage.getItem('familyContinuityPlanner.v1'))).toBe(legacy);
-  expect((await storedPlan(app)).schemaVersion).toBe(2);
+  expect((await storedPlan(app)).schemaVersion).toBe(3);
 });
 
 test('damaged saved data is kept and can be downloaded instead of being overwritten', async ({ app }) => {
@@ -144,13 +144,13 @@ test('readiness rises to Basic after a contact, plan, document, and backup', asy
   await addRecord(app, 'Emergency plans', { 'Plan name': 'Power outage', 'When to use this plan': 'Power out', 'Steps, one per line': 'Check breakers' });
   await addRecord(app, 'Documents', { Document: 'Will', 'Physical or digital location': 'Fire safe' });
   await nav(app, 'Overview');
-  await expect(app.getByRole('heading', { name: 'Getting Started', level: 2 })).toBeVisible();
+  await expect(app.getByRole('heading', { name: 'Just started', level: 2 })).toBeVisible();
   await Promise.all([app.waitForEvent('download'), app.getByRole('button', { name: 'Export backup' }).first().click()]);
-  await expect(app.getByRole('heading', { name: 'Basic Emergency Plan Ready', level: 2 })).toBeVisible();
+  await expect(app.getByRole('heading', { name: 'Ready for an emergency', level: 2 })).toBeVisible();
 });
 
 test('assessment answers produce recommendations and an explained review suggestion', async ({ app }) => {
-  await nav(app, 'Get started');
+  await nav(app, 'Planning questions');
   await app.getByRole('button', { name: 'Next' }).click();
   await app.getByLabel('Taxes').selectOption('mostly-me');
   await expect(app.getByText('These depend mostly on you')).toBeVisible();
@@ -159,15 +159,15 @@ test('assessment answers produce recommendations and an explained review suggest
   await app.getByRole('button', { name: 'Next' }).click();
   await expect(app.getByRole('heading', { name: 'Priority' })).toBeVisible();
   await expect(app.getByText(/You mostly handle taxes/).first()).toBeVisible();
-  await app.getByRole('button', { name: 'Finish assessment' }).click();
-  await nav(app, 'Continuity review');
+  await app.getByRole('button', { name: 'Finish and see my next step' }).click();
+  await nav(app, 'Suggestions');
   const finding = app.locator('.finding').filter({ hasText: 'Taxes: how it works is not written down yet' });
   await expect(finding.getByText(/mostly handled by you/)).toBeVisible();
-  await finding.getByRole('button', { name: /Go there/ }).click();
+  await finding.getByRole('button', { name: /^Add to Who handles what/ }).click();
   await expect(app.getByRole('dialog').getByLabel('Area')).toHaveValue('Taxes');
   await app.getByRole('dialog').getByLabel('Responsibility').fill('Filing taxes');
   await app.getByRole('dialog').getByRole('button', { name: 'Save' }).click();
-  await nav(app, 'Continuity review');
+  await nav(app, 'Suggestions');
   await expect(app.getByText('Taxes: how it works is not written down yet')).toHaveCount(0);
   const pets = app.locator('.finding').filter({ hasText: 'Pets' });
   await pets.getByRole('button', { name: /Remind me in 30 days/ }).click();
@@ -183,8 +183,16 @@ test('section status can be set to Does not apply', async ({ app }) => {
 
 test('start here: default text, custom text, and personal messages', async ({ app }) => {
   await nav(app, 'Start Here');
-  await expect(app.getByText('You do not need to handle everything at once.')).toBeVisible();
+  await expect(app.locator('.start-text').getByText('Very little here is urgent.')).toBeVisible();
+  // The example letter is offered for ideas but is not what the family reads.
+  await expect(app.locator('.start-text').getByText('To the people I love,')).toHaveCount(0);
+  await expect(app.getByText('A message in your own words will mean much more to them.')).toBeVisible();
+  await app.getByText('Read an example message for ideas').click();
+  await expect(app.locator('.example-letter').getByText('To the people I love,')).toBeVisible();
   await app.getByLabel('Write or edit my own introduction').check();
+  await expect(app.getByLabel('Your introduction')).toHaveValue(/^This plan was written for you/);
+  await expect(app.getByText('One memory you hold onto, in a sentence or two.')).toBeVisible();
+  await expect(app.getByText('A message in your own words will mean much more to them.')).toHaveCount(0);
   await app.getByLabel('Your introduction').fill('Dear family,\n\nCall Pat first.');
   await app.getByRole('button', { name: 'Save introduction' }).click();
   await expect(app.locator('.start-text').getByText('Call Pat first.')).toBeVisible();
@@ -222,12 +230,12 @@ test('sample data: load, identify, remove; erase everything', async ({ app }) =>
   await expect(app.getByText('All plan data was erased from this browser.')).toBeVisible();
 });
 
-test('the "not a will" notice appears on the overview, in Get started, in Documents, and in print', async ({ app }) => {
-  const notice = app.getByRole('complementary', { name: 'This is not a will' });
-  await expect(notice).toBeVisible();
-  await expect(notice).toContainText('we recommend having both');
-  await nav(app, 'Get started');
+test('the "not a will" notice appears once per place: planning questions, Documents, and print', async ({ app }) => {
+  // Not on the overview: it repeated what the planning questions and the Documents callout already say.
+  await expect(app.getByRole('complementary', { name: 'This is not a will' })).toHaveCount(0);
+  await nav(app, 'Planning questions');
   await expect(app.getByText(/This is not a will\./)).toBeVisible();
+  await expect(app.getByText(/we recommend having both/)).toBeVisible();
   await nav(app, 'Documents');
   await expect(app.locator('.callout').filter({ hasText: 'Start with your will' })).toContainText('we recommend getting one');
   await app.getByRole('button', { name: 'Print' }).first().click();
