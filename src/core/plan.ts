@@ -6,9 +6,10 @@
  */
 import { AREA_IDS, CHECKLIST_GROUPS, SECTION_IDS, type AreaId, type SectionId } from './sections';
 import { newId } from './ids';
+import { practiceHandoffItem } from './handoff';
 
 export const SCHEMA_ID = 'family-continuity-planner';
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 3;
 
 export type RecordItem = { id: string } & Record<string, string>;
 
@@ -50,7 +51,7 @@ export const RISK_LABELS = {
   internet: 'Internet and Wi-Fi',
   photos: 'Family photos and files',
   maintenance: 'Home maintenance',
-  seasonal: 'Seasonal jobs',
+  seasonal: 'Seasonal jobs, like clearing gutters or the furnace check',
   vehicles: 'Vehicle care',
   children: 'Children’s schedules',
   pets: 'Pet care',
@@ -69,6 +70,8 @@ export interface Plan {
    */
   info: {
     planName: string;
+    /** The plan author's name, for saved file names and "{name}'s plan". Empty until entered. Added in schema 3. */
+    ownerName: string;
     region: string;
     trustedContact: string;
     createdAt: string;
@@ -77,6 +80,8 @@ export interface Plan {
     lastReviewedAt: string;
     /** ISO time of the last successful backup export. */
     lastExportedAt: string;
+    /** YYYY-MM-DD a saved copy was last opened on the family's own device, as recorded by the author. Added in schema 3. */
+    familyOpenedAt: string;
     /** True when the plan is the built-in fictional sample. */
     isSample: boolean;
   };
@@ -105,23 +110,57 @@ export interface Plan {
   activity: { id: string; text: string; at: string }[];
 }
 
-export const DEFAULT_START_HERE = `If you are reading this, something has changed and you may be carrying a lot right now. This plan was written to make the next days and weeks a little easier.
+/**
+ * The default Start Here note: short practical guidance in a neutral voice, shown until the creator
+ * writes their own. It must not pretend to be the creator's personal words. Point to parts of the
+ * plan by what they are ("what to do first", "who to call", "trusted contacts"), not by a page
+ * name, because print, reader view and navigation label them differently.
+ */
+export const DEFAULT_START_HERE = `This plan was written for you, so you would not have to work everything out alone. If you are reading it, the person who wrote it has died, or cannot be here to help right now. It is OK to grieve, and to take your time.
 
-It collects the practical things that usually live in one person's head: who to call, how the household runs, where important papers are kept, and what can wait.
+Very little here is urgent. Start with what comes right after this page: what to do first, and who to call. Take the rest one step at a time, when you have the energy.
 
-You do not need to handle everything at once. Very little here is urgent. Start with the "Immediate actions" section, then take the rest one step at a time.
+One thing to protect early: please do not cancel the phone number, email or internet yet. Sign-in codes often go to them. To get into accounts, look under Accounts for the password manager and who can help.
 
-The people and professionals listed under "Trusted contacts" were chosen because they can help. It is fine to lean on them.
+The people listed as trusted contacts were chosen because they can help. Let them. You do not have to do this by yourself.
 
-This plan is guidance, not a legal document. A will, trust, or other legal papers take priority over anything written here. If something is unclear, ask one of the trusted contacts or a qualified professional.
+This plan is guidance, not a legal document. If there is a will or other legal paperwork, it comes first. If something is unclear, ask a trusted contact or a professional.
 
-Focus on the next necessary step. That is enough.`;
+You only need to do the next thing.`;
+
+/**
+ * An example last message, shown in the Start Here editor for inspiration only. It is never saved
+ * into a plan or shown to the reader, because a generic letter presented as the creator's own
+ * words rings false.
+ */
+export const EXAMPLE_START_HERE_LETTER = `To the people I love,
+
+If you are reading this, I have died, or I can no longer be here to help. I am so sorry to leave you with this. I know it is hard, and I wish I could be with you for it.
+
+Before anything practical: I love you. Thank you for the life we shared, for your patience with me, and for all the ordinary days. They were the best part.
+
+If I hurt you, I am sorry. If you are carrying guilt about anything between us, please set it down. I let it go long ago, and I hope you can forgive me too.
+
+Grieve in whatever way you need, for as long as you need. There is no right way to do it. And when you are ready, keep living. Laugh, make plans, let good things in. That is what I want for you.
+
+Now the practical part. I wrote this plan so you would not have to figure everything out alone. Very little here is urgent. Start with what comes right after this note: what to do first, and who to call. Take the rest one step at a time, when you have the energy.
+
+One thing to protect early: please do not cancel my phone number, email or internet yet. Sign-in codes often go to them. To get into my accounts, look under Accounts for the password manager and who can help.
+
+I chose the people listed as trusted contacts because they can help. Let them. You do not have to do this by yourself.
+
+This plan is guidance, not a legal document. If there is a will or other legal paperwork, it comes first. If something is unclear, ask a trusted contact or a professional.
+
+You only need to do the next thing.
+
+With all my love.`;
 
 export function starterChecklist(): ChecklistItem[] {
   return [
     { id: newId(), group: CHECKLIST_GROUPS[0], title: 'Choose two trusted backup contacts', note: 'Confirm how they should be reached.', due: '', done: false },
     { id: newId(), group: CHECKLIST_GROUPS[1], title: 'Record utility shutoff locations', note: 'Include any tool needed to operate them.', due: '', done: false },
     { id: newId(), group: CHECKLIST_GROUPS[2], title: 'Walk one trusted person through the plan', note: 'Show them where the current backup is stored.', due: '', done: false },
+    practiceHandoffItem(),
     { id: newId(), group: CHECKLIST_GROUPS[3], title: 'Export an updated backup', note: 'Keep an offline copy somewhere protected.', due: '', done: false },
   ];
 }
@@ -135,7 +174,7 @@ export function blankPlan(now: Date = new Date()): Plan {
   return {
     schema: SCHEMA_ID,
     schemaVersion: SCHEMA_VERSION,
-    info: { planName: '', region: '', trustedContact: '', createdAt: iso, updatedAt: iso, lastReviewedAt: '', lastExportedAt: '', isSample: false },
+    info: { planName: '', ownerName: '', region: '', trustedContact: '', createdAt: iso, updatedAt: iso, lastReviewedAt: '', lastExportedAt: '', familyOpenedAt: '', isSample: false },
     preferences: { privacyDefault: false, includePrivateInPrint: false },
     startHere: { mode: 'default', customText: '' },
     messages: [],

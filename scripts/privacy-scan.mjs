@@ -86,7 +86,20 @@ try {
 }
 if (hasCommits) {
   scanText('[git authors]', sh('git', ['log', '--all', '--format=%an <%ae>%n%cn <%ce>']));
-  scanText('[git messages]', sh('git', ['log', '--all', '--format=%B']));
+  // A commit message cannot be changed once it is on main. A commit listed in
+  // .privacy-scan-allow-commits (full SHA, then a reason) skips the generic checks for its
+  // message only; the private denylist still applies to it.
+  const allowFile = '.privacy-scan-allow-commits';
+  const allowedCommits = new Set(
+    existsSync(allowFile)
+      ? readFileSync(allowFile, 'utf8').split('\n').map((l) => l.trim().split(/\s+/)[0]).filter((s) => /^[0-9a-f]{40}$/.test(s))
+      : [],
+  );
+  for (const entry of sh('git', ['log', '--all', '--format=%H%x00%B%x1e']).split('\x1e')) {
+    const [sha, message] = entry.replace(/^\n/, '').split('\0');
+    if (!sha || message === undefined) continue;
+    scanText(`[git message ${sha.slice(0, 7)}]`, message, { generic: !allowedCommits.has(sha) });
+  }
   if (denyRes.length) scanText('[git history]', sh('git', ['log', '--all', '-p', '--no-color', '--format=']), { generic: false });
 }
 

@@ -23,7 +23,7 @@ describe('storage', () => {
   it('starts empty with a starter checklist', () => {
     const r = loadPlan(new MemoryStorage(), NOW);
     expect(r.status).toBe('empty');
-    expect(r.plan.checklist.length).toBe(4);
+    expect(r.plan.checklist.length).toBe(5);
   });
   it('saves and loads the same plan', () => {
     const s = new MemoryStorage();

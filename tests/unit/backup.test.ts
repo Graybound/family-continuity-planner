@@ -72,8 +72,14 @@ describe('round trip', () => {
     // v1 accepted a file when: data.meta && Array.isArray(data.checklist)
     expect(Boolean(out.meta && Array.isArray(out.checklist))).toBe(false);
   });
-  it('names files with the date', () => {
-    expect(backupFileName(new Date(2026, 0, 5))).toBe('family-continuity-backup-2026-01-05.json');
+  it('names files with the local date and time', () => {
+    expect(backupFileName(new Date(2026, 0, 5, 9, 7))).toBe('WhenImGone_2026-01-05_0907.json');
+    expect(backupFileName(new Date(2026, 0, 5, 9, 7), undefined, 'Alex Morgan')).toBe('WhenImGone_Alex_Morgan_2026-01-05_0907.json');
+  });
+  it('records the local save time with its offset', () => {
+    const out = JSON.parse(serializeBackup(samplePlan(NOW), '0.0.0', NOW));
+    expect(Date.parse(out.savedAt)).toBe(NOW.getTime());
+    expect(out.savedAt).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}$/);
   });
 });
 
