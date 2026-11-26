@@ -19,7 +19,8 @@ The app contains one external address: a plain link to the project's GitHub page
 | Damaged data that could not be read | `familyContinuityPlanner.recovery.<time>` | No |
 | Light or dark theme choice | `familyContinuityPlanner.theme` | No |
 | Online-version notice acknowledged | `familyContinuityPlanner.hostedNotice` | No |
-| Exported backups | Wherever you save the `.json` file | No |
+| Unsaved changes made in a saved plan file | `familyContinuityPlanner.draft.<file address>` | No |
+| Exported backups | Wherever you save the `.html` or `.json` file. The `.html` file holds the whole plan in readable form. | No |
 | Printouts and saved PDFs | Paper, or wherever you save the PDF | No |
 
 `localStorage` is part of your browser profile on your computer. It is not synced by the planner. Some browsers can sync or back up browser profiles; check your browser's settings if that matters to you.
