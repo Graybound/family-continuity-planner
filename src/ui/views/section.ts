@@ -6,6 +6,7 @@ import { domId, h, icon, maybePrivate } from '../dom';
 import { openRecordDialog } from '../dialogs';
 import { getPlan, mutate, render, ui } from '../store';
 import { button, viewHead } from './common';
+import { handoffGuide } from './handoffGuide';
 
 const FILTER_MIN = 5;
 
@@ -83,6 +84,7 @@ export function sectionView(section: SectionId): HTMLElement {
       actions: button([icon('+'), ` Add ${def.singular}`], () => openRecordDialog(section, null), { cls: 'btn primary', focusKey: `add:${section}` }),
     }),
     def.callout ? h('div', { class: 'callout' }, h('strong', null, def.callout.title), h('p', null, def.callout.body)) : null,
+    section === 'accounts' ? handoffGuide() : null,
     showFilter ? h('div', { class: 'tool-row' },
       h('div', { class: 'field' }, h('label', { attrs: { for: textId } }, `Filter ${def.title.toLowerCase()}`), textInput),
       typeSelect && filterField ? h('div', { class: 'field' }, h('label', { attrs: { for: typeId } }, filterField.label), typeSelect) : null,

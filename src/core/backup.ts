@@ -8,7 +8,7 @@ import { detectVersion, migrateToCurrent } from './migrate';
 import { LIMITS, isPlainObject, normalizePlan } from './normalize';
 import { SECTIONS, SECTION_IDS, type SectionId } from './sections';
 import type { Plan } from './plan';
-import { todayString } from './dates';
+import { extractEmbeddedBackup, localIsoWithOffset, looksLikeHtml, savedFileStem } from './embedded';
 
 const FORBIDDEN_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
 
@@ -34,6 +34,8 @@ export interface BackupPreview {
   createdAt: string;
   updatedAt: string;
   exportedAt: string;
+  /** Local time of the save, with offset ("savedAt" in files from version 0.3). Empty for older files. */
+  savedAt: string;
   isSample: boolean;
   counts: { section: SectionId; title: string; count: number }[];
   totalRecords: number;
@@ -71,6 +73,7 @@ export function parseBackup(text: string, opts: { lenient?: boolean; now?: Date 
       createdAt: plan.info.createdAt,
       updatedAt: plan.info.updatedAt,
       exportedAt: isPlainObject(raw) && typeof raw.exportedAt === 'string' ? raw.exportedAt.slice(0, 40) : '',
+      savedAt: isPlainObject(raw) && typeof raw.savedAt === 'string' ? raw.savedAt.slice(0, 40) : '',
       isSample: plan.info.isSample,
       counts,
       totalRecords: counts.reduce((n, c) => n + c.count, 0),
@@ -83,10 +86,26 @@ export function parseBackup(text: string, opts: { lenient?: boolean; now?: Date 
 }
 
 export function serializeBackup(plan: Plan, appVersion: string, now: Date = new Date()): string {
-  const out = { ...plan, exportedAt: now.toISOString(), exportedBy: `Family Continuity Planner ${appVersion}` };
+  // savedAt is the save's local time with its offset: it names the file and is shown to the reader.
+  // exportedAt stays in UTC for apps that only know that field.
+  const out = { ...plan, savedAt: localIsoWithOffset(now), exportedAt: now.toISOString(), exportedBy: `Family Continuity Planner ${appVersion}` };
   return JSON.stringify(out, null, 2);
 }
 
-export function backupFileName(now: Date = new Date()): string {
-  return `family-continuity-backup-${todayString(now)}.json`;
+/** JSON backup file name, e.g. WhenImGone_Alex_Morgan_2026-11-26_1432.json. See savedFileStem. */
+export function backupFileName(now: Date = new Date(), previousSave?: string, ownerName?: string): string {
+  return `${savedFileStem(now, previousSave, ownerName)}.json`;
+}
+
+/**
+ * Read either kind of backup file: a JSON backup, or a saved plan file (HTML)
+ * with the backup inside it. Both go through the same parseBackup checks.
+ */
+export function parseBackupFile(text: string, opts: { lenient?: boolean; now?: Date } = {}): ParseResult {
+  if (typeof text === 'string' && looksLikeHtml(text)) {
+    const inner = extractEmbeddedBackup(text);
+    if (inner === null) return { ok: false, error: 'This file does not contain a saved plan. Use a file made with Export backup, or a backup ending in .json.' };
+    return parseBackup(inner, opts);
+  }
+  return parseBackup(text, opts);
 }

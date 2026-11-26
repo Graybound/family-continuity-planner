@@ -1,5 +1,5 @@
 // UI-side fixes for findings 6 to 12 of the bug hunt (#17). Each test fails without its fix.
-import { test, expect, nav, addRecord, storedPlan } from './fixtures';
+import { test, expect, nav, addRecord, storedPlan, skipPdf } from './fixtures';
 import type { Page } from '@playwright/test';
 
 /** Make every later save of the plan fail as if browser storage were full. */
@@ -82,5 +82,6 @@ test('a restore that cannot be saved leaves the current plan and says so', async
 test('exporting while storage is full does not also say to export a backup', async ({ app }) => {
   await fillStorage(app);
   await Promise.all([app.waitForEvent('download'), app.getByRole('button', { name: 'Export backup' }).first().click()]);
+  await skipPdf(app);
   await expect(app.locator('#live-alert')).toBeEmpty();
 });

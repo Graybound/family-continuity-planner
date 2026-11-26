@@ -14,6 +14,11 @@ import { defineConfig, devices } from '@playwright/test';
 // bundled Chromium.
 const executablePath = process.env.PW_CHROMIUM_PATH || undefined;
 
+// Chromium on Linux replaces a download name it cannot encode in the locale's
+// charset with "download". Under the bare C locale (some containers) that drops
+// every accented name, which real desktops (UTF-8) never do. Browsers inherit this.
+if (!process.env.LC_ALL && !/utf-?8/i.test(process.env.LANG ?? '')) process.env.LANG = 'C.UTF-8';
+
 const ALL = ['chromium', 'firefox', 'webkit'] as const;
 const requested = (process.env.PW_BROWSERS || 'chromium').split(',').map((b) => b.trim().toLowerCase());
 const wanted = requested.includes('all') ? [...ALL] : ALL.filter((b) => requested.includes(b));

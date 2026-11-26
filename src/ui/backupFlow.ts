@@ -3,16 +3,20 @@
  * preview first, offers to export the current plan, and requires explicit
  * confirmation before anything is replaced.
  */
-import { backupFileName, parseBackup, serializeBackup, type BackupPreview } from '../core/backup';
-import { formatIsoTime } from '../core/dates';
+import { backupFileName, parseBackup, parseBackupFile, safeJsonParse, serializeBackup, type BackupPreview } from '../core/backup';
+import { formatIsoDateTime, formatIsoTime, formatSavedTime } from '../core/dates';
+import { decideDraft, draftKey, HTML_FILE_LIMIT_BYTES, localIsoWithOffset, NEWEST_COPY_LINE, readDraftMeta, savedFileStem, savedHeadline, type DraftMeta } from '../core/embedded';
 import { LIMITS } from '../core/normalize';
-import { blankPlan, isEffectivelyEmpty } from '../core/plan';
+import { blankPlan, isEffectivelyEmpty, type Plan } from '../core/plan';
 import { samplePlan } from '../core/sample';
 import { SECTION_IDS } from '../core/sections';
-import { KEYS, recoveryKeys } from '../core/storage';
+import { getStorage, KEYS, recoveryKeys } from '../core/storage';
 import { domId, h } from './dom';
 import { confirmDialog, openModal } from './dialogs';
-import { eraseAllLocalData, getPlan, getStorageRef, mutate, render, replacePlan } from './store';
+import { openExportSetDialog } from './exportSet';
+import { buildReadableCopy } from './readableCopy';
+import { buildSavedFile } from './selfCopy';
+import { addBanner, discardDraft, eraseAllLocalData, getPlan, getStorageRef, initFromFile, mutate, noteSavedAs, removeBanner, render, replacePlan } from './store';
 import { toast } from './toast';
 
 function download(filename: string, text: string, type = 'application/json'): void {
@@ -26,14 +30,41 @@ function download(filename: string, text: string, type = 'application/json'): vo
   window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }
 
-export function exportBackup(): void {
-  const now = new Date();
+/** Mark the plan as exported now and return the previous export time (for same-minute file names). */
+function markExported(now: Date): string {
+  const previous = getPlan().info.lastExportedAt;
   // The export works even when saving does not; a "could not save, export a backup" error here would contradict it.
   mutate((p) => {
     p.info.lastExportedAt = now.toISOString();
   }, { touch: false, silentSaveError: true });
-  download(backupFileName(now), serializeBackup(getPlan(), __APP_VERSION__, now));
-  toast('Backup downloaded. Store it somewhere private.');
+  return previous;
+}
+
+/**
+ * Export backup: the whole app as one HTML file with this plan inside, named
+ * like WhenImGone_Alex_Morgan_2026-11-26_1432.html (no name part when Your
+ * name is empty). It opens offline on its own and can be restored like a JSON
+ * backup. See docs/specs/self-contained-plan-file.md.
+ */
+export function exportBackup(): void {
+  const now = new Date();
+  const previous = markExported(now);
+  const plan = getPlan();
+  const name = `${savedFileStem(now, previous, plan.info.ownerName)}.html`;
+  const savedAt = localIsoWithOffset(now);
+  const title = savedHeadline(plan.info.ownerName, formatSavedTime(savedAt)).replace(/\.$/, '') || `${plan.info.planName || 'Family plan'}, saved`;
+  download(name, buildSavedFile(serializeBackup(plan, __APP_VERSION__, now), buildReadableCopy(plan, savedAt), title), 'text/html');
+  noteSavedAs(name);
+  openExportSetDialog({ fileName: name, stem: name.replace(/\.html$/, ''), savedAt, kind: 'html' });
+}
+
+/** The plan data only, as a JSON file (for other tools, or a smaller file). */
+export function exportJsonBackup(): void {
+  const now = new Date();
+  const previous = markExported(now);
+  const name = backupFileName(now, previous, getPlan().info.ownerName);
+  download(name, serializeBackup(getPlan(), __APP_VERSION__, now));
+  openExportSetDialog({ fileName: name, stem: name.replace(/\.json$/, ''), savedAt: localIsoWithOffset(now), kind: 'json' });
 }
 
 function totalRecords(): number {
@@ -67,7 +98,7 @@ function previewBody(pv: BackupPreview): HTMLElement {
   );
 }
 
-function showRestorePreview(plan: ReturnType<typeof blankPlan>, pv: BackupPreview, fileName: string): void {
+function showRestorePreview(plan: Plan, pv: BackupPreview, fileName: string): void {
   const current = totalRecords();
   const ackId = domId('ack');
   const ack = h('input', { attrs: { type: 'checkbox', id: ackId } });
@@ -98,19 +129,20 @@ function showRestorePreview(plan: ReturnType<typeof blankPlan>, pv: BackupPrevie
 }
 
 export function chooseBackupFile(): void {
-  const input = h('input', { attrs: { type: 'file', accept: 'application/json,.json' } });
+  const input = h('input', { attrs: { type: 'file', accept: 'application/json,.json,text/html,.html,.htm' } });
   input.style.setProperty('display', 'none');
   document.body.appendChild(input);
   input.addEventListener('change', async () => {
     const file = input.files?.[0];
     input.remove();
     if (!file) return;
-    if (file.size > LIMITS.fileBytes) {
-      toast('That file is larger than 10 MB, which is far bigger than any plan. It was not opened.', 'error');
+    const isHtml = /\.html?$/i.test(file.name) || file.type === 'text/html';
+    if (file.size > (isHtml ? HTML_FILE_LIMIT_BYTES : LIMITS.fileBytes)) {
+      toast(`That file is larger than ${isHtml ? 12 : 10} MB, which is far bigger than any plan. It was not opened.`, 'error');
       return;
     }
     const text = await file.text();
-    const r = parseBackup(text);
+    const r = parseBackupFile(text);
     if (!r.ok) {
       toast(`Could not restore: ${r.error}`, 'error');
       return;
@@ -118,6 +150,64 @@ export function chooseBackupFile(): void {
     showRestorePreview(r.plan, r.preview, file.name);
   });
   input.click();
+}
+
+/**
+ * Startup for a saved plan file: always show the plan inside the file. If this
+ * browser holds unsaved changes made in this same file, offer them back; never
+ * apply them by themselves. See docs/specs/self-contained-plan-file.md.
+ */
+export function startSavedFile(onRender: () => void, file: { plan: Plan; preview: BackupPreview }): void {
+  const savedOn = file.preview.savedAt || file.preview.exportedAt || file.plan.info.updatedAt;
+  const key = draftKey(location);
+  let raw: string | null;
+  try {
+    raw = getStorage()?.getItem(key) ?? null;
+  } catch {
+    raw = null;
+  }
+  let draft: { plan: Plan; meta: DraftMeta } | null = null;
+  if (raw !== null) {
+    const parsed = parseBackup(raw);
+    const json = safeJsonParse(raw);
+    const meta = json.ok ? readDraftMeta(json.value) : null;
+    if (parsed.ok && meta) draft = { plan: parsed.plan, meta };
+  }
+  const which = decideDraft(draft && { meta: draft.meta, updatedAt: draft.plan.info.updatedAt }, { savedOn, updatedAt: file.plan.info.updatedAt });
+  const keepMeta = draft && (which === 'unsaved' || which === 'saved-elsewhere');
+  const { storageAvailable } = initFromFile(onRender, file.plan, key, keepMeta ? draft!.meta : { draftOf: savedOn });
+  // Which copy this is: stays for the whole visit, so a reader with several copies can always check.
+  const headline = savedHeadline(file.plan.info.ownerName, formatSavedTime(savedOn));
+  if (headline) addBanner({ id: 'saved-at', tone: 'info', text: `${headline} ${NEWEST_COPY_LINE}`, actions: [], dismissible: false });
+  if (!storageAvailable) {
+    addBanner({ id: 'nostorage', tone: 'warn', text: 'This browser is not letting the planner keep changes (private browsing or strict settings can cause this). You can read the plan. If you change anything, use Export backup before closing, or the changes will be lost.', actions: [{ label: 'Export backup', run: exportBackup }], dismissible: false });
+    return;
+  }
+  if (which === 'unsaved' && draft) {
+    const d = draft;
+    addBanner({
+      id: 'draft', tone: 'warn',
+      text: `You have unsaved changes from ${formatIsoDateTime(d.plan.info.updatedAt) || 'an earlier visit'} that are not in this file. This page shows the plan as it was saved in the file. If you change anything before restoring them, those unsaved changes will be replaced.`,
+      actions: [
+        { label: 'Restore my unsaved changes', run: () => {
+          if (replacePlan(d.plan, 'Your unsaved changes are back. Use Export backup to save them to a new file.')) removeBanner('draft');
+        } },
+        { label: 'Discard them', run: () => {
+          discardDraft();
+          removeBanner('draft');
+          toast('Unsaved changes discarded. This page shows the plan saved in this file.');
+        } },
+      ],
+      dismissible: false,
+    });
+  } else if (which === 'saved-elsewhere' && draft) {
+    addBanner({
+      id: 'draft', tone: 'info',
+      text: `Changes made in this file were saved to a newer file, ${draft.meta.savedAs}. That file has the latest version of this plan.`,
+      actions: [],
+      dismissible: true,
+    });
+  }
 }
 
 export async function loadSampleData(): Promise<void> {
