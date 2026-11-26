@@ -21,7 +21,7 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
         with:
@@ -49,8 +49,10 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
-      - run: npx playwright install --with-deps chromium
+      - run: npx playwright install --with-deps chromium firefox webkit
       - run: npm run test:e2e
+        env:
+          PW_BROWSERS: all
       - run: npm run privacy-scan
       - run: npm run release
       - name: Remove earlier unpublished drafts for this version
