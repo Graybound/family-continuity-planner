@@ -136,10 +136,20 @@ Status: **not built, awaiting Noah's decision** (issue linked in PR #26). Recomm
 
 There is no third path of secrets stored unencrypted. One honest caveat: the app cannot enforce that. The secret warning never blocks, so a creator can still type a password into an ordinary field. The product stance is what the warning offers: once Locked exists, the warning gains a "Move this to the Locked section" option next to the existing advice to write a pointer instead. Before then it offers only the pointer advice.
 
+**Locked is a fallback, not an equal choice.** The app always recommends keeping secrets out of the plan, in something more secure, and says why in plain words. Draft copy, used wherever the app talks about secrets (the Accounts guidance, the secret warning, and Locked setup):
+
+> Keep passwords out of this plan. A password manager with emergency access, or a printed kit in a safe, is safer and stays up to date, and your family can use it even if this file is lost.
+
+Locked setup flow (only if B is chosen):
+
+1. The first screen shows that recommendation, with two buttons that go straight to the secure options: "Set up emergency access" and "Print an emergency kit" (both open the matching method in the Accounts guidance, expanded). A third, quieter button: "I still want a Locked section".
+2. Only after that choice does setup continue: generate the card, print two copies, name where they are kept.
+3. The secret warning lists its options in the same order: write where it is kept instead (first), then "Move this to the Locked section" (second, only once Locked is set up). It never offers to set Locked up from the warning, so nobody lands in Locked without seeing the recommendation.
+
 PROJECT_SPEC principle 2 must match the decision:
 
 - **If pointers only (A or C below):** keep today's wording: "The plan never stores secrets (passwords, PINs, recovery codes, full card or account numbers). It stores pointers: where the secret lives, who can get it, and the exact steps to get in."
-- **If Locked is built (B):** "The plan never stores secrets unencrypted. By default it stores pointers: where the secret lives, who can get it, and the exact steps to get in. A creator who wants secrets in the plan can put them only in the optional Locked section, which is encrypted and opened with a printed card. The app warns, never blocks, when ordinary text looks like a secret, and offers to move it to the Locked section." Also remove "Storing passwords, PINs, or recovery codes" from "Explicitly out of scope" and replace it with "Storing secrets outside the Locked section", and reword PRIVACY.md "Nothing is encrypted" to "Nothing outside the Locked section is encrypted".
+- **If Locked is built (B):** "The plan never stores secrets unencrypted. By default it stores pointers: where the secret lives, who can get it, and the exact steps to get in. The app always recommends keeping secrets in something more secure, such as a password manager with emergency access or a printed kit in a safe. As a fallback for creators who will not do that, secrets can go only in the optional Locked section, which is encrypted and opened with a printed card. The app warns, never blocks, when ordinary text looks like a secret, and offers to move it to the Locked section." Also remove "Storing passwords, PINs, or recovery codes" from "Explicitly out of scope" and replace it with "Storing secrets outside the Locked section", and reword PRIVACY.md "Nothing is encrypted" to "Nothing outside the Locked section is encrypted".
 
 ### The idea
 
