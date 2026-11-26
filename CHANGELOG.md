@@ -34,6 +34,8 @@ All notable changes are listed here. The project follows [Semantic Versioning](h
 - Suggestions page buttons name where they lead instead of "Go there"
 - The possible-secret suggestion now also catches "The PIN is 4821" style text, recovery codes, labelled account numbers, and Social Security numbers, and says which kind it found.
 - Encrypted backups are off the roadmap. A forgotten passphrase would lock out the family, and the plan holds no secrets.
+- Start Here: the default note is shorter and plainer about why the family is reading it. The editor now encourages you to open with a last message in your own words, suggests what to say, and offers an example message for ideas (the example is never saved in your plan).
+- Writing guidance: sad is allowed. "No morbid language" is now "no gratuitous or graphic language" (PROJECT_SPEC.md principle 3, CONTRIBUTING.md).
 
 ### Fixed
 
