@@ -3,6 +3,7 @@ import { LIMITS } from '../../core/normalize';
 import { KEYS, recoveryKeys } from '../../core/storage';
 import { h } from '../dom';
 import { chooseBackupFile, deleteRecoveryCopies, downloadRecoveryCopies, eraseEverything, exportBackup, exportJsonBackup, loadSampleData, removeSampleData } from '../backupFlow';
+import { FAMILY_STEP_TEXT, FAMILY_STEP_TITLE, familyOpenedCheckbox } from '../exportSet';
 import { openPrintDialog } from '../printDialog';
 import { getPlan, getStorageRef, mutate, render } from '../store';
 import { applyTheme, currentTheme } from '../theme';
@@ -61,6 +62,8 @@ export function settingsView(): HTMLElement {
       card('backup-h', 'Backup and restore', 'Your plan lives only in this browser. A backup file is the only way to move it or recover it.',
         h('div', { class: 'setting-row' }, h('div', null, h('strong', null, 'Export a backup'), h('small', null, `One file with the app and your whole plan inside. It opens offline by double-clicking it, with no website needed. ${plan.info.lastExportedAt ? `Last exported ${formatIsoTime(plan.info.lastExportedAt)}.` : 'No backup exported yet.'}`)), button('Export backup', exportBackup, { focusKey: 'export' })),
         h('div', { class: 'setting-row' }, h('div', null, h('strong', null, 'Export plan data only'), h('small', null, 'A .json file with the plan and no app. Smaller, and readable in a text editor.')), button('Export .json', exportJsonBackup, { focusKey: 'export-json' })),
+        h('div', { class: 'setting-row' }, h('div', null, h('strong', null, 'Open a copy on your family\'s device'),
+          h('small', null, `${FAMILY_STEP_TITLE} ${FAMILY_STEP_TEXT} ${plan.info.familyOpenedAt ? `Last confirmed ${formatDate(plan.info.familyOpenedAt)}.` : 'Not done yet.'}`)), familyOpenedCheckbox('family-opened')),
         h('div', { class: 'setting-row' }, h('div', null, h('strong', null, 'Restore a backup'), h('small', null, 'Choose a file made with Export backup (.html) or a .json backup. You will see a preview and confirm before anything is replaced. Backups from the original version of this app work too.')), button('Restore from file', chooseBackupFile, { focusKey: 'restore' })),
         h('p', { class: 'help' }, 'Backup files are not encrypted. Anyone who opens one can read it. Keep backups on a drive or folder only you and trusted people can reach.'),
       ),

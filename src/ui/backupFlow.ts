@@ -13,6 +13,7 @@ import { SECTION_IDS } from '../core/sections';
 import { getStorage, KEYS, recoveryKeys } from '../core/storage';
 import { domId, h } from './dom';
 import { confirmDialog, openModal } from './dialogs';
+import { openExportSetDialog } from './exportSet';
 import { buildReadableCopy } from './readableCopy';
 import { buildSavedFile } from './selfCopy';
 import { addBanner, discardDraft, eraseAllLocalData, getPlan, getStorageRef, initFromFile, mutate, noteSavedAs, removeBanner, render, replacePlan } from './store';
@@ -54,15 +55,16 @@ export function exportBackup(): void {
   const title = savedHeadline(plan.info.ownerName, formatSavedTime(savedAt)).replace(/\.$/, '') || `${plan.info.planName || 'Family plan'}, saved`;
   download(name, buildSavedFile(serializeBackup(plan, __APP_VERSION__, now), buildReadableCopy(plan, savedAt), title), 'text/html');
   noteSavedAs(name);
-  toast(`Saved ${name}. It holds the app and your whole plan, and opens offline: double-click it. Keep it somewhere private.`);
+  openExportSetDialog({ fileName: name, stem: name.replace(/\.html$/, ''), savedAt, kind: 'html' });
 }
 
 /** The plan data only, as a JSON file (for other tools, or a smaller file). */
 export function exportJsonBackup(): void {
   const now = new Date();
   const previous = markExported(now);
-  download(backupFileName(now, previous, getPlan().info.ownerName), serializeBackup(getPlan(), __APP_VERSION__, now));
-  toast('Plan data downloaded as a .json file. Store it somewhere private.');
+  const name = backupFileName(now, previous, getPlan().info.ownerName);
+  download(name, serializeBackup(getPlan(), __APP_VERSION__, now));
+  openExportSetDialog({ fileName: name, stem: name.replace(/\.json$/, ''), savedAt: localIsoWithOffset(now), kind: 'json' });
 }
 
 function totalRecords(): number {

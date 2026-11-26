@@ -2,7 +2,7 @@ import { readFileSync, writeFileSync, mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import AxeBuilder from '@axe-core/playwright';
-import { test, expect, nav, addRecord, storedPlan } from './fixtures';
+import { test, expect, nav, addRecord, storedPlan, skipPdf } from './fixtures';
 import type { Page } from '@playwright/test';
 
 async function restoreFile(page: Page, path: string) {
@@ -21,6 +21,7 @@ test('export and restore round trip with preview and confirmation', async ({ app
   await addRecord(app, 'People', { 'Full name': 'Alex Morgan', 'Address': '123 Example Street' });
   await nav(app, 'Settings and backup');
   const [dl] = await Promise.all([app.waitForEvent('download'), app.getByRole('button', { name: 'Export .json' }).click()]);
+  await skipPdf(app);
   expect(dl.suggestedFilename()).toMatch(/^WhenImGone_\d{4}-\d{2}-\d{2}_\d{4}(_\d{2})?\.json$/);
   const exported = JSON.parse(readFileSync(await dl.path(), 'utf8'));
   expect(exported.schema).toBe('family-continuity-planner');
@@ -36,6 +37,9 @@ test('export and restore round trip with preview and confirmation', async ({ app
   await expect(replace).toBeDisabled();
   // Offer to export the current plan first.
   await Promise.all([app.waitForEvent('download'), dialog.getByRole('button', { name: 'Export my current plan first' }).click()]);
+  // That export offers the PDF too; skipping returns to the restore preview.
+  await skipPdf(app);
+  await expect(dialog).toBeVisible();
   await dialog.getByLabel(/I understand this replaces/).check();
   await replace.click();
   await nav(app, 'People');
@@ -226,6 +230,7 @@ test('online copy shows where data lives, and the notice can be acknowledged', a
   await expect(notice).toContainText('Export backup saves a copy of the app and your plan that opens offline');
   await expect(notice.getByRole('button', { name: 'How to download' })).toHaveCount(0);
   const [dl] = await Promise.all([page.waitForEvent('download'), notice.getByRole('button', { name: 'Export backup' }).click()]);
+  await skipPdf(page);
   expect(dl.suggestedFilename()).toMatch(/^WhenImGone_.*\.html$/);
   expect(readFileSync((await dl.path())!, 'utf8')).toContain('id="when-im-gone-plan"');
   await notice.getByRole('button', { name: 'Got it' }).click();

@@ -124,6 +124,19 @@ describe('continuity audit', () => {
     p.records.people.push(r({ name: 'A' }));
     expect(allFindings(p, TODAY).map((f) => f.id)).toContain('backup-never');
   });
+  it('asks for an open on the family\'s device once a copy exists, and again after a year', () => {
+    const p = blankPlan(NOW);
+    p.records.people.push(r({ name: 'A' }));
+    const ids = () => allFindings(p, TODAY).map((f) => f.id);
+    expect(ids()).not.toContain('family-not-opened');
+    p.info.lastExportedAt = '2026-11-01T12:00:00.000Z';
+    expect(ids()).toContain('family-not-opened');
+    p.info.familyOpenedAt = '2025-11-08'; // 364 days before TODAY
+    expect(ids()).not.toContain('family-not-opened');
+    expect(ids()).not.toContain('family-opened-old');
+    p.info.familyOpenedAt = '2025-11-06'; // 366 days
+    expect(ids()).toContain('family-opened-old');
+  });
   it('supports dismissing and deferring findings', () => {
     const p = blankPlan(NOW);
     expect(activeFindings(p, TODAY).active.map((f) => f.id)).toContain('no-contacts');
