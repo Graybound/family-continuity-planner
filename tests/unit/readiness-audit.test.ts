@@ -146,7 +146,7 @@ describe('recommendations', () => {
   it('recommends trusted contacts and responsibilities before any answers', () => {
     const rec = recommend(blankPlan(NOW));
     expect(rec.priority.map((x) => x.section)).toEqual(['contacts']);
-    expect(rec.helpful.map((x) => x.section)).toEqual(['responsibilities', 'plans']);
+    expect(rec.helpful.map((x) => x.section)).toEqual(['plans', 'responsibilities']);
   });
   it('raises sections tied to what the creator handles, with reasons, in at most four priority items', () => {
     const p = blankPlan(NOW);

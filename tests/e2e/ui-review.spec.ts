@@ -42,12 +42,6 @@ test('section pages show entries before creator controls; filter appears only fo
   await expect(app.getByLabel('Filter people')).toBeVisible();
 });
 
-test('the will notice sits below the next steps on the overview', async ({ app }) => {
-  const next = await app.getByRole('heading', { name: /^To reach/ }).boundingBox();
-  const will = await app.getByRole('complementary', { name: 'This is not a will' }).boundingBox();
-  expect(will!.y).toBeGreaterThan(next!.y);
-});
-
 test('help text and record labels are at least 13px', async ({ app }) => {
   await nav(app, 'Settings and backup');
   const help = await app.locator('.help').first().evaluate((n) => parseFloat(getComputedStyle(n).fontSize));

@@ -92,7 +92,7 @@ test('printed packet: Start Here first, private details withheld by default, con
   await addRecord(app, 'Accounts', { 'Institution or service': 'Sample Credit Union', 'Last four digits or safe hint': 'ends 0000', 'Where access instructions are stored': 'Password manager' });
   await addRecord(app, 'Emergency plans', { 'Plan name': 'Power outage', 'When to use this plan': 'Power out', 'Steps, one per line': 'Check breakers\nCall utility' });
   await app.getByRole('button', { name: 'Print' }).first().click();
-  const dialog = app.getByRole('dialog', { name: 'Print the continuity packet' });
+  const dialog = app.getByRole('dialog', { name: 'Print your plan' });
   await expect(dialog.getByLabel('Include private details')).not.toBeChecked();
   await dialog.getByRole('button', { name: 'Print' }).click();
   await expect.poll(() => app.evaluate(() => (window as unknown as { __printed: number }).__printed)).toBe(1);
@@ -162,7 +162,7 @@ test('mobile: closed menu is not keyboard reachable; opening and Escape work', a
   expect(await app.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true);
 });
 
-const VIEWS = ['Overview', 'Get started', 'Start Here', 'Who handles what', 'People', 'Accounts', 'Checklist', 'Continuity review', 'Settings and backup'];
+const VIEWS = ['Overview', 'Planning questions', 'Start Here', 'Who handles what', 'People', 'Accounts', 'Checklist', 'Suggestions', 'Settings and backup'];
 
 for (const theme of ['light', 'dark'] as const) {
   test(`no automatically detectable accessibility violations (${theme})`, async ({ app }) => {

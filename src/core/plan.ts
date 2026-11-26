@@ -50,7 +50,7 @@ export const RISK_LABELS = {
   internet: 'Internet and Wi-Fi',
   photos: 'Family photos and files',
   maintenance: 'Home maintenance',
-  seasonal: 'Seasonal jobs',
+  seasonal: 'Seasonal jobs, like clearing gutters or the furnace check',
   vehicles: 'Vehicle care',
   children: 'Children’s schedules',
   pets: 'Pet care',

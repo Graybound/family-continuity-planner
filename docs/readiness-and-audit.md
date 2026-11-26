@@ -20,19 +20,23 @@ A section is **addressed** when it has at least one entry, or is marked Complete
 
 Levels are cumulative: a level is reached only when all of its requirements **and all requirements of lower levels** are met.
 
-**Getting Started:** every plan starts here.
+Level names shown in the app are plain words. Internal ids (`getting-started`, `basic`, `core`, `thorough`) are unchanged.
 
-**Basic Emergency Plan Ready**
+**Just started** (`getting-started`): every plan starts here.
+
+**Ready for an emergency** (`basic`)
 1. At least one trusted contact entry, or a "First person to contact" in plan details.
 2. At least one emergency plan.
 3. At least one document location.
 4. A backup has been exported at least once.
 
-**Core Continuity Plan Ready**
+**Covers everyday life** (`core`)
 1. At least three entries in Who handles what.
-2. People, Home and utilities, Accounts, and Health are each addressed.
+2. Accounts, Home and utilities, People, and Health are each addressed.
 
-**Thorough Plan Ready**
+Requirements are listed in the same order as the sidebar (`SECTION_IDS`), so following "Next" on the overview walks down the sidebar. A unit test (`tests/unit/flow.test.ts`) keeps them in step.
+
+**Thorough and up to date** (`thorough`)
 1. Every section is addressed.
 2. No section is marked Review later.
 3. The plan was marked reviewed within the last 365 days.
@@ -40,7 +44,7 @@ Levels are cumulative: a level is reached only when all of its requirements **an
 
 Checklist completion does not affect readiness (in v1, checking off starter items raised the score).
 
-## Continuity review rules
+## Suggestions rules (formerly Continuity review)
 
 Each finding has a stable ID so it can be dismissed (hidden permanently) or deferred (hidden for 30 days). "Show them again" clears both.
 
@@ -58,11 +62,13 @@ Each finding has a stable ID so it can be dismissed (hidden permanently) or defe
 | `backup-old` | The last export was more than 90 days ago | Settings |
 | `plan-not-reviewed` | The plan has entries and was never marked reviewed, or not within 365 days | Settings |
 
+On the overview, a finding is left out while the readiness requirement that says the same thing is listed as a next step (`FINDING_TWINS` in `src/core/audit.ts`): `no-contacts` and `basic-contact`, `backup-never` and `basic-backup`, `backup-old` and `thorough-backup-recent`, `plan-not-reviewed` and `thorough-reviewed`. The Suggestions page always lists every finding.
+
 ### Risk to area mapping
 
 bills, autopay, investments: Finances and bills. taxes: Taxes. insurance: Insurance. access, internet: Technology and devices. photos: Digital services and photos. maintenance, seasonal: Home maintenance. vehicles: Vehicles. children: Children. pets: Pets. healthcare: Healthcare coordination. business: Work or business.
 
-## Recommendations (Get started, step 4)
+## Recommendations (Planning questions, step 4)
 
 Each section gets a score:
 
