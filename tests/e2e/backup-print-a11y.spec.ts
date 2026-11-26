@@ -88,7 +88,7 @@ test('a malicious backup cannot run script (v1 executed this)', async ({ app }) 
   expect(await app.evaluate(() => (window as unknown as { __xss?: number }).__xss)).toBeUndefined();
 });
 
-test('printed packet: Start Here first, private details withheld by default, controls removed', async ({ app }) => {
+test('printed packet: Start Here first, private details withheld by default, controls removed', async ({ app, browserName }) => {
   await addRecord(app, 'Accounts', { 'Institution or service': 'Sample Credit Union', 'Last four digits or safe hint': 'ends 0000', 'Where access instructions are stored': 'Password manager' });
   await addRecord(app, 'Emergency plans', { 'Plan name': 'Power outage', 'When to use this plan': 'Power out', 'Steps, one per line': 'Check breakers\nCall utility' });
   await app.getByRole('button', { name: 'Print' }).first().click();
@@ -110,8 +110,11 @@ test('printed packet: Start Here first, private details withheld by default, con
   await app.emulateMedia({ media: 'print' });
   await expect(app.locator('#app')).toBeHidden();
   await expect(packet).toBeVisible();
-  const pdf = await app.pdf({ format: 'Letter' });
-  expect(pdf.byteLength).toBeGreaterThan(1000);
+  // page.pdf() exists only in Chromium; the print-media checks above run in every browser.
+  if (browserName === 'chromium') {
+    const pdf = await app.pdf({ format: 'Letter' });
+    expect(pdf.byteLength).toBeGreaterThan(1000);
+  }
   await app.emulateMedia({ media: 'screen' });
 
   await app.getByRole('button', { name: 'Print' }).first().click();
@@ -211,7 +214,10 @@ test('online copy shows where data lives, and the notice can be acknowledged', a
   const page = await ctx.newPage();
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(String(e)));
-  page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
+  // Firefox's own favicon loader (browser code, not the page) asks for /favicon.ico and
+  // reports the CSP block as a console error. The CSP doing its job is not a page error.
+  const firefoxFavicon = (t: string) => t.includes('FaviconLoader') && t.includes('/favicon.ico');
+  page.on('console', (m) => m.type() === 'error' && !firefoxFavicon(m.text()) && errors.push(m.text()));
   await page.goto('https://graybound.github.io/family-continuity-planner/');
   const notice = page.locator('.banner').filter({ hasText: 'You are using the online version' });
   await expect(notice).toBeVisible();

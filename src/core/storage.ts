@@ -12,7 +12,8 @@
  * on the next save. This module never does that: unreadable data is copied to
  * a recovery key before anything else can be written.
  */
-import { parseBackup } from './backup';
+import { parseBackup, safeJsonParse } from './backup';
+import { detectVersion } from './migrate';
 import { blankPlan, type Plan } from './plan';
 
 export const KEYS = {
@@ -32,15 +33,38 @@ export type LoadResult =
   | { status: 'damaged'; plan: Plan; error: string; recoveryKey: string | null }
   | { status: 'unavailable'; plan: Plan };
 
+function isQuotaError(e: unknown): boolean {
+  // Chromium and WebKit use QuotaExceededError (legacy code 22); older Firefox uses NS_ERROR_DOM_QUOTA_REACHED (code 1014).
+  return e instanceof DOMException && (e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED' || e.code === 22 || e.code === 1014);
+}
+
+/**
+ * Returns browser storage, or null when the browser does not allow it at all.
+ * A full storage area is still returned: the saved plan must stay readable even
+ * when nothing more fits, otherwise the reader sees an empty plan. Writes then
+ * fail with a clear "storage is full" message from savePlan().
+ */
 export function getStorage(): StorageLike | null {
+  let s: Storage;
   try {
-    const s = globalThis.localStorage;
-    const probe = 'familyContinuityPlanner.probe';
+    s = globalThis.localStorage;
+    if (!s) return null;
+  } catch {
+    return null;
+  }
+  const probe = 'familyContinuityPlanner.probe';
+  try {
     s.setItem(probe, '1');
     s.removeItem(probe);
     return s;
-  } catch {
-    return null;
+  } catch (e) {
+    if (!isQuotaError(e)) return null;
+    try {
+      s.getItem(KEYS.plan);
+      return s;
+    } catch {
+      return null;
+    }
   }
 }
 
@@ -95,13 +119,26 @@ export function loadPlan(storage: StorageLike | null, now: Date = new Date()): L
   return { status: 'empty', plan: blankPlan(now) };
 }
 
+/**
+ * True when text in the plan key is a plan this version can read. Only the cheap
+ * structural checks are run; normalizing never fails.
+ */
+function isReadablePlanText(raw: string): boolean {
+  const parsed = safeJsonParse(raw);
+  return parsed.ok && detectVersion(parsed.value).ok;
+}
+
 export function savePlan(storage: StorageLike | null, plan: Plan): { ok: true } | { ok: false; error: string } {
   if (!storage) return { ok: false, error: 'This browser is not allowing the planner to save. Export a backup before closing.' };
   try {
+    // Never overwrite saved data that could not be read unless a recovery copy of it exists.
+    const existing = storage.getItem(KEYS.plan);
+    if (existing !== null && !isReadablePlanText(existing) && preserveDamaged(storage, existing, new Date()) === null) {
+      return { ok: false, error: 'Your earlier saved plan could not be read and there is no room to keep a copy of it, so it was left in place and this change was not saved. Export a backup now.' };
+    }
     storage.setItem(KEYS.plan, JSON.stringify(plan));
     return { ok: true };
   } catch (e) {
-    const quota = e instanceof DOMException && (e.name === 'QuotaExceededError' || e.code === 22);
-    return { ok: false, error: quota ? 'Browser storage is full, so the last change was not saved. Export a backup now.' : 'The last change could not be saved. Export a backup now.' };
+    return { ok: false, error: isQuotaError(e) ? 'Browser storage is full, so the last change was not saved. Export a backup now.' : 'The last change could not be saved. Export a backup now.' };
   }
 }
