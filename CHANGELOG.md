@@ -4,6 +4,11 @@ All notable changes are listed here. The project follows [Semantic Versioning](h
 
 ## [Unreleased]
 
+### Changed
+
+- The online version moved to https://whenimgone.grayhek.com/, served by Cloudflare. The GitHub Pages copy is retired. Plans saved in the old online copy do not move over on their own: open the old copy, export a backup, and restore it in the new one.
+- The online-version notice now says your plan "is never sent anywhere" instead of naming GitHub.
+
 ### Fixed
 
 - When browser storage was completely full, the app showed an empty plan and said it could not save, even though the plan was still there. Exporting at that point produced an empty backup. The saved plan now loads; only new changes fail to save, with a clear message.

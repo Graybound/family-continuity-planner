@@ -201,13 +201,13 @@ test('the original v1 app refuses v2 backups instead of silently dropping record
 });
 
 test('online copy shows where data lives, and the notice can be acknowledged', async ({ browser }) => {
-  // Serve the built file at the GitHub Pages address without any real network access.
+  // Serve the built file at the hosted address without any real network access.
   const html = readFileSync('dist/index.html', 'utf8');
   const ctx = await browser.newContext();
   const unexpected: string[] = [];
   await ctx.route('**/*', (route) => {
     const url = route.request().url();
-    if (url === 'https://graybound.github.io/family-continuity-planner/') return route.fulfill({ body: html, contentType: 'text/html' });
+    if (url === 'https://whenimgone.grayhek.com/') return route.fulfill({ body: html, contentType: 'text/html' });
     unexpected.push(url);
     return route.abort();
   });
@@ -218,10 +218,10 @@ test('online copy shows where data lives, and the notice can be acknowledged', a
   // reports the CSP block as a console error. The CSP doing its job is not a page error.
   const firefoxFavicon = (t: string) => t.includes('FaviconLoader') && t.includes('/favicon.ico');
   page.on('console', (m) => m.type() === 'error' && !firefoxFavicon(m.text()) && errors.push(m.text()));
-  await page.goto('https://graybound.github.io/family-continuity-planner/');
+  await page.goto('https://whenimgone.grayhek.com/');
   const notice = page.locator('.banner').filter({ hasText: 'You are using the online version' });
   await expect(notice).toBeVisible();
-  await expect(notice).toContainText('never sent to GitHub');
+  await expect(notice).toContainText('never sent anywhere');
   await notice.getByRole('button', { name: 'Got it' }).click();
   await expect(notice).toHaveCount(0);
   await page.reload();
