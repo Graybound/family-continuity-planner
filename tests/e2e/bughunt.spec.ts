@@ -21,11 +21,8 @@ test('a full browser storage still shows the saved plan instead of an empty one'
   });
 });
 
-// Known bug, fix belongs in src/ui (see the bug hunt PR): text fields have no maxlength, so a note
-// longer than the 20,000 character limit saves, then is cut short the next time the plan loads.
-// Remove test.fail() when the edit form enforces the same limits as normalize.ts.
+// Text fields carry maxlength from LIMITS, so a note can never be longer than what a reload keeps.
 test('a very long note is not silently shortened after a reload', async ({ app }) => {
-  test.fail();
   await nav(app, 'Notes');
   await app.locator('.page-actions').getByRole('button').click();
   const dialog = app.getByRole('dialog');

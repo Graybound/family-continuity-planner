@@ -1,4 +1,5 @@
 import { formatDate, formatIsoTime, todayString } from '../../core/dates';
+import { LIMITS } from '../../core/normalize';
 import { KEYS, recoveryKeys } from '../../core/storage';
 import { h } from '../dom';
 import { chooseBackupFile, deleteRecoveryCopies, downloadRecoveryCopies, eraseEverything, exportBackup, loadSampleData, removeSampleData } from '../backupFlow';
@@ -20,7 +21,7 @@ export function settingsView(): HTMLElement {
   const bytes = new Blob([JSON.stringify(plan)]).size;
   const input = (id: string, label: string, value: string, help?: string) => h('div', { class: 'field' },
     h('label', { attrs: { for: id } }, label),
-    h('input', { attrs: { id, autocomplete: 'off', 'aria-describedby': help ? `${id}-help` : undefined }, props: { value } }),
+    h('input', { attrs: { id, autocomplete: 'off', maxlength: LIMITS.shortChars, 'aria-describedby': help ? `${id}-help` : undefined }, props: { value } }),
     help ? h('span', { class: 'help', attrs: { id: `${id}-help` } }, help) : null,
   );
 

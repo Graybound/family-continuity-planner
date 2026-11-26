@@ -4,7 +4,7 @@ import { SECTIONS, SECTION_IDS } from '../../core/sections';
 import { h } from '../dom';
 import { exportBackup } from '../backupFlow';
 import { getPlan, go } from '../store';
-import { button, goTarget, willNotice } from './common';
+import { button, goTarget, targetLabel, willNotice } from './common';
 
 export function dashboardView(): HTMLElement {
   const plan = getPlan();
@@ -42,7 +42,7 @@ export function dashboardView(): HTMLElement {
       h('ul', { class: 'req-list' }, rd.next.map((r) => h('li', { class: 'req' },
         h('span', { class: 'mark status-todo', attrs: { 'aria-hidden': 'true' } }, ''),
         h('div', null, h('strong', null, r.label), h('p', null, r.why)),
-        button('Go', () => goTarget(r.target), { cls: 'btn small', ariaLabel: `Go: ${r.label}` }),
+        button(targetLabel(r.target), () => goTarget(r.target), { cls: 'btn small', ariaLabel: `${targetLabel(r.target)}: ${r.label}` }),
       ))),
       h('details', { style: { 'margin-top': '12px' } },
         h('summary', null, 'How readiness levels work'),
@@ -73,13 +73,15 @@ export function dashboardView(): HTMLElement {
       h('h2', { class: 'section-h', attrs: { id: 'find-h' } }, 'Suggestions to review'),
       h('ul', { class: 'req-list' }, active.slice(0, 3).map((f) => h('li', { class: 'req' },
         h('div', null, h('strong', null, f.title), h('p', null, f.why)),
-        button('Go', () => goTarget(f.target), { cls: 'btn small', ariaLabel: `Go: ${f.title}` }),
+        button(targetLabel(f.target), () => goTarget(f.target), { cls: 'btn small', ariaLabel: `${targetLabel(f.target)}: ${f.title}` }),
       ))),
       active.length > 3 ? h('p', null, button(`See all ${active.length} suggestions`, () => go({ name: 'review' }), { cls: 'btn link' })) : null,
     )
     : null;
 
+  // The notice is for the person writing the plan; it stays on the overview but no longer sits above the next step.
   const will = willNotice();
-  will.style.setProperty('margin-top', '20px');
-  return h('div', null, hero, will, nextList, findings, map);
+  will.classList.add('quiet');
+  will.style.setProperty('margin-top', '28px');
+  return h('div', null, hero, nextList, findings, will, map);
 }

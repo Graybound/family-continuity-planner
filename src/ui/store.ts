@@ -62,34 +62,48 @@ export function render(): void {
   renderFn();
 }
 
-function persist(): boolean {
+function persist(silent = false): boolean {
   const r = savePlan(storage, plan);
   if (!r.ok) {
-    toast(r.error, 'error');
+    if (!silent) toast(r.error, 'error');
     return false;
   }
   return true;
 }
 
-export function mutate(fn: (p: Plan) => void, opts: { message?: string; log?: string; touch?: boolean } = {}): void {
+export function mutate(fn: (p: Plan) => void, opts: { message?: string; log?: string; touch?: boolean; silentSaveError?: boolean } = {}): void {
   fn(plan);
   if (opts.touch !== false) plan.info.updatedAt = new Date().toISOString();
   if (opts.log) {
     plan.activity.unshift({ id: newId(), text: opts.log, at: new Date().toISOString() });
     plan.activity = plan.activity.slice(0, 30);
   }
-  const ok = persist();
+  const ok = persist(opts.silentSaveError);
   if (ok && opts.message) toast(opts.message);
   render();
 }
 
-export function replacePlan(next: Plan, message?: string): void {
+/**
+ * Replace the whole plan. Saves first and keeps the current plan when the save fails
+ * (for example a restore bigger than the space left), so a failed restore never looks
+ * like it worked and then reverts on reload. Returns false when nothing was replaced.
+ * With no storage at all the plan can only live in memory, so it is swapped in anyway;
+ * the "not saving" banner already tells the reader to export.
+ */
+export function replacePlan(next: Plan, message?: string): boolean {
+  if (storage) {
+    const r = savePlan(storage, next);
+    if (!r.ok) {
+      toast(`Nothing was replaced; your current plan is unchanged. ${r.error.split('.')[0]}.`, 'error');
+      return false;
+    }
+  }
   plan = next;
   ui.privacy = plan.preferences.privacyDefault;
   ui.filters = {};
-  const ok = persist();
-  if (ok && message) toast(message);
+  if (message) toast(message);
   go({ name: 'dashboard' });
+  return true;
 }
 
 export function go(view: View): void {
