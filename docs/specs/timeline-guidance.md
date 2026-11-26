@@ -32,12 +32,12 @@ The four timeframe headings always print, even in an empty plan, because the def
 
 ### Default guidance copy (draft, to be checked in the usability test)
 
-Fixed text, not editable in this version. Region neutral, family neutral, no morbid language, no legal or financial instruction. Written for both "gone" and "can't help right now".
+Fixed text, not editable in this version. Region neutral, family neutral, no legal or financial instruction. It names grief and loss plainly: sadness is allowed, only gratuitous or graphic language is not. It has to work whether the creator has died or is alive but can't help, so where the two differ it says so in one plain clause instead of avoiding the subject.
 
-- **First day.** Today is about people, not paperwork. Make sure everyone at home, including children and pets, is safe and looked after, and call the first person to contact. Money, accounts and decisions can wait.
-- **First week.** Let the people who need to know, know. Keep the basics running: food, medicine, care routines. Keep phones, email and the internet working, because they are often how you get into everything else. You do not need to cancel, sell or close anything this week.
-- **First month.** Make sure essential bills keep getting paid and the home stays running. Gather the papers listed under Documents. If there is a will or other legal paperwork, this is a good time to talk to the person named in it or a professional you trust.
-- **First year.** Bigger decisions belong here, not earlier: what to keep, simplify, hand over, cancel or sell. Yearly things like taxes and renewals will come around. Take them one at a time, and ask for help.
+- **First day.** Today is about people, not paperwork. You may be in shock or grieving, and that is allowed to take up the whole day. Make sure everyone at home, including children and pets, is safe and looked after, and call the first person to contact. Money, accounts and decisions can wait.
+- **First week.** Let the people who need to know, know. If they have died, this is often the week of planning a funeral or memorial, and you can ask a trusted contact to take on parts of it. Keep the basics running: food, medicine, care routines. Keep phones, email and the internet working, because they are often how you get into everything else. You do not need to cancel, sell or close anything this week.
+- **First month.** Grief often hits harder once the first rush is over, so go slowly. Make sure essential bills keep getting paid and the home stays running. Gather the papers listed under Documents. If there is a will or other legal paperwork, this is a good time to talk to the person named in it or a professional you trust.
+- **First year.** Bigger decisions belong here, not earlier: what to keep, simplify, hand over, cancel or sell. Yearly things like taxes and renewals will come around. The first birthdays, holidays and anniversaries can be hard; it helps to plan for them and let people in. Take the rest one at a time, and ask for help.
 - **No rush.** These have no deadline. Come back to them when you are ready, or when something needs fixing.
 
 Section intro, under the heading "What to do, and when": "A rough order for what needs attention. It is fine to go slower than this. Nothing here replaces a will or advice from a professional."
@@ -62,7 +62,7 @@ The Technology and Legacy sections (`docs/specs/technology-section.md`, `docs/sp
 ### Small fixes this depends on
 
 - **Starter checklist.** `starterChecklist()` puts "Choose two trusted backup contacts" in "First 24 hours". That is a job for the creator, but the packet prints it under the reader's first-day actions today. Move it to "People to brief" and add a real first-day item in its place: title "Call the first person to contact", note "Their name is on the cover page and under Trusted contacts." Affects new plans only.
-- **Default Start Here text.** `DEFAULT_START_HERE` says 'Start with the "Immediate actions" section'. Change it to 'Start with "What to do, and when"'. Plans with custom text that still says "Immediate actions" keep it; that is acceptable before real plans exist.
+- **Default Start Here text.** `DEFAULT_START_HERE` is owned by the separate "Start Here as a last message" work, not this spec. Its practical part points readers at "Immediate actions". Whichever of the two changes ships second updates that one reference to "What to do, and when", and touches nothing else in the text. Custom Start Here text that still says "Immediate actions" keeps it; acceptable before real plans exist.
 - **Copy that names "immediate actions".** The print dialog description (`src/ui/printDialog.ts`) and the Settings print card (`src/ui/views/settings.ts`) change to say "what to do, and when".
 - **Sample plan.** Give the sample responsibilities timeframes so the feature shows up in the demo: monthly bills First month, taxes First year, Wi-Fi No rush, furnace First year, Biscuit First day.
 
@@ -102,7 +102,7 @@ The checklist mixing creator to-dos with reader actions is a wider design proble
 
 - `src/core/sections.ts`: `TIMEFRAMES` constant, new `timeframe` field on responsibilities.
 - `src/core/timeline.ts` (new): `buildTimeline(plan)` and the default guidance strings. Pure, no DOM.
-- `src/core/plan.ts`: `DEFAULT_START_HERE` wording, `starterChecklist()` fix.
+- `src/core/plan.ts`: `starterChecklist()` fix only (plus the one "Immediate actions" reference in `DEFAULT_START_HERE` if this ships second, see above).
 - `src/core/sample.ts`: timeframes on sample responsibilities.
 - `src/ui/print.ts`: replace the `immediate` packet part with `timeline` rendered from `buildTimeline()`; `PacketPart` and `PACKET_ORDER` updated.
 - `src/ui/printDialog.ts`, `src/ui/views/settings.ts`: copy only.
