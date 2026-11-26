@@ -2,6 +2,18 @@
 
 All notable changes are listed here. The project follows [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed
+
+- On phones, the top bar shows short words (Menu, Privacy, Backup, Print) instead of bare symbols, and search fits on one line
+- While privacy mode is on, a banner says so on every screen, with a "Show hidden details" button
+- Overview buttons say where they lead ("Open Trusted contacts") instead of "Go"
+- Section pages show entries first; the filter appears only once a section has more than five entries, and Section status moves to the end of the page
+- Larger help text and record labels; record labels are no longer all caps
+- Checklist Edit and Delete sit under the task on phones
+- The "This is not a will" notice on the overview sits below the next steps
+
 ## [0.2.0] - 2026-11-07
 
 The first open-source release. The original single-file app was recovered, audited, and rebuilt as a maintainable repository.
