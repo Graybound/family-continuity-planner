@@ -23,7 +23,7 @@ Recommended answers first. Each is argued in the section named.
 2. **Save always makes a new, uniquely named file** (`WhenImGone_2026-11-26_1432.html`, Noah's naming decision). By default it downloads. On Chrome and Edge desktop, an optional setup lets Save write the new file straight into a chosen folder instead of Downloads. **Saving over the same file is dropped**: it would leave an old date in the name of the newest copy, which breaks "the latest date in the name is the newest". See "2" and "10".
 3. **iPhone: read in the preview, edit on a computer.** There is no built-in way to run a local HTML file's scripts on iPhone. The only free route found (an Apple Shortcut) can't keep changes between visits. See "5. Running it on phones".
 4. **No .webarchive.** It doesn't open on Windows, Android, Chrome or Firefox, and nothing shows it runs scripts on iPhone. See "7".
-5. **No passphrase.** Decided by Noah, 26 November 2026: no passphrase by default, and the plan never stores secrets. Whether an optional passphrase exists at all is owned by the "Hand off access without storing secrets" work; this spec builds none. See "8".
+5. **No passphrase.** Decided by Noah, 26 November 2026: no passphrase by default, and the plan never stores secrets. Final call from the secrets handoff work (PR #26): no passphrase, not even optional. This spec builds none. See "8".
 6. **Save makes an export set** (Noah's decision, 26 November 2026): the HTML file plus a PDF from the browser's print dialog, with the same timestamp in both names. Same HTML for every browser, no per-browser builds. Plus an in-app step to open the copy once on the family's own device, with a checkbox to record that it worked. The checkbox is a plan field, so it rides in the same schema bump as the plan id. See "6".
 
 ## 1. How the data is embedded
@@ -297,7 +297,7 @@ Until the test runs, the answer stays no.
 
 ## 8. Privacy and the passphrase tradeoff
 
-**Decision (Noah, 26 November 2026): no passphrase by default. The plan never stores secrets** (passwords, PINs, recovery codes, full account numbers); it stores where the secret lives, who can get it and the steps to get in. Whether an optional, off-by-default passphrase exists at all is for the "Hand off access without storing secrets" work to recommend. This spec builds none. The analysis below stays as the reason.
+**Decision (Noah, 26 November 2026): no passphrase by default. The plan never stores secrets** (passwords, PINs, recovery codes, full account numbers); it stores where the secret lives, who can get it and the steps to get in. Final call from the secrets handoff work (PR #26): no passphrase on saved files or backups, not even optional. See [handoff-methods.md, passphrase decision](../handoff-methods.md#passphrase-decision). This spec builds none. The analysis below stays as one of the reasons.
 
 This file is the whole plan in readable form, including private fields, and it will be emailed, put on USB drives and copied to cloud folders. Anyone with the file can read all of it, in a browser or a text editor. The Save message says it once: "Anyone who has this file can read everything in it. Keep it where you'd keep a paper copy."
 
@@ -369,7 +369,7 @@ Noah's decision, 26 November 2026.
 
 ## Out of scope
 
-- Passphrase or encryption (section 8; owned by the secrets handoff work)
+- Passphrase or encryption (section 8; decided no in PR #26)
 - Per-browser builds
 - Making the PDF without the print dialog
 - Editing on iPhone (section 5); the Shortcut is a follow-up test, not a feature
@@ -448,6 +448,5 @@ Depends on: reader-mode slice 1 for `recordView.ts` (or move the renderer out of
 ## Proposed edits to other docs when this is approved
 
 - ROADMAP.md, Phase 4: add "Save: one HTML file with the plan inside that opens and edits offline (docs/specs/self-contained-plan-file.md)".
-- ROADMAP.md: change "Encrypted backups (see SECURITY.md for the conditions)" to "Encrypted backups: not planned, because an encrypted file can't be read on a phone; see docs/specs/self-contained-plan-file.md, section 8".
 - reader-mode.md slice 2: "The file picker opens for a `.json` backup" becomes "for a saved plan file (`.html`) or a `.json` backup".
 - PROJECT_SPEC.md principle on local-first: add "Each saved plan file is the whole app and opens on its own."
