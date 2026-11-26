@@ -214,7 +214,10 @@ test('online copy shows where data lives, and the notice can be acknowledged', a
   const page = await ctx.newPage();
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(String(e)));
-  page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
+  // Firefox's own favicon loader (browser code, not the page) asks for /favicon.ico and
+  // reports the CSP block as a console error. The CSP doing its job is not a page error.
+  const firefoxFavicon = (t: string) => t.includes('FaviconLoader') && t.includes('/favicon.ico');
+  page.on('console', (m) => m.type() === 'error' && !firefoxFavicon(m.text()) && errors.push(m.text()));
   await page.goto('https://graybound.github.io/family-continuity-planner/');
   const notice = page.locator('.banner').filter({ hasText: 'You are using the online version' });
   await expect(notice).toBeVisible();
