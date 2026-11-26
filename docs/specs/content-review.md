@@ -115,7 +115,7 @@ g. **Sample data** (`src/core/sample.ts`, `examples/sample-plan.json`): change t
 - signInCodes: `An app on my phone`
 - notes: `This is where every other login lives. Start here.`
 
-UNVERIFIED: wait periods and wording differ by product. Bitwarden and LastPass offer emergency access with a waiting period chosen by the account owner; 1Password relies on its Emergency Kit and family organizer recovery instead. Apple's Legacy Contact does not include Keychain passwords (as I understand Apple's documentation). The sample stays product-neutral on purpose.
+Vendor facts are verified with sources in `docs/handoff-methods.md` (PR #26): Bitwarden emergency access has a waiting period of at least one day and auto-approves if the owner does not respond, so the sample's 7 days is valid; Apple Legacy Contact excludes Keychain passwords, passkeys and payment information; 1Password documents no waiting-period emergency access. The sample stays product-neutral on purpose.
 
 **Schema impact.** One new field (`signInCodes`). See "Schema" at the end.
 
@@ -284,7 +284,7 @@ No bracketed placeholders, so unedited text is still correct for the reader. If 
 | Group | Title | Note |
 |---|---|---|
 | First 24 hours | `Call the first person to contact` | `Their name is on the cover page and under Trusted contacts.` (from the timeline spec) |
-| Information to gather | `Set up emergency access to your password manager, and test it` | `Have your trusted person request access once, confirm it works, then cancel the request.` |
+| Information to gather | `Set up emergency access to your password manager, and test it` | `Have your trusted person request access once, confirm it works, then cancel the request.` Build this row with `practiceHandoffItem()` from `src/core/handoff.ts` (PR #26) so it keeps the fixed id `practice-handoff` that Accounts looks up. Adjust that function's title and note rather than adding a second item. |
 | Information to gather | `Check who is named on retirement accounts and life insurance` | `The money often goes to whoever is on the form, whatever the will says. Make sure the forms are current.` |
 | People to brief | `Choose two trusted backup contacts` | `Confirm how they should be reached.` |
 | People to brief | `Tell your family where this plan is kept` | `Show one person how to open it and where the printout and backup are.` |
