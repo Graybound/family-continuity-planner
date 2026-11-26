@@ -72,7 +72,7 @@ See [PRIVACY.md](PRIVACY.md) for the user-facing summary. Keys:
 | `familyContinuityPlanner.recovery.<ISO time>` | Text that failed to load, preserved before anything else is saved |
 | `familyContinuityPlanner.theme` | `light` or `dark` |
 
-`loadPlan()` returns one of `empty`, `ok`, `migrated-legacy`, `damaged`, or `unavailable`, and the app shows a matching banner. `savePlan()` reports quota and other failures as user-visible errors. A `storage` event from another tab shows a banner asking the user to reload.
+`loadPlan()` returns one of `empty`, `ok`, `migrated-legacy`, `damaged`, or `unavailable`, and the app shows a matching banner. `savePlan()` reports quota and other failures as user-visible errors, and refuses to overwrite saved data it cannot read unless a recovery copy of that data exists. Full storage is not the same as unavailable storage: `getStorage()` still returns a full storage area so the saved plan stays readable. A `storage` event from another tab shows a banner asking the user to reload.
 
 ## Data schema (version 2)
 
