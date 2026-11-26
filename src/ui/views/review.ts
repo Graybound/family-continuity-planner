@@ -2,23 +2,23 @@ import { activeFindings, deferUntil } from '../../core/audit';
 import { formatDate } from '../../core/dates';
 import { h } from '../dom';
 import { getPlan, mutate } from '../store';
-import { button, goTarget, viewHead } from './common';
+import { button, goTarget, targetLabel, viewHead } from './common';
 
 export function reviewView(): HTMLElement {
   const plan = getPlan();
   const { active, hidden } = activeFindings(plan);
   return h('div', null,
     viewHead({
-      eyebrow: 'Continuity review',
-      title: 'Suggestions to review',
-      description: 'Automatic checks for likely gaps, based only on what is in this plan. Each one explains why it appeared. They are suggestions, never a verdict that the plan is or is not complete.',
+      eyebrow: 'Suggestions',
+      title: 'Things you may have missed',
+      description: 'The planner looks at what you have written and points out likely gaps. Each one says why it appeared. You can skip any of them; only you know what your family needs.',
     }),
     active.length
       ? h('ul', { class: 'grid', style: { 'list-style': 'none', padding: '0', margin: '0' } }, active.map((f) => h('li', { class: 'card finding' },
         h('h2', null, f.title),
         h('p', null, h('strong', null, 'Why this appeared: '), f.why),
         h('div', { class: 'btn-row' },
-          button('Go there', () => goTarget(f.target), { cls: 'btn small primary', ariaLabel: `Go there: ${f.title}` }),
+          button(targetLabel(f.target), () => goTarget(f.target), { cls: 'btn small primary', ariaLabel: `${targetLabel(f.target)}: ${f.title}` }),
           button('Remind me in 30 days', () => mutate((p) => {
             p.audit.deferred[f.id] = deferUntil();
           }, { message: `Hidden until ${formatDate(deferUntil())}`, touch: false }), { cls: 'btn small', ariaLabel: `Remind me in 30 days: ${f.title}` }),

@@ -5,8 +5,13 @@
  * keep each section as a top-level array. Version 2 adds an explicit schema
  * marker and groups records under `records`.
  *
- * To add version 3: write migrateV2toV3, register it in MIGRATIONS, bump
- * SCHEMA_VERSION, and add a fixture plus tests. Never edit an old migration.
+ * Version 3 adds the author's name (info.ownerName) and the date a saved copy
+ * was opened on the family's device (info.familyOpenedAt). The Belongings and
+ * Technology sections join version 3 too: until a release ships version 3,
+ * they extend migrateV2toV3 instead of adding version 4.
+ *
+ * To add a version: write migrateVnToVn+1, register it in MIGRATIONS, bump
+ * SCHEMA_VERSION, and add a fixture plus tests. Never edit a migration a release has shipped.
  */
 import { isPlainObject } from './normalize';
 import { SCHEMA_ID, SCHEMA_VERSION } from './plan';
@@ -71,8 +76,19 @@ export function migrateV1toV2(v1: Obj, actions: string[]): Obj {
   };
 }
 
+/**
+ * Version 2 to 3. New fields start empty; normalizePlan fills them, and new
+ * sections in SECTION_IDS get an empty list the same way, so this step only
+ * moves the version and explains what was added.
+ */
+export function migrateV2toV3(v2: Obj, actions: string[]): Obj {
+  actions.push('Upgraded the plan to version 3. Added a place for your name, used in saved file names, and for the date a saved copy was opened on your family\'s device. Both start empty.');
+  return { ...v2, schemaVersion: 3 };
+}
+
 const MIGRATIONS: Record<number, (raw: Obj, actions: string[]) => Obj> = {
   1: migrateV1toV2,
+  2: migrateV2toV3,
 };
 
 export function migrateToCurrent(detected: { version: number; raw: Obj }): { raw: Obj; actions: string[] } {

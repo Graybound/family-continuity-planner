@@ -37,10 +37,10 @@ export const LEVELS = ['getting-started', 'basic', 'core', 'thorough'] as const;
 export type Level = (typeof LEVELS)[number];
 
 export const LEVEL_LABELS: Record<Level, string> = {
-  'getting-started': 'Getting Started',
-  basic: 'Basic Emergency Plan Ready',
-  core: 'Core Continuity Plan Ready',
-  thorough: 'Thorough Plan Ready',
+  'getting-started': 'Just started',
+  basic: 'Ready for an emergency',
+  core: 'Covers everyday life',
+  thorough: 'Thorough and up to date',
 };
 
 export const LEVEL_DESCRIPTIONS: Record<Level, string> = {
@@ -110,7 +110,7 @@ export function readinessRequirements(plan: Plan, today: string = todayString())
       why: 'Everyday responsibilities are the knowledge families most often lose.',
       met: n('responsibilities') >= 3, target: { view: 'section', section: 'responsibilities' },
     },
-    ...(['people', 'home', 'accounts', 'health'] as const).map((s): Requirement => ({
+    ...(['accounts', 'home', 'people', 'health'] as const).map((s): Requirement => ({
       id: `core-${s}`, level: 'core', label: `Address ${SECTIONS[s].title}`,
       why: 'Add at least one entry, or mark the section as completed or not applicable.',
       met: addressed(s), target: { view: 'section', section: s },
