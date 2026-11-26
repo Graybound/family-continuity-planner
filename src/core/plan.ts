@@ -115,6 +115,8 @@ export const DEFAULT_START_HERE = `This plan was written for you, so you would n
 
 Very little here is urgent. Start with what comes right after this page: what to do first, and who to call. Take the rest one step at a time, when you have the energy.
 
+One thing to protect early: please do not cancel the phone number, email or internet yet. Sign-in codes often go to them. To get into accounts, look under Accounts for the password manager and who can help.
+
 The people listed as trusted contacts were chosen because they can help. Let them. You do not have to do this by yourself.
 
 This plan is guidance, not a legal document. If there is a will or other legal paperwork, it comes first. If something is unclear, ask a trusted contact or a professional.
@@ -137,6 +139,8 @@ If I hurt you, I am sorry. If you are carrying guilt about anything between us, 
 Grieve in whatever way you need, for as long as you need. There is no right way to do it. And when you are ready, keep living. Laugh, make plans, let good things in. That is what I want for you.
 
 Now the practical part. I wrote this plan so you would not have to figure everything out alone. Very little here is urgent. Start with what comes right after this note: what to do first, and who to call. Take the rest one step at a time, when you have the energy.
+
+One thing to protect early: please do not cancel my phone number, email or internet yet. Sign-in codes often go to them. To get into my accounts, look under Accounts for the password manager and who can help.
 
 I chose the people listed as trusted contacts because they can help. Let them. You do not have to do this by yourself.
 

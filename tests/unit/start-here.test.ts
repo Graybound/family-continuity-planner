@@ -18,6 +18,14 @@ describe('default Start Here text', () => {
     }
   });
 
+  it('warns not to cut off the phone, email or internet, and says where account access is', () => {
+    for (const text of [DEFAULT_START_HERE, EXAMPLE_START_HERE_LETTER]) {
+      expect(text).toMatch(/do not cancel (the|my) phone number, email or internet yet/);
+      expect(text).toContain('Sign-in codes often go to them.');
+      expect(text).toContain('look under Accounts for the password manager');
+    }
+  });
+
   it('does not pretend to be the creator speaking', () => {
     // A generic letter shown as the creator's own words rings false; that is what the example is for.
     expect(DEFAULT_START_HERE).not.toMatch(/\bI\b|\bmy\b|\bme\b|I love/);
