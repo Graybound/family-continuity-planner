@@ -43,6 +43,14 @@ Checked locally with `wrangler dev`: all headers arrive, `/_headers` itself retu
 
 Do these once. Labels are as of late 2026 and may drift (UNVERIFIED).
 
+### 0. The existing Pages project
+
+A Cloudflare Pages project named `whenimgone` is already connected to this repo. The Worker replaces it.
+
+1. Until it is deleted: in the Pages project, **Settings**, **Builds**, **Branch control**, set preview deployments to **None**. Every preview is another `*.whenimgone-022.pages.dev` origin holding its own copy of a plan.
+2. If `whenimgone.grayhek.com` is attached to the Pages project as a custom domain, remove it there first. A hostname can belong to only one of them, so the Worker deploy fails otherwise.
+3. Once `node scripts/verify-cloudflare.mjs` passes against the Worker, delete the Pages project. That also takes `whenimgone-022.pages.dev` offline, which is the reason for the switch: Pages always keeps that address, a Worker does not.
+
 ### 1. Connect the repo
 
 1. Cloudflare dashboard, **Workers & Pages**, **Create**, **Import a repository**. Authorize the Cloudflare GitHub app for `Graybound/family-continuity-planner` only.
