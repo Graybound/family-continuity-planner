@@ -74,6 +74,7 @@ describe('round trip', () => {
   });
   it('names files with the local date and time', () => {
     expect(backupFileName(new Date(2026, 0, 5, 9, 7))).toBe('WhenImGone_2026-01-05_0907.json');
+    expect(backupFileName(new Date(2026, 0, 5, 9, 7), undefined, 'Alex Morgan')).toBe('WhenImGone_Alex_Morgan_2026-01-05_0907.json');
   });
   it('records the local save time with its offset', () => {
     const out = JSON.parse(serializeBackup(samplePlan(NOW), '0.0.0', NOW));

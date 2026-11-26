@@ -18,6 +18,7 @@ export function samplePlan(now: Date = new Date()): Plan {
   const today = todayString(now);
   const p = blankPlan(now);
   p.info.planName = 'The Morgan Household (sample)';
+  p.info.ownerName = 'Alex Morgan';
   p.info.region = 'Exampleville';
   p.info.trustedContact = 'Pat Lee, neighbor, 555-0140';
   p.info.isSample = true;

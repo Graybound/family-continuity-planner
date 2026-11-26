@@ -9,6 +9,11 @@ All notable changes are listed here. The project follows [Semantic Versioning](h
 - Accounts now explains how to hand over access without writing down passwords: seven ways, best first (password manager emergency access, a printed emergency kit, keeping the phone working, Apple Legacy Contact, Google Inactive Account Manager, Facebook legacy contact, and what to do about Microsoft accounts), each checked against the company's own help pages.
 - "Practice the handoff once" is on the starter checklist of new plans, and Accounts offers to add it to older plans. Accounts shows when it is done.
 - The entry form warns, while you type, when a field looks like a password, PIN, recovery code, or full card, account, or Social Security number. It never blocks saving.
+- Settings has a "Your name" field. Saved files are then named like `WhenImGone_Alex_Morgan_2026-11-26_1432.html`, so your family can tell whose plan a file is. Accented letters are kept.
+
+### Compatibility
+
+- Plans are now schema version 3. Version 2 backups and saved plans upgrade on their own when opened or restored; nothing is lost. Older versions of the app refuse version 3 backups with a clear message. If an older copy of the app is opened in the same browser after this one, it keeps the newer plan in a recovery copy instead of overwriting it.
 
 ### Changed
 

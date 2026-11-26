@@ -92,9 +92,9 @@ export function serializeBackup(plan: Plan, appVersion: string, now: Date = new 
   return JSON.stringify(out, null, 2);
 }
 
-/** JSON backup file name, e.g. WhenImGone_2026-11-26_1432.json. See savedFileStem. */
-export function backupFileName(now: Date = new Date(), previousSave?: string): string {
-  return `${savedFileStem(now, previousSave)}.json`;
+/** JSON backup file name, e.g. WhenImGone_Alex_Morgan_2026-11-26_1432.json. See savedFileStem. */
+export function backupFileName(now: Date = new Date(), previousSave?: string, ownerName?: string): string {
+  return `${savedFileStem(now, previousSave, ownerName)}.json`;
 }
 
 /**

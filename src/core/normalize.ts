@@ -195,12 +195,14 @@ export function normalizePlan(input: unknown, now: Date = new Date()): Normalize
     schemaVersion: SCHEMA_VERSION,
     info: {
       planName: str(own(meta, 'planName'), LIMITS.shortChars, c, 'plan details'),
+      ownerName: str(own(meta, 'ownerName'), LIMITS.shortChars, c, 'plan details'),
       region: str(own(meta, 'region'), LIMITS.shortChars, c, 'plan details'),
       trustedContact: str(own(meta, 'trustedContact'), LIMITS.shortChars, c, 'plan details'),
       createdAt: isoStr(own(meta, 'createdAt'), base.info.createdAt),
       updatedAt: isoStr(own(meta, 'updatedAt'), base.info.updatedAt),
       lastReviewedAt: dateStr(own(meta, 'lastReviewedAt'), c, 'plan details'),
       lastExportedAt: isoStr(own(meta, 'lastExportedAt'), ''),
+      familyOpenedAt: dateStr(own(meta, 'familyOpenedAt'), c, 'plan details'),
       isSample: bool(own(meta, 'isSample')),
     },
     preferences: {

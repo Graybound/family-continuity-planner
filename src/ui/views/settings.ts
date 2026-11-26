@@ -28,6 +28,7 @@ export function settingsView(): HTMLElement {
   const details = h('form', { attrs: { 'aria-labelledby': 'details-h' } },
     h('div', { class: 'form-grid' },
       input('plan-name', 'Plan name', plan.info.planName, 'Shown on the overview and the printed cover page.'),
+      input('plan-owner', 'Your name', plan.info.ownerName, 'Used in the names of saved files, so your family can tell whose plan a file is.'),
       input('plan-region', 'Home city or region', plan.info.region),
       h('div', { class: 'full' }, input('plan-trusted', 'First person to contact', plan.info.trustedContact, 'Name and phone number of the person a reader should call first.')),
     ),
@@ -38,6 +39,7 @@ export function settingsView(): HTMLElement {
     const val = (id: string) => (details.querySelector<HTMLInputElement>(`#${id}`)?.value ?? '').trim();
     mutate((p) => {
       p.info.planName = val('plan-name');
+      p.info.ownerName = val('plan-owner');
       p.info.region = val('plan-region');
       p.info.trustedContact = val('plan-trusted');
     }, { message: 'Details saved' });

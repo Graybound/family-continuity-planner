@@ -40,13 +40,14 @@ function markExported(now: Date): string {
 
 /**
  * Export backup: the whole app as one HTML file with this plan inside, named
- * like WhenImGone_2026-11-26_1432.html. It opens offline on its own and can be
- * restored like a JSON backup. See docs/specs/self-contained-plan-file.md.
+ * like WhenImGone_Alex_Morgan_2026-11-26_1432.html (no name part when Your
+ * name is empty). It opens offline on its own and can be restored like a JSON
+ * backup. See docs/specs/self-contained-plan-file.md.
  */
 export function exportBackup(): void {
   const now = new Date();
   const previous = markExported(now);
-  const name = `${savedFileStem(now, previous)}.html`;
+  const name = `${savedFileStem(now, previous, getPlan().info.ownerName)}.html`;
   download(name, buildSavedFile(serializeBackup(getPlan(), __APP_VERSION__, now)), 'text/html');
   noteSavedAs(name);
   toast(`Saved ${name}. It holds the app and your whole plan, and opens offline: double-click it. Keep it somewhere private.`);
@@ -56,7 +57,7 @@ export function exportBackup(): void {
 export function exportJsonBackup(): void {
   const now = new Date();
   const previous = markExported(now);
-  download(backupFileName(now, previous), serializeBackup(getPlan(), __APP_VERSION__, now));
+  download(backupFileName(now, previous, getPlan().info.ownerName), serializeBackup(getPlan(), __APP_VERSION__, now));
   toast('Plan data downloaded as a .json file. Store it somewhere private.');
 }
 

@@ -9,7 +9,7 @@ import { newId } from './ids';
 import { practiceHandoffItem } from './handoff';
 
 export const SCHEMA_ID = 'family-continuity-planner';
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 3;
 
 export type RecordItem = { id: string } & Record<string, string>;
 
@@ -70,6 +70,8 @@ export interface Plan {
    */
   info: {
     planName: string;
+    /** The plan author's name, for saved file names and "{name}'s plan". Empty until entered. Added in schema 3. */
+    ownerName: string;
     region: string;
     trustedContact: string;
     createdAt: string;
@@ -78,6 +80,8 @@ export interface Plan {
     lastReviewedAt: string;
     /** ISO time of the last successful backup export. */
     lastExportedAt: string;
+    /** YYYY-MM-DD a saved copy was last opened on the family's own device, as recorded by the author. Added in schema 3. */
+    familyOpenedAt: string;
     /** True when the plan is the built-in fictional sample. */
     isSample: boolean;
   };
@@ -170,7 +174,7 @@ export function blankPlan(now: Date = new Date()): Plan {
   return {
     schema: SCHEMA_ID,
     schemaVersion: SCHEMA_VERSION,
-    info: { planName: '', region: '', trustedContact: '', createdAt: iso, updatedAt: iso, lastReviewedAt: '', lastExportedAt: '', isSample: false },
+    info: { planName: '', ownerName: '', region: '', trustedContact: '', createdAt: iso, updatedAt: iso, lastReviewedAt: '', lastExportedAt: '', familyOpenedAt: '', isSample: false },
     preferences: { privacyDefault: false, includePrivateInPrint: false },
     startHere: { mode: 'default', customText: '' },
     messages: [],

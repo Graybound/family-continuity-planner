@@ -7,12 +7,23 @@ Backups are UTF-8 JSON, readable in any text editor, so a family can recover inf
 
 Names use the local date and time of the save. A second save in the same minute adds seconds: `WhenImGone_2026-11-26_1432_05`.
 
-## Version 2 (current)
+## Version 3 (current)
+
+Version 3 is version 2 plus two fields in `info`:
+
+- `ownerName`: whose plan this is, for example "Noah Grayhek". Optional, up to 500 characters. Used in saved file names so a family can tell whose plan a file is.
+- `familyOpenedAt`: the date (`YYYY-MM-DD`) someone confirmed a saved copy opened on the family's own phone or computer. Empty until then.
+
+Version 2 files are upgraded on restore: both fields start empty and the restore preview says so. Before a release ships version 3, the Belongings and Technology sections are added to this same upgrade, so there is one version bump, not three.
+
+Older app versions refuse version 3 files with "made by a newer version" and leave their current plan untouched.
+
+## Version 2
 
 ```json
 {
   "schema": "family-continuity-planner",
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "info": {
     "planName": "The Morgan Household (sample)",
     "region": "Exampleville",
@@ -21,7 +32,9 @@ Names use the local date and time of the save. A second save in the same minute 
     "updatedAt": "2026-11-01T12:00:00.000Z",
     "lastReviewedAt": "2026-11-01",
     "lastExportedAt": "2026-11-01T12:00:00.000Z",
-    "isSample": true
+    "isSample": true,
+    "ownerName": "Alex Morgan",
+    "familyOpenedAt": ""
   },
   "preferences": { "privacyDefault": false, "includePrivateInPrint": false },
   "startHere": { "mode": "default", "customText": "" },
