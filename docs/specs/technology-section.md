@@ -126,7 +126,7 @@ A non-developer can check each of these in the built app.
 4. Records appear ordered First day, then First week, First month, First year, No rush, then anything without a choice. The same order appears in the printed packet.
 5. In the printed packet, Technology appears after Home and utilities. "Where it is" and "Where the login is stored" say "Withheld from this printout (private)" unless private details are included.
 6. Privacy mode hides "Where it is" and "Where the login is stored" on screen, and search does not find text that is only in those fields.
-7. Typing `password: hunter2` in any Technology field produces the "may contain a password" finding in the continuity review.
+7. Typing the word "password", a colon, and any made-up value into any Technology field produces the "may contain a password" finding in the continuity review.
 8. A self-hosted service with no "What should happen to it later" produces one finding titled "Technology: 1 item has no plan for later" (and "2 items have" when there are two).
 9. Answering "mostly me" for Technology and devices in the guided start recommends the Technology section, and the "how it works is not written down" finding goes away once a Technology record exists.
 10. A backup made before this change restores with the preview line "Added the new Technology section. It starts empty." and no data lost. A backup made after this change is refused by release 0.2.0 with the "newer version" message.
