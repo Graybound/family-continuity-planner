@@ -1,5 +1,6 @@
 import type { Target } from '../../core/readiness';
 import { h, type Child } from '../dom';
+import { SECTIONS } from '../../core/sections';
 import { openRecordDialog } from '../dialogs';
 import { go } from '../store';
 
@@ -25,6 +26,20 @@ export function willNotice(): HTMLElement {
     h('strong', { attrs: { id: 'will-notice-h' } }, WILL_NOTICE.title),
     h('p', null, WILL_NOTICE.body),
   );
+}
+
+const VIEW_NAMES: Record<Exclude<Target['view'], 'section'>, string> = {
+  settings: 'Settings',
+  checklist: 'Checklist',
+  'start-here': 'Start Here',
+  'get-started': 'Get started',
+  review: 'Suggestions',
+};
+
+/** Button text that says where a target leads, instead of a bare "Go". */
+export function targetLabel(t: Target): string {
+  if (t.view === 'section') return t.prefill ? `Add to ${SECTIONS[t.section].title}` : `Open ${SECTIONS[t.section].title}`;
+  return `Open ${VIEW_NAMES[t.view]}`;
 }
 
 export function goTarget(t: Target): void {

@@ -8,9 +8,23 @@ All notable changes are listed here. The project follows [Semantic Versioning](h
 
 - The online version moved to https://whenimgone.grayhek.com/, served by Cloudflare. The GitHub Pages copy is retired. Plans saved in the old online copy do not move over on their own: open the old copy, export a backup, and restore it in the new one.
 - The online-version notice now says your plan "is never sent anywhere" instead of naming GitHub.
+- On phones, the top bar shows short words (Menu, Privacy, Backup, Print) instead of bare symbols, and search fits on one line
+- While privacy mode is on, a banner says so on every screen, with a "Show hidden details" button
+- Overview buttons say where they lead ("Open Trusted contacts") instead of "Go"
+- Section pages show entries first; the filter appears only once a section has more than five entries, and Section status moves to the end of the page
+- Larger help text and record labels; record labels are no longer all caps
+- Checklist Edit and Delete sit under the task on phones
+- The "This is not a will" notice on the overview sits below the next steps
 
 ### Fixed
 
+- Long text could be cut short after a reload; fields now stop at the length a reload keeps
+- Escape, Close, or Cancel in a form with typed changes now asks before discarding them
+- Privacy mode no longer shows private fields in the edit dialog until "Show private details" is pressed; saving keeps them
+- A restore too big for browser storage no longer looks like it worked; the current plan stays and the dialog says why
+- Exporting while storage is full no longer shows a contradictory "export a backup" error
+- Ctrl+K is ignored while another dialog is open
+- The damaged-data message no longer claims a copy was kept when there was no room for one, and "Download damaged data" also downloads the unreadable data left in place
 - When browser storage was completely full, the app showed an empty plan and said it could not save, even though the plan was still there. Exporting at that point produced an empty backup. The saved plan now loads; only new changes fail to save, with a clear message.
 - Saved data that could not be read could be overwritten by the next change if there was no room to keep a recovery copy. The app now refuses to save over it.
 - A backup containing a section this version does not know (for example from a newer copy of the app) lost that section without a word. The restore preview now names the section and how many entries were not loaded.
