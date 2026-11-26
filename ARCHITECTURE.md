@@ -44,6 +44,7 @@ src/
     dom.ts              h() builder, focus capture and restore
     dialogs.ts          modal helper, confirm, record, checklist, message forms
     backupFlow.ts       export, restore preview, sample data, erase
+    readableCopy.ts     the readable copy inside a saved plan file
     print.ts            printed packet builder
     printDialog.ts, searchDialog.ts, theme.ts, toast.ts
     views/              one file per screen
@@ -82,7 +83,9 @@ See [PRIVACY.md](PRIVACY.md) for the user-facing summary. Keys:
 
 **Export backup** writes the app's own page with the plan inside, as one HTML file (`WhenImGone_<Name>_YYYY-MM-DD_HHMM.html`, or without the name when `info.ownerName` is empty). The app cannot read its own file (the CSP forbids every request), so `main.ts` calls `captureTemplate()` before anything renders and keeps a detached copy of the page. At export, `buildSavedFile()` copies it, removes any previous plan block, adds the backup JSON in `<script type="application/json" id="when-im-gone-plan">` with `<`, `>`, `&`, U+2028 and U+2029 escaped, and serializes it. That read of `outerHTML` is the one place app code uses it; it never assigns. No module may change the DOM when imported, or the change would land in every saved file (an e2e test checks).
 
-A saved file always opens on the plan inside it. Its edits go to `familyContinuityPlanner.draft.<address>`, never the main plan key, so opening a file cannot overwrite another plan in the same browser (Chromium shares one storage area across every file opened from disk). Unsaved edits are offered back by a banner, never applied by themselves. Spec: [docs/specs/self-contained-plan-file.md](docs/specs/self-contained-plan-file.md).
+A saved file always opens on the plan inside it. Its edits go to `familyContinuityPlanner.draft.<address>`, never the main plan key, so opening a file cannot overwrite another plan in the same browser (Chromium shares one storage area across every file opened from disk). Unsaved edits are offered back by a banner, never applied by themselves.
+
+The saved file also carries `#static-plan`, the whole plan as plain HTML (`readableCopy.ts`, reusing the print packet builder) with opening instructions, for previews that run no scripts. The theme script adds a `js` class to `<html>` before first paint, the stylesheet hides `.js .static-plan`, and `start()` removes it. It has no `style` attributes, because the CSP blocks them even with scripts off. Spec: [docs/specs/self-contained-plan-file.md](docs/specs/self-contained-plan-file.md).
 
 ## Data schema (version 3)
 

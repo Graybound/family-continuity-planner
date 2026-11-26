@@ -6,6 +6,8 @@ All notable changes are listed here. The project follows [Semantic Versioning](h
 
 ### Added
 
+- A saved plan file now carries a readable copy of the whole plan, with steps for opening it on a computer, iPhone, or Android phone. Places that show the file without running it (an iPhone preview, a mail app) show this instead of a blank page. Phone numbers and email addresses in it are tappable.
+- Opening a saved plan file shows whose plan it is and when it was saved, for example "Alex Morgan's plan, saved Thursday, November 26, 2026 at 2:32 PM", in the time the person who saved it saw.
 - Accounts now explains how to hand over access without writing down passwords: seven ways, best first (password manager emergency access, a printed emergency kit, keeping the phone working, Apple Legacy Contact, Google Inactive Account Manager, Facebook legacy contact, and what to do about Microsoft accounts), each checked against the company's own help pages.
 - "Practice the handoff once" is on the starter checklist of new plans, and Accounts offers to add it to older plans. Accounts shows when it is done.
 - The entry form warns, while you type, when a field looks like a password, PIN, recovery code, or full card, account, or Social Security number. It never blocks saving.

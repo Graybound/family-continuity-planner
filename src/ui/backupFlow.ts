@@ -4,8 +4,8 @@
  * confirmation before anything is replaced.
  */
 import { backupFileName, parseBackup, parseBackupFile, safeJsonParse, serializeBackup, type BackupPreview } from '../core/backup';
-import { formatIsoDateTime, formatIsoTime } from '../core/dates';
-import { decideDraft, draftKey, HTML_FILE_LIMIT_BYTES, readDraftMeta, savedFileStem, type DraftMeta } from '../core/embedded';
+import { formatIsoDateTime, formatIsoTime, formatSavedTime } from '../core/dates';
+import { decideDraft, draftKey, HTML_FILE_LIMIT_BYTES, localIsoWithOffset, NEWEST_COPY_LINE, readDraftMeta, savedFileStem, savedHeadline, type DraftMeta } from '../core/embedded';
 import { LIMITS } from '../core/normalize';
 import { blankPlan, isEffectivelyEmpty, type Plan } from '../core/plan';
 import { samplePlan } from '../core/sample';
@@ -13,6 +13,7 @@ import { SECTION_IDS } from '../core/sections';
 import { getStorage, KEYS, recoveryKeys } from '../core/storage';
 import { domId, h } from './dom';
 import { confirmDialog, openModal } from './dialogs';
+import { buildReadableCopy } from './readableCopy';
 import { buildSavedFile } from './selfCopy';
 import { addBanner, discardDraft, eraseAllLocalData, getPlan, getStorageRef, initFromFile, mutate, noteSavedAs, removeBanner, render, replacePlan } from './store';
 import { toast } from './toast';
@@ -47,8 +48,11 @@ function markExported(now: Date): string {
 export function exportBackup(): void {
   const now = new Date();
   const previous = markExported(now);
-  const name = `${savedFileStem(now, previous, getPlan().info.ownerName)}.html`;
-  download(name, buildSavedFile(serializeBackup(getPlan(), __APP_VERSION__, now)), 'text/html');
+  const plan = getPlan();
+  const name = `${savedFileStem(now, previous, plan.info.ownerName)}.html`;
+  const savedAt = localIsoWithOffset(now);
+  const title = savedHeadline(plan.info.ownerName, formatSavedTime(savedAt)).replace(/\.$/, '') || `${plan.info.planName || 'Family plan'}, saved`;
+  download(name, buildSavedFile(serializeBackup(plan, __APP_VERSION__, now), buildReadableCopy(plan, savedAt), title), 'text/html');
   noteSavedAs(name);
   toast(`Saved ${name}. It holds the app and your whole plan, and opens offline: double-click it. Keep it somewhere private.`);
 }
@@ -170,6 +174,9 @@ export function startSavedFile(onRender: () => void, file: { plan: Plan; preview
   const which = decideDraft(draft && { meta: draft.meta, updatedAt: draft.plan.info.updatedAt }, { savedOn, updatedAt: file.plan.info.updatedAt });
   const keepMeta = draft && (which === 'unsaved' || which === 'saved-elsewhere');
   const { storageAvailable } = initFromFile(onRender, file.plan, key, keepMeta ? draft!.meta : { draftOf: savedOn });
+  // Which copy this is: stays for the whole visit, so a reader with several copies can always check.
+  const headline = savedHeadline(file.plan.info.ownerName, formatSavedTime(savedOn));
+  if (headline) addBanner({ id: 'saved-at', tone: 'info', text: `${headline} ${NEWEST_COPY_LINE}`, actions: [], dismissible: false });
   if (!storageAvailable) {
     addBanner({ id: 'nostorage', tone: 'warn', text: 'This browser is not letting the planner keep changes (private browsing or strict settings can cause this). You can read the plan. If you change anything, use Export backup before closing, or the changes will be lost.', actions: [{ label: 'Export backup', run: exportBackup }], dismissible: false });
     return;

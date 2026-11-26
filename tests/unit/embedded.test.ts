@@ -2,9 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { parseBackup, parseBackupFile, serializeBackup } from '../../src/core/backup';
 import {
-  EMBED_ID, decideDraft, draftKey, escapeJsonForHtml, readDraftMeta, extractEmbeddedBackup, fileNamePart, localIsoWithOffset, savedFileStem,
+  EMBED_ID, decideDraft, draftKey, escapeJsonForHtml, readDraftMeta, extractEmbeddedBackup, fileNamePart, localIsoWithOffset, savedFileStem, savedHeadline,
 } from '../../src/core/embedded';
 import { samplePlan } from '../../src/core/sample';
+import { formatSavedTime } from '../../src/core/dates';
 
 const NOW = new Date('2026-11-26T20:32:05Z');
 const HOSTILE = 'x</script><script>window.PWNED=1</script><!-- <script> \u2028\u2029 & é 😀 </SCRIPT >';
@@ -157,5 +158,22 @@ describe('drafts', () => {
     expect(readDraftMeta(null)).toBeNull();
     expect(readDraftMeta({ draftOf: 5 })).toBeNull();
     expect(readDraftMeta({ draftOf: 'x', savedAs: 3 })).toEqual({ draftOf: 'x', savedAs: undefined, savedAsUpdatedAt: undefined });
+  });
+});
+
+describe('saved time and headline', () => {
+  it('shows the time the saver saw, whatever the reader\'s time zone', () => {
+    expect(formatSavedTime('2026-11-26T14:32:05-06:00', 'en-US')).toBe('Thursday, November 26, 2026 at 2:32 PM');
+    expect(formatSavedTime('2026-11-26T14:32:05+09:00', 'en-US')).toBe('Thursday, November 26, 2026 at 2:32 PM');
+  });
+  it('falls back to the reader\'s time for UTC times, and to nothing for junk', () => {
+    expect(formatSavedTime('2026-11-26T20:32:05.000Z', 'en-US')).toMatch(/2026/);
+    expect(formatSavedTime('not a time')).toBe('');
+    expect(formatSavedTime('')).toBe('');
+  });
+  it('names whose plan it is when there is a name', () => {
+    expect(savedHeadline('Alex Morgan', 'Thursday, November 26, 2026 at 2:32 PM')).toBe("Alex Morgan's plan, saved Thursday, November 26, 2026 at 2:32 PM.");
+    expect(savedHeadline('  ', 'Thursday, November 26, 2026 at 2:32 PM')).toBe('This plan was saved Thursday, November 26, 2026 at 2:32 PM.');
+    expect(savedHeadline('', '')).toBe('');
   });
 });
