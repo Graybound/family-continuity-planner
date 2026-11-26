@@ -41,7 +41,9 @@ Keep the printout. It is the fallback when no computer works. The reader view ad
 
    Desktop: a left column replacing the current navigation. Phone width: a "Contents" button at the top that opens the same list. The current part is marked.
 3. **One part per page.** Each part has a heading, its records as plain cards (same field labels as print), and at the bottom a "Next: {part}" button and a smaller "Back to Start Here" link. Start Here's "Next" goes to "Do this first", or the next non-empty part.
-4. **Personal messages.** Each message is listed by title and "For: {audience}". The body opens only when she picks one. A message is never shown on the first screen.
+4. **Personal messages.** Each message is listed by title and "For: {audience}", and its body opens when she picks it. The reason is that messages are addressed to different people (a partner, a child, an executor), so each reader should find their own. It is not to shield anyone from sad content: a message is shown in full, never shortened, summarized or hidden behind a warning. Start Here, the first screen, is itself the creator's last message to the family (see the Start Here rewrite) and is shown in full.
+
+   Tone: it is fine for this view to be sad. Do not soften, cut or hide what the creator wrote because it is emotional. The calm comes from layout and clear next steps, not from removing feeling.
 5. **Top bar.** Search, Light/Dark, Print, and a "Show private details" / "Hide private details" button. Nothing else.
 6. **Phone numbers and email addresses** are links (`tel:`, `mailto:`), so a tap on a phone calls. UNVERIFIED: that the strict CSP allows navigating to `tel:` and `mailto:` from a `file://` page in Chromium, Firefox and WebKit. The build agent must check this in the e2e run before relying on it.
 7. **Footer.** "Switch to editing" as a plain small link. No confirmation dialog: this is not a security boundary, and pretending it is would mislead the creator.
