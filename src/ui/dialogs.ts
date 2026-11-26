@@ -220,7 +220,7 @@ export function openChecklistDialog(item: ChecklistItem | null, defaultGroup: st
   );
   const cancel = h('button', { class: 'btn', attrs: { type: 'button' } }, 'Cancel');
   const save = h('button', { class: 'btn primary', attrs: { type: 'submit' } }, item ? 'Save' : 'Add item');
-  const m = openModal({ title: item ? 'Edit checklist item' : 'Add checklist item', description: 'Keep the next action concrete and assignable.', body, footer: [cancel, save], initialFocus: title, confirmDiscard: true, cancelButtons: [cancel], onSubmit: (form) => {
+  const m = openModal({ title: item ? 'Edit checklist item' : 'Add checklist item', description: 'One small, specific thing to do, such as "Tell Sam where the spare key is".', body, footer: [cancel, save], initialFocus: title, confirmDiscard: true, cancelButtons: [cancel], onSubmit: (form) => {
     const fd = new FormData(form);
     const next: ChecklistItem = {
       id: item?.id ?? newId(),

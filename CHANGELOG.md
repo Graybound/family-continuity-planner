@@ -12,7 +12,15 @@ All notable changes are listed here. The project follows [Semantic Versioning](h
 - Section pages show entries first; the filter appears only once a section has more than five entries, and Section status moves to the end of the page
 - Larger help text and record labels; record labels are no longer all caps
 - Checklist Edit and Delete sit under the task on phones
-- The "This is not a will" notice on the overview sits below the next steps
+- The overview has one button: the next step. "Take the continuity assessment" is now a quiet "Answer a few planning questions" link, and Export backup stays in the top bar
+- The sidebar lists sections in the order the next step asks for them: Trusted contacts, Emergency plans, Documents, Who handles what, Accounts, Home and utilities, People, Health, Notes
+- "Get started" is now "Planning questions" and sits with the creator tools, away from "Start Here"; "Continuity review" is now "Suggestions"
+- Readiness levels have plain names: Just started, Ready for an emergency, Covers everyday life, Thorough and up to date
+- The overview no longer asks for a trusted contact (or a backup) twice: a suggestion is hidden while the same thing is already a next step
+- "This is not a will" is no longer repeated on the overview; it stays in the planning questions, the Documents callout and print
+- "Your plan at a glance" appears once the plan has something in it
+- Planning questions: each area has a line of examples, the step "Who handles what" is now "Who does what today" so it no longer shares a name with a section, and buttons name the page they open
+- Suggestions page buttons name where they lead instead of "Go there"
 
 ### Fixed
 

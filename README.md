@@ -31,8 +31,8 @@ Anyone who wants to make things easier for the people they would leave behind: s
 - **Guided start.** A short, optional assessment finds where your family depends on you most and recommends a manageable place to begin, grouped into Priority, Helpful, and Optional.
 - **Life-area sections.** People, trusted contacts, health, home and utilities, accounts (as a locator, never passwords), documents, emergency plans, and notes.
 - **Start Here.** A calm introduction your family reads first, with a default you can keep, edit, or replace, plus optional personal messages for specific people.
-- **Readiness levels instead of a misleading percentage.** Getting Started, Basic Emergency Plan Ready, Core Continuity Plan Ready, Thorough Plan Ready. Each level lists exactly what it needs.
-- **Continuity review.** Plain, explainable suggestions about likely gaps ("You said taxes are mostly handled by you, but nothing describes how"), each with a reason, a link, and options to dismiss or snooze.
+- **Readiness levels instead of a misleading percentage.** Just started, Ready for an emergency, Covers everyday life, Thorough and up to date. Each level lists exactly what it needs.
+- **Suggestions.** Plain, explainable suggestions about likely gaps ("You said taxes are mostly handled by you, but nothing describes how"), each with a reason, a link, and options to dismiss or snooze.
 - **Checklist** for first-24-hours actions, information to gather, people to brief, and quarterly upkeep.
 - **Printed packet** on US Letter paper: cover page, Start Here, immediate actions, trusted contacts, then each section. Private details are withheld unless you choose to include them.
 - **Backup and restore** to a documented JSON file, with a preview and confirmation before anything is replaced. Backups from the original version of the app still restore.
@@ -62,7 +62,7 @@ Want to try it first? Open the [online version](https://graybound.github.io/fami
 2. Extract it somewhere you will remember: your Documents folder, a USB drive, or a private network drive.
 3. Double-click `Family-Continuity-Planner.html`. It opens in your browser.
 4. Optional: go to **Settings and backup**, then **Load sample data**, to look around with a fictional family. Click **Remove sample data** when you are done.
-5. Start with **Get started**, or go straight to **Who handles what** and write down one thing only you know how to do.
+5. Press the **Next** button on the overview. It starts with a trusted contact and walks down the sidebar from there. If you are not sure where to begin, answer the optional **Planning questions** first.
 6. Click **Export backup** when you finish a session.
 
 You do not need Git, Node.js, or any technical tools. A single `Family-Continuity-Planner-vX.Y.Z.html` file is also attached to each release if you prefer one file without the zip.
