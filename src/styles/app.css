@@ -159,6 +159,9 @@ h2.section-h { font: 24px var(--font-display); margin: 30px 0 12px; }
 .field textarea { min-height: 96px; resize: vertical; }
 .field input:focus-visible, .field select:focus-visible, .field textarea:focus-visible { outline: 3px solid var(--signal); outline-offset: 1px; }
 .help { color: var(--muted); font-size: 14px; }
+.example-letter { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 12px; }
+.example-letter summary { cursor: pointer; font-weight: 600; }
+.example-letter p { margin: 0.6em 0; }
 .req-star { color: var(--signal-text); }
 .check-row { display: flex; gap: 10px; align-items: flex-start; padding: 10px 0; }
 .check-row input { width: 20px; height: 20px; margin-top: 2px; accent-color: var(--sage); flex: 0 0 auto; }
@@ -269,3 +272,10 @@ dialog::backdrop { background: var(--overlay); }
 @media (prefers-reduced-motion: reduce) {
   * { scroll-behavior: auto !important; transition: none !important; animation: none !important; }
 }
+.field-warning:not(:empty) { display: block; margin-top: 4px; padding: 6px 10px; border-left: 4px solid var(--signal); background: var(--pale-orange); color: var(--callout-text); font-size: 13px; border-radius: 0 8px 8px 0; }
+.handoff-guide { margin: 0 0 18px; }
+.handoff-guide h2 { margin-top: 0; }
+.handoff-guide h3 { margin: 18px 0 4px; }
+.handoff-methods li { margin-bottom: 12px; }
+.handoff-methods p { margin: 2px 0; }
+.handoff-label { font-weight: 600; }

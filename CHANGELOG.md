@@ -6,6 +6,9 @@ All notable changes are listed here. The project follows [Semantic Versioning](h
 
 ### Added
 
+- Accounts now explains how to hand over access without writing down passwords: seven ways, best first (password manager emergency access, a printed emergency kit, keeping the phone working, Apple Legacy Contact, Google Inactive Account Manager, Facebook legacy contact, and what to do about Microsoft accounts), each checked against the company's own help pages.
+- "Practice the handoff once" is on the starter checklist of new plans, and Accounts offers to add it to older plans. Accounts shows when it is done.
+- The entry form warns, while you type, when a field looks like a password, PIN, recovery code, or full card, account, or Social Security number. It never blocks saving.
 - Settings has a "Your name" field. Saved files are then named like `WhenImGone_Alex_Morgan_2026-11-26_1432.html`, so your family can tell whose plan a file is. Accented letters are kept.
 
 ### Compatibility
@@ -34,6 +37,10 @@ All notable changes are listed here. The project follows [Semantic Versioning](h
 - "Your plan at a glance" appears once the plan has something in it
 - Planning questions: each area has a line of examples, the step "Who handles what" is now "Who does what today" so it no longer shares a name with a section, and buttons name the page they open
 - Suggestions page buttons name where they lead instead of "Go there"
+- The possible-secret suggestion now also catches "The PIN is 4821" style text, recovery codes, labelled account numbers, and Social Security numbers, and says which kind it found.
+- Encrypted backups are off the roadmap. A forgotten passphrase would lock out the family, and the plan holds no secrets.
+- Start Here: the default note is shorter and plainer about why the family is reading it. The editor now encourages you to open with a last message in your own words, suggests what to say, and offers an example message for ideas (the example is never saved in your plan).
+- Writing guidance: sad is allowed. "No morbid language" is now "no gratuitous or graphic language" (PROJECT_SPEC.md principle 3, CONTRIBUTING.md).
 
 ### Fixed
 
