@@ -105,17 +105,32 @@ export interface Plan {
   activity: { id: string; text: string; at: string }[];
 }
 
-export const DEFAULT_START_HERE = `If you are reading this, something has changed and you may be carrying a lot right now. This plan was written to make the next days and weeks a little easier.
+/**
+ * The default Start Here note. It reads first as a last message to the family, then gives the
+ * practical first steps. It is written to be replaced: the Start Here editor nudges the creator to
+ * make it their own. Point to parts of the plan by what they are ("what to do first", "who to
+ * call", "trusted contacts"), not by a page name, because print, reader view and navigation label
+ * them differently.
+ */
+export const DEFAULT_START_HERE = `To the people I love,
 
-It collects the practical things that usually live in one person's head: who to call, how the household runs, where important papers are kept, and what can wait.
+If you are reading this, I have died, or I can no longer be here to help. I am so sorry to leave you with this. I know it is hard, and I wish I could be with you for it.
 
-You do not need to handle everything at once. Very little here is urgent. Start with the "Immediate actions" section, then take the rest one step at a time.
+Before anything practical: I love you. Thank you for the life we shared, for your patience with me, and for all the ordinary days. They were the best part.
 
-The people and professionals listed under "Trusted contacts" were chosen because they can help. It is fine to lean on them.
+If I hurt you, I am sorry. If you are carrying guilt about anything between us, please set it down. I let it go long ago, and I hope you can forgive me too.
 
-This plan is guidance, not a legal document. A will, trust, or other legal papers take priority over anything written here. If something is unclear, ask one of the trusted contacts or a qualified professional.
+Grieve in whatever way you need, for as long as you need. There is no right way to do it. And when you are ready, keep living. Laugh, make plans, let good things in. That is what I want for you.
 
-Focus on the next necessary step. That is enough.`;
+Now the practical part. I wrote this plan so you would not have to figure everything out alone. Very little here is urgent. Start with what comes right after this note: what to do first, and who to call. Take the rest one step at a time, when you have the energy.
+
+I chose the people listed as trusted contacts because they can help. Let them. You do not have to do this by yourself.
+
+This plan is guidance, not a legal document. If there is a will or other legal paperwork, it comes first. If something is unclear, ask a trusted contact or a professional.
+
+You only need to do the next thing.
+
+With all my love.`;
 
 export function starterChecklist(): ChecklistItem[] {
   return [

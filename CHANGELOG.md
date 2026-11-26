@@ -2,6 +2,13 @@
 
 All notable changes are listed here. The project follows [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed
+
+- The default Start Here note now reads first as a last message to the people you love, followed by where to start. The Start Here editor suggests what to say to make it your own.
+- Writing guidance: sad is allowed. "No morbid language" is now "no gratuitous or graphic language" (PROJECT_SPEC.md principle 3, CONTRIBUTING.md).
+
 ## [0.2.0] - 2026-11-07
 
 The first open-source release. The original single-file app was recovered, audited, and rebuilt as a maintainable repository.

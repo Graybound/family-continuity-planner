@@ -183,8 +183,14 @@ test('section status can be set to Does not apply', async ({ app }) => {
 
 test('start here: default text, custom text, and personal messages', async ({ app }) => {
   await nav(app, 'Start Here');
-  await expect(app.getByText('You do not need to handle everything at once.')).toBeVisible();
+  await expect(app.locator('.start-text').getByText('To the people I love,')).toBeVisible();
+  await expect(app.locator('.start-text').getByText('Very little here is urgent.')).toBeVisible();
+  // The creator is nudged to make the default note their own.
+  await expect(app.getByText('It will mean much more to them in your own words.')).toBeVisible();
   await app.getByLabel('Write or edit my own introduction').check();
+  await expect(app.getByLabel('Your introduction')).toHaveValue(/^To the people I love,/);
+  await expect(app.getByText('One memory you hold onto, in a sentence or two.')).toBeVisible();
+  await expect(app.getByText('It will mean much more to them in your own words.')).toHaveCount(0);
   await app.getByLabel('Your introduction').fill('Dear family,\n\nCall Pat first.');
   await app.getByRole('button', { name: 'Save introduction' }).click();
   await expect(app.locator('.start-text').getByText('Call Pat first.')).toBeVisible();

@@ -7,7 +7,7 @@ import { button, viewHead } from './common';
 export function startHereView(): HTMLElement {
   const plan = getPlan();
   const custom = plan.startHere.mode === 'custom';
-  const ta = h('textarea', { attrs: { id: 'start-here-text', rows: 14, 'data-focus-key': 'start-text' }, props: { value: custom ? plan.startHere.customText : DEFAULT_START_HERE } });
+  const ta = h('textarea', { attrs: { id: 'start-here-text', rows: 14, 'data-focus-key': 'start-text', 'aria-describedby': 'start-here-prompts' }, props: { value: custom ? plan.startHere.customText : DEFAULT_START_HERE } });
 
   const radios = (['default', 'custom'] as const).map((mode) => {
     const id = `start-mode-${mode}`;
@@ -24,15 +24,27 @@ export function startHereView(): HTMLElement {
     viewHead({
       eyebrow: 'For the people reading your plan',
       title: 'Start Here',
-      description: 'The first page your family sees, before any accounts or checklists. It should reassure them and point to the next step.',
+      description: 'The first page your family sees, before any accounts or checklists. It is your last message to them, followed by where to start.',
     }),
     h('div', { class: 'grid two' },
       h('section', { class: 'card card-pad', attrs: { 'aria-labelledby': 'intro-h' } },
         h('h2', { attrs: { id: 'intro-h' }, style: { 'margin-top': '0' } }, 'Introduction'),
         h('fieldset', null, h('legend', null, 'Which introduction should the plan use?'), radios),
+        custom ? null : h('p', { class: 'help', attrs: { id: 'start-here-nudge' } },
+          'The default note is warm, but it is general. It will mean much more to them in your own words. Choose "Write or edit my own introduction" to start from it.'),
         custom ? [
           h('div', { class: 'field full' }, h('label', { attrs: { for: 'start-here-text' } }, 'Your introduction'), ta,
-            h('span', { class: 'help' }, 'Leave a blank line between paragraphs. If you clear this completely, the default introduction is used.')),
+            h('div', { class: 'help', attrs: { id: 'start-here-prompts' } },
+              h('p', null, 'Make it yours. Plain words and one real detail matter more than getting it perfect. Some things to say:'),
+              h('ul', null,
+                h('li', null, 'Who you are writing to, by name.'),
+                h('li', null, 'One memory you hold onto, in a sentence or two.'),
+                h('li', null, 'What you are grateful for.'),
+                h('li', null, 'Anything you are sorry for, or have forgiven.'),
+                h('li', null, 'That it is OK to grieve, and OK to keep living.'),
+              ),
+              h('p', null, 'Keep the practical part at the end so they know where to start. Leave a blank line between paragraphs. If you clear this completely, the default note is used.'),
+            )),
           h('div', { class: 'btn-row', style: { 'margin-top': '12px' } },
             button('Save introduction', () => mutate((p) => {
               p.startHere.customText = ta.value;
