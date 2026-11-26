@@ -23,7 +23,8 @@ Recommended answers first. Each is argued in the section named.
 2. **Save always makes a new, uniquely named file** (`WhenImGone_2026-11-26_1432.html`, Noah's naming decision). By default it downloads. On Chrome and Edge desktop, an optional setup lets Save write the new file straight into a chosen folder instead of Downloads. **Saving over the same file is dropped**: it would leave an old date in the name of the newest copy, which breaks "the latest date in the name is the newest". See "2" and "10".
 3. **iPhone: read in the preview, edit on a computer.** There is no built-in way to run a local HTML file's scripts on iPhone. The only free route found (an Apple Shortcut) can't keep changes between visits. See "5. Running it on phones".
 4. **No .webarchive.** It doesn't open on Windows, Android, Chrome or Firefox, and nothing shows it runs scripts on iPhone. See "7".
-5. **No passphrase.** An encrypted file can't show the readable preview, which makes it unreadable on every phone. See "8".
+5. **No passphrase.** Decided by Noah, 26 November 2026: no passphrase by default, and the plan never stores secrets. Whether an optional passphrase exists at all is owned by the "Hand off access without storing secrets" work; this spec builds none. See "8".
+6. **Save makes an export set** (Noah's decision, 26 November 2026): the HTML file plus a PDF from the browser's print dialog, with the same timestamp in both names. Same HTML for every browser, no per-browser builds. Plus an in-app step to open the copy once on the family's own device, with a checkbox to record that it worked. The checkbox is a plan field, so it rides in the same schema bump as the plan id. See "6".
 
 ## 1. How the data is embedded
 
@@ -218,9 +219,52 @@ Bottom line: on iPhone she reads; she edits on a computer. Say so plainly in the
 
 Probably: download, open from the Files app, choose Chrome, and the full app runs. Whether storage persists for a file opened that way is unknown; Save still works if downloads do. Weak evidence either way, so this hangs on test 5 above. If it fails, Android gets the iPhone instructions.
 
-## 6. Print and Save as PDF
+## 6. The export set: HTML plus PDF
 
-Next to Save, the top bar keeps **Print or save as PDF**, opening the existing print dialog. Its first line: "To make a PDF, choose Save as PDF (or Microsoft Print to PDF) as the printer." No silent fallback: print is a separate, visible choice, never something the app switches to.
+Noah's decision, 26 November 2026. Mixed households are normal (here: the creator on Windows and Chrome, the reader on Apple devices). The HTML file is the same for every browser; there are no per-browser builds. What changes is that Save produces a set of two files with one shared timestamp, so there is always something that opens in any preview.
+
+### What Save does
+
+1. Fixes the timestamp for this save, for example `2026-11-26_1432`.
+2. Downloads `WhenImGone_2026-11-26_1432.html` (sections 1 to 3).
+3. Shows a second step in the same dialog:
+
+   > **Step 2 of 2: save a PDF too.** A PDF opens on any phone or computer, even where the plan file can't. Choose **Save as PDF** as the printer, then save.
+   > [Save the PDF] [Skip for now]
+
+   "Save the PDF" opens the existing print packet with the browser's print dialog. While the dialog is open, `document.title` is set to `WhenImGone_2026-11-26_1432`, and the title goes back afterwards. Chrome and Edge suggest the page title as the PDF's file name, so the PDF matches the HTML (believed for Chrome; UNVERIFIED for Edge, Firefox and Safari; must be checked by hand, because a test can't drive the print dialog).
+4. The print packet shows the same banner as the app and the readable copy: "This copy was saved Thursday, November 26, 2026 at 2:32 PM. If you have several copies, the one with the latest date in its name is the newest." Both files come from one save, so both carry the same time.
+
+Rules:
+
+- **No new dependency, no in-app PDF generation.** The browser's print dialog is the only way to make the PDF. That means the PDF can't be made without a click, and the app can't confirm it was saved. "Skip for now" leaves a quiet line next to Save: "No PDF saved with this copy". The next save offers step 2 again.
+- **Private details in the PDF.** The print dialog keeps its existing "include private details" choice. In the export set it starts checked, with the line "This PDF is for your family. It includes private details, like the plan file does." Reason: the PDF exists to stand in for the HTML file where that can't run, and the HTML file already holds everything. Ordinary Print keeps today's default.
+- **Print or save as PDF** also stays as its own button next to Save, for printing paper at any time. No silent fallback to print anywhere: printing is always a visible choice.
+- On phones, printing to PDF is awkward (UNVERIFIED by device). The export set is a creator task on a computer; the instructions don't ask the reader to make one.
+
+### "Open it on their device once"
+
+A step in Get started and in the continuity review (`src/core/audit.ts`), and offered once after Save:
+
+> **Send this to the phone or computer your family uses, and open it there once.**
+> Email it, put it on a shared drive or a USB stick, whatever they'd actually use. Open both files on their device. Check that the plan shows up.
+> [ ] It opened on their device
+
+- Ticking the box records the date in the plan: `info.familyOpenedAt` (`YYYY-MM-DD`). It is in the plan, not on the device, because it is the creator's record of a test on another device, and it should travel with every saved copy. Schema impact: one more field in the same bump as `info.planId`.
+- The audit adds two rules, worded per [docs/readiness-and-audit.md](../readiness-and-audit.md): "Nobody has opened a saved copy on the family's device yet" when the date is empty, and "It has been over a year since a saved copy was opened on the family's device" after 365 days. Both are suggestions, dismissible like the others; neither blocks anything or affects readiness levels.
+- The box records a claim; the app can't verify it. That's fine: the point is to make the creator do it.
+- Wife test: the step text is written for the creator, but the steps it asks for are the same ones the reader will do later, so doing it once is a rehearsal.
+
+### Cross-engine proof
+
+The automated part of "the same file works everywhere" runs in CI with the existing Playwright projects (Chromium, Firefox, WebKit; see `playwright.config.ts`):
+
+- In each project, save a copy of the sample plan through the real Save button and capture the download.
+- Open that downloaded file from disk (`file://`) in **all three** engines, not only the one that made it: a test in each project launches the other two browser types directly with Playwright's `chromium`, `firefox` and `webkit` launchers. So a file made in Chromium (the creator's Chrome) is opened in WebKit (closest to her Safari), and the other way round.
+- In each engine: the app starts on the right plan, the banner shows the save time, an edit and a second Save work, no CSP violations, no console errors, no network requests.
+- With scripts off in each engine: the readable copy shows.
+
+What this does not prove: Playwright's WebKit on Linux is not Safari on a Mac or iPhone, and none of it covers Quick Look, Mail, Gmail or Outlook. Those stay on the manual device list in section 4.
 
 ## 7. Safari .webarchive
 
@@ -233,6 +277,8 @@ Recommendation: no.
 It would only be worth a look if a real iPhone test showed a `.webarchive` opened from Files runs scripts and keeps storage. Even then it would be an extra iPhone-only export. Add it to the device test list if you want the evidence; I wouldn't build anything for it first.
 
 ## 8. Privacy and the passphrase tradeoff
+
+**Decision (Noah, 26 November 2026): no passphrase by default. The plan never stores secrets** (passwords, PINs, recovery codes, full account numbers); it stores where the secret lives, who can get it and the steps to get in. Whether an optional, off-by-default passphrase exists at all is for the "Hand off access without storing secrets" work to recommend. This spec builds none. The analysis below stays as the reason.
 
 This file is the whole plan in readable form, including private fields, and it will be emailed, put on USB drives and copied to cloud folders. Anyone with the file can read all of it, in a browser or a text editor. The Save message says it once: "Anyone who has this file can read everything in it. Keep it where you'd keep a paper copy."
 
@@ -295,13 +341,18 @@ Noah's decision, 26 November 2026.
 - [ ] With "Save into a folder" set up on Chrome, Save writes a new uniquely named file into that folder instead of downloading, and never overwrites a file.
 - [ ] Opened with scripts off, the file shows the opening instructions and the whole plan as readable text.
 - [ ] Each device test in section 4 has a recorded result, and the instruction copy matches the results.
+- [ ] After Save, step 2 offers the PDF; in Chrome the suggested PDF name matches the HTML file's name; the PDF shows the same saved time.
 - [ ] Print or save as PDF sits next to Save.
+- [ ] Ticking "It opened on their device" removes the matching suggestion; a year later it comes back.
+- [ ] CI shows a file saved in each of Chromium, Firefox and WebKit opening and saving in the other two.
 - [ ] Importing the HTML file gives the same plan as importing the JSON backup of it. Existing JSON backups still import.
 - [ ] **Wife test.** On her own computer, offline, with only a USB drive holding this file: she opens it, finds who to call about the Wi-Fi, changes one phone number, saves, and opens the new file to check the change is there. On her phone, from an email: she can read Start Here and can say how to open it to make changes.
 
 ## Out of scope
 
-- Passphrase or encryption (section 8)
+- Passphrase or encryption (section 8; owned by the secrets handoff work)
+- Per-browser builds
+- Making the PDF without the print dialog
 - Editing on iPhone (section 5); the Shortcut is a follow-up test, not a feature
 - .webarchive (section 7)
 - Merging two diverged copies, or a revision history
@@ -325,7 +376,7 @@ Noah's decision, 26 November 2026.
 
 ## Data, schema and migration impact
 
-- Schema: `info.planId` added. Version bump, migration from v1 and v2, fixtures, tests. Coordinate the version number with PRs #11 and #14.
+- Schema: `info.planId` and `info.familyOpenedAt` added. Version bump, migration from v1 and v2, fixtures, tests. Coordinate the version number with PRs #11 and #14.
 - Storage: plan keys change to per-plan keys, `savedToFileAt` added, IndexedDB used for the optional folder handle. Ship with the rename pass so keys change once.
 - New fixtures: a saved HTML file from this version, kept forever.
 
@@ -336,12 +387,17 @@ Unit (Vitest):
 - Extraction: attribute order, no block, truncated block, first block only.
 - Open-time comparison returns the right case for every row of the section 2 table, including equal timestamps and missing `savedToFileAt`.
 - Migration adds a valid plan id; import keeps an existing one; new and sample plans get new ones.
+- `familyOpenedAt` normalizes as a date; the two audit rules fire at empty and at 366 days, not at 364.
+- The PDF title stem equals the HTML file name stem for the same save, including the seconds case.
 - Storage: two plans with different ids never touch each other's keys; the single-plan key migrates once.
 - File name: local date and time, zero-padded, no colons or apostrophes; seconds added only when `savedToFileAt` is in the same minute; names sort in time order.
 - `exportedAt` carries the local offset and the banner text built from it matches the file name's date and time, in two time zones.
 
 Browser (Playwright, built file over `file://`, Chromium, Firefox, WebKit):
 - Save from the sample plan, open the download: full app, right plan, no CSP violations, console errors or network requests.
+- Cross-engine: the file saved in each engine opens and saves correctly in the other two (section 6).
+- Step 2 sets `document.title` to the save's stem while printing and restores it after (`window.print` stubbed); the export-set print starts with private details included.
+- The "open it on their device" checkbox writes `familyOpenedAt` and clears the audit suggestion.
 - Hostile plan: saved file opens with `window.PWNED` undefined; text shows literally in the app and in the readable copy.
 - Two plan files in one Chromium profile: edit one, open the other, each shows its own data.
 - Each row of the section 2 table, set up through storage, shows the right banner or dialog; the "older copy" warning appears before any plan renders and its default opens the newer version; "Replace" and the conflict dialog's default trigger a download first.
@@ -351,7 +407,7 @@ Browser (Playwright, built file over `file://`, Chromium, Firefox, WebKit):
 - Unsaved indicator appears after an edit and clears after Save.
 - File System Access save: unit-test the fallback decision; the picker itself is a manual check (UNVERIFIED in CI).
 
-Manual: the device list in section 4, and the wife test.
+Manual: the device list in section 4, the PDF file name in Chrome, Edge, Firefox and Safari print dialogs, and the wife test.
 
 Every automated test must fail on the current main branch.
 
@@ -364,7 +420,7 @@ Every automated test must fail on the current main branch.
 
 ## Slices
 
-1. **Save and open.** Save (download), the readable copy with instructions, open-time comparison, plan id and per-plan storage, import of HTML, Print or save as PDF next to Save. This is the useful version.
+1. **Save and open.** Save as the export set (HTML, then the PDF step), the readable copy with instructions, open-time comparison, plan id and per-plan storage, import of HTML, Print or save as PDF next to Save, the "open it on their device" step, cross-engine tests. This is the useful version.
 2. **Save into a folder** on Chrome and Edge.
 3. **Phone follow-ups**, only after device tests: the iPhone Shortcut test; Android instructions.
 
