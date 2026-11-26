@@ -124,7 +124,7 @@ test('a legacy v1 plan in browser storage is upgraded on first load and the orig
   await expect(app.getByRole('heading', { name: 'Alex Morgan' })).toBeVisible();
   await addRecord(app, 'Notes', { Title: 'New note', Note: 'Hello' });
   expect(await app.evaluate(() => localStorage.getItem('familyContinuityPlanner.v1'))).toBe(legacy);
-  expect((await storedPlan(app)).schemaVersion).toBe(2);
+  expect((await storedPlan(app)).schemaVersion).toBe(3);
 });
 
 test('damaged saved data is kept and can be downloaded instead of being overwritten', async ({ app }) => {

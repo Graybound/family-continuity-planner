@@ -4,6 +4,14 @@ All notable changes are listed here. The project follows [Semantic Versioning](h
 
 ## [Unreleased]
 
+### Added
+
+- Settings has a "Your name" field. It goes in the names of saved files so your family can tell whose plan a file is.
+
+### Compatibility
+
+- Plans are now schema version 3. Version 2 backups and saved plans upgrade on their own when opened or restored; nothing is lost. Older versions of the app refuse version 3 backups with a clear message. If an older copy of the app is opened in the same browser after this one, it keeps the newer plan in a recovery copy instead of overwriting it.
+
 ### Changed
 
 - The online version moved to https://whenimgone.grayhek.com/, served by Cloudflare. The GitHub Pages copy is retired. Plans saved in the old online copy do not move over on their own: open the old copy, export a backup, and restore it in the new one.

@@ -24,9 +24,9 @@ src/
   main.ts               entry point
   core/                 pure logic, no DOM, fully unit tested
     sections.ts         section (module) and field definitions, area labels, checklist groups
-    plan.ts             schema v2 types, blank plan, default Start Here text
+    plan.ts             schema v3 types, blank plan, default Start Here text
     normalize.ts        validation: builds a fresh, typed Plan from any input
-    migrate.ts          schema detection and migrations (v1 to v2)
+    migrate.ts          schema detection and migrations (v1 to v2 to v3)
     backup.ts           safe JSON parse, import preview, export serialization
     storage.ts          localStorage load/save with damaged-data recovery
     readiness.ts        module status and readiness levels
@@ -67,23 +67,25 @@ See [PRIVACY.md](PRIVACY.md) for the user-facing summary. Keys:
 
 | Key | Contents |
 |---|---|
-| `familyContinuityPlanner.v2` | Current plan (schema 2 JSON) |
+| `familyContinuityPlanner.v2` | Current plan (schema 3 JSON; the key name kept its v2 suffix) |
 | `familyContinuityPlanner.v1` | v1 plan. Read only when the v2 key is absent. Never written |
 | `familyContinuityPlanner.recovery.<ISO time>` | Text that failed to load, preserved before anything else is saved |
 | `familyContinuityPlanner.theme` | `light` or `dark` |
 
 `loadPlan()` returns one of `empty`, `ok`, `migrated-legacy`, `damaged`, or `unavailable`, and the app shows a matching banner. `savePlan()` reports quota and other failures as user-visible errors, and refuses to overwrite saved data it cannot read unless a recovery copy of that data exists. Full storage is not the same as unavailable storage: `getStorage()` still returns a full storage area so the saved plan stays readable. A `storage` event from another tab shows a banner asking the user to reload.
 
-## Data schema (version 2)
+## Data schema (version 3)
 
 Full field-by-field reference: [docs/backup-format.md](docs/backup-format.md).
 
 ```ts
 interface Plan {
   schema: 'family-continuity-planner';
-  schemaVersion: 2;
+  schemaVersion: 3;
   info: { planName, region,  // "meta" in v1; renamed so v1 rejects v2 files
-          trustedContact, createdAt, updatedAt, lastReviewedAt, lastExportedAt, isSample };
+          trustedContact, createdAt, updatedAt, lastReviewedAt, lastExportedAt, isSample,
+          ownerName,       // v3: used in saved file names
+          familyOpenedAt };  // v3: YYYY-MM-DD a saved copy opened on the family's device
   preferences: { privacyDefault, includePrivateInPrint };
   startHere: { mode: 'default' | 'custom'; customText };
   messages: { id, audience, title, body }[];
@@ -106,10 +108,10 @@ Every input, whether from storage or a file, takes the same path:
 
 1. `safeJsonParse` parses JSON with a reviver that drops `__proto__`, `constructor`, and `prototype`. Files over 10 MB are rejected first.
 2. `detectVersion` identifies v2 (by `schema` marker), v1 (by shape), a newer schema (rejected with a clear message), or something else (rejected).
-3. `migrateToCurrent` applies registered migrations in order (`MIGRATIONS[1]` turns v1 into v2).
+3. `migrateToCurrent` applies registered migrations in order (`MIGRATIONS[1]` turns v1 into v2, `MIGRATIONS[2]` turns v2 into v3).
 4. `normalizePlan` builds a **new** object containing only known keys, coerces and length-limits strings, strips control characters, validates dates and enum values, replaces unsafe or duplicate IDs, and collects human-readable warnings.
 
-To add schema version 3: write `migrateV2toV3`, register it, bump `SCHEMA_VERSION`, commit a fixture file produced by version 2, add tests, and document the change. Never edit an existing migration.
+To add a schema version: write the next migration, register it, bump `SCHEMA_VERSION`, commit a fixture file produced by the previous version, add tests, and document the change. Never edit a migration that has shipped in a release. `migrateV2toV3` has not shipped yet, so Belongings and Technology extend it instead of adding a v4.
 
 ## Readiness and audit
 
