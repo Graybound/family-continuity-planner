@@ -28,6 +28,7 @@ src/
     normalize.ts        validation: builds a fresh, typed Plan from any input
     migrate.ts          schema detection and migrations (v1 to v2)
     backup.ts           safe JSON parse, import preview, export serialization
+    embedded.ts         saved plan file: escaping, extraction, file names, drafts
     storage.ts          localStorage load/save with damaged-data recovery
     readiness.ts        module status and readiness levels
     audit.ts            continuity review rules
@@ -37,6 +38,7 @@ src/
     ids.ts, dates.ts    helpers
   ui/                   DOM code
     store.ts            the single plan object, UI state, mutate(), navigation
+    selfCopy.ts         copy of the page taken at startup; builds the saved plan file
     app.ts              shell: nav, top bar, banners, routing, shortcuts, mobile menu
     dom.ts              h() builder, focus capture and restore
     dialogs.ts          modal helper, confirm, record, checklist, message forms
@@ -71,8 +73,15 @@ See [PRIVACY.md](PRIVACY.md) for the user-facing summary. Keys:
 | `familyContinuityPlanner.v1` | v1 plan. Read only when the v2 key is absent. Never written |
 | `familyContinuityPlanner.recovery.<ISO time>` | Text that failed to load, preserved before anything else is saved |
 | `familyContinuityPlanner.theme` | `light` or `dark` |
+| `familyContinuityPlanner.draft.<address>` | Unsaved edits made in a saved plan file, one per file address, with `draftOf`, `savedAs` and `savedAsUpdatedAt` next to the plan |
 
 `loadPlan()` returns one of `empty`, `ok`, `migrated-legacy`, `damaged`, or `unavailable`, and the app shows a matching banner. `savePlan()` reports quota and other failures as user-visible errors, and refuses to overwrite saved data it cannot read unless a recovery copy of that data exists. Full storage is not the same as unavailable storage: `getStorage()` still returns a full storage area so the saved plan stays readable. A `storage` event from another tab shows a banner asking the user to reload.
+
+## Saved plan file
+
+**Export backup** writes the app's own page with the plan inside, as one HTML file (`WhenImGone_YYYY-MM-DD_HHMM.html`). The app cannot read its own file (the CSP forbids every request), so `main.ts` calls `captureTemplate()` before anything renders and keeps a detached copy of the page. At export, `buildSavedFile()` copies it, removes any previous plan block, adds the backup JSON in `<script type="application/json" id="when-im-gone-plan">` with `<`, `>`, `&`, U+2028 and U+2029 escaped, and serializes it. That read of `outerHTML` is the one place app code uses it; it never assigns. No module may change the DOM when imported, or the change would land in every saved file (an e2e test checks).
+
+A saved file always opens on the plan inside it. Its edits go to `familyContinuityPlanner.draft.<address>`, never the main plan key, so opening a file cannot overwrite another plan in the same browser (Chromium shares one storage area across every file opened from disk). Unsaved edits are offered back by a banner, never applied by themselves. Spec: [docs/specs/self-contained-plan-file.md](docs/specs/self-contained-plan-file.md).
 
 ## Data schema (version 2)
 

@@ -7,6 +7,7 @@
  *   familyContinuityPlanner.theme       "light" or "dark", same key the v1 app used
  *   familyContinuityPlanner.recovery.*  copy of saved data that could not be read
  *   familyContinuityPlanner.hostedNotice "dismissed" once the online-version notice is acknowledged
+ *   familyContinuityPlanner.draft.<address>  unsaved edits made in a saved plan file, one per file address (see embedded.ts)
  *
  * The v1 app replaced unreadable data with a blank plan and then overwrote it
  * on the next save. This module never does that: unreadable data is copied to
@@ -128,15 +129,15 @@ function isReadablePlanText(raw: string): boolean {
   return parsed.ok && detectVersion(parsed.value).ok;
 }
 
-export function savePlan(storage: StorageLike | null, plan: Plan): { ok: true } | { ok: false; error: string } {
+export function savePlan(storage: StorageLike | null, plan: Plan, key: string = KEYS.plan, extra?: Record<string, unknown>): { ok: true } | { ok: false; error: string } {
   if (!storage) return { ok: false, error: 'This browser is not allowing the planner to save. Export a backup before closing.' };
   try {
     // Never overwrite saved data that could not be read unless a recovery copy of it exists.
-    const existing = storage.getItem(KEYS.plan);
+    const existing = storage.getItem(key);
     if (existing !== null && !isReadablePlanText(existing) && preserveDamaged(storage, existing, new Date()) === null) {
       return { ok: false, error: 'Your earlier saved plan could not be read and there is no room to keep a copy of it, so it was left in place and this change was not saved. Export a backup now.' };
     }
-    storage.setItem(KEYS.plan, JSON.stringify(plan));
+    storage.setItem(key, JSON.stringify(extra ? { ...plan, ...extra } : plan));
     return { ok: true };
   } catch (e) {
     return { ok: false, error: isQuotaError(e) ? 'Browser storage is full, so the last change was not saved. Export a backup now.' : 'The last change could not be saved. Export a backup now.' };
