@@ -2,7 +2,7 @@ import { test, expect, nav, storedPlan } from './fixtures';
 
 test('a full browser storage still shows the saved plan instead of an empty one', async ({ app }) => {
   await app.evaluate(() => {
-    const plan = { schema: 'family-continuity-planner', schemaVersion: 2, info: { planName: 'Our real plan' }, records: { people: [{ id: 'p1', name: 'Alex Rivera' }] } };
+    const plan = { schema: 'family-continuity-planner', schemaVersion: 2, info: { planName: 'Our real plan' }, records: { people: [{ id: 'p1', name: 'Jordan Morgan' }] } };
     localStorage.setItem('familyContinuityPlanner.v2', JSON.stringify(plan));
     // Fill the rest of the storage quota, coarse to fine, so not even one more character fits.
     let i = 0;
@@ -14,7 +14,7 @@ test('a full browser storage still shows the saved plan instead of an empty one'
   await app.reload();
   await expect(app).toHaveTitle(/Our real plan/);
   await nav(app, 'People');
-  await expect(app.getByRole('heading', { name: 'Alex Rivera' })).toBeVisible();
+  await expect(app.getByRole('heading', { name: 'Jordan Morgan' })).toBeVisible();
   await expect(app.getByText('This browser is not letting the planner save anything')).toHaveCount(0);
   await app.evaluate(() => {
     for (const k of Object.keys(localStorage)) if (k.startsWith('filler')) localStorage.removeItem(k);
