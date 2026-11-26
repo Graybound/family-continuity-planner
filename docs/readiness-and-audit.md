@@ -60,6 +60,8 @@ Each finding has a stable ID so it can be dismissed (hidden permanently) or defe
 | `review-later:<section>` | A section is marked Review later | That section |
 | `backup-never` | The plan has entries and no backup was ever exported | Settings |
 | `backup-old` | The last export was more than 90 days ago | Settings |
+| `family-not-opened` | A backup has been exported, and nobody has ticked "It opened on their device" | Settings |
+| `family-opened-old` | "It opened on their device" was ticked more than 365 days ago | Settings |
 | `plan-not-reviewed` | The plan has entries and was never marked reviewed, or not within 365 days | Settings |
 
 On the overview, a finding is left out while the readiness requirement that says the same thing is listed as a next step (`FINDING_TWINS` in `src/core/audit.ts`): `no-contacts` and `basic-contact`, `backup-never` and `basic-backup`, `backup-old` and `thorough-backup-recent`, `plan-not-reviewed` and `thorough-reviewed`. The Suggestions page always lists every finding.

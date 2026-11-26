@@ -23,6 +23,8 @@ export interface PacketOptions {
   footer?: boolean;
   /** Make phone numbers and email addresses tappable links (the readable copy in a saved file). */
   links?: boolean;
+  /** Which saved copy this packet belongs to, shown on the cover (the export set's PDF). */
+  savedLine?: string;
 }
 
 /** A tel: or mailto: link for a phone or email field, or the plain text when it does not look like one. */
@@ -76,6 +78,7 @@ export function buildPacket(plan: Plan, opts: PacketOptions): HTMLElement {
       out.append(h('section', { class: 'pk-cover' },
         h('h1', null, name),
         h('p', { class: 'pk-sub' }, 'Practical information for the people who may need to keep things running.'),
+        opts.savedLine ? h('p', { class: 'pk-saved' }, opts.savedLine) : null,
         h('dl', null,
           h('dt', null, 'Printed on'), h('dd', null, formatDate(today)),
           h('dt', null, 'Plan last reviewed'), h('dd', null, plan.info.lastReviewedAt ? formatDate(plan.info.lastReviewedAt) : 'Not yet marked as reviewed'),
@@ -121,10 +124,24 @@ export function buildPacket(plan: Plan, opts: PacketOptions): HTMLElement {
   return out;
 }
 
-export function printPacket(plan: Plan, includePrivate: boolean): void {
+/**
+ * Print the packet. With a title, the page title is that name while the print
+ * window is open, because Chrome and Edge suggest the title as the PDF's file name.
+ */
+export function printPacket(plan: Plan, includePrivate: boolean, opts: { title?: string; savedLine?: string } = {}): void {
   const target = document.getElementById('print-packet');
   if (!target) return;
   clear(target);
-  target.append(buildPacket(plan, { includePrivate }));
+  target.append(buildPacket(plan, { includePrivate, savedLine: opts.savedLine }));
+  if (!opts.title) {
+    window.print();
+    return;
+  }
+  const before = document.title;
+  document.title = opts.title;
+  // print() blocks in some browsers and returns at once in others; afterprint covers both.
+  window.addEventListener('afterprint', () => {
+    document.title = before;
+  }, { once: true });
   window.print();
 }

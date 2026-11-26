@@ -7,7 +7,7 @@ import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { chromium, firefox, webkit, type Browser, type BrowserType, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { test, expect, nav, addRecord, storedPlan } from './fixtures';
+import { test, expect, nav, addRecord, storedPlan, skipPdf } from './fixtures';
 
 const HOSTILE = 'Call </script><script>window.PWNED=1</script><!-- & é 😀';
 const ENGINES: Record<string, BrowserType> = { chromium, firefox, webkit };
@@ -17,6 +17,7 @@ const openIn = requested.includes('all') ? Object.keys(ENGINES) : Object.keys(EN
 
 async function exportSavedFile(page: Page): Promise<{ path: string; name: string }> {
   const [dl] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Export backup' }).first().click()]);
+  await skipPdf(page);
   // A stable path with the real file name, so the page sees the same name a person would.
   const path = join(mkdtempSync(join(tmpdir(), 'wig-')), dl.suggestedFilename());
   copyFileSync((await dl.path())!, path);
@@ -187,6 +188,7 @@ test('Restore accepts a saved file and gives the same plan as the JSON backup', 
   const { path } = await exportSavedFile(app);
   await nav(app, 'Settings and backup');
   const [jdl] = await Promise.all([app.waitForEvent('download'), app.getByRole('button', { name: 'Export .json' }).click()]);
+  await skipPdf(app);
   const fromJson = JSON.parse(readFileSync((await jdl.path())!, 'utf8'));
   await addRecord(app, 'People', { 'Full name': 'Added later' });
   await nav(app, 'Settings and backup');
@@ -279,4 +281,45 @@ test('two saved files never share unsaved changes', async ({ app, browser }) => 
   await expect(page.locator('.banner').filter({ hasText: 'You have unsaved changes' })).toHaveCount(0);
   expect(errors).toEqual([]);
   await ctx.close();
+});
+
+test('every export offers a PDF named like the file, with private details and the save time', async ({ app }) => {
+  await nameThePlan(app, 'Alex Morgan');
+  await addRecord(app, 'People', { 'Full name': 'Jordan Morgan', Address: '12 Example Lane' });
+  for (const button of ['Export backup', 'Export .json']) {
+    await nav(app, 'Settings');
+    const [dl] = await Promise.all([app.waitForEvent('download'), app.getByRole('button', { name: button, exact: true }).last().click()]);
+    const stem = dl.suggestedFilename().replace(/\.(html|json)$/, '');
+    const dialog = app.getByRole('dialog', { name: `Saved ${dl.suggestedFilename()}` });
+    await expect(dialog.getByRole('heading', { name: 'Step 2 of 2: save a PDF too' })).toBeVisible();
+    await expect(dialog.getByLabel('Include private details')).toBeChecked();
+    const titleBefore = await app.title();
+    await dialog.getByRole('button', { name: 'Save the PDF' }).click();
+    await expect.poll(() => app.evaluate(() => (window as unknown as { __printTitles: string[] }).__printTitles.at(-1))).toBe(stem);
+    const packet = await app.evaluate(() => (window as unknown as { __printPacket: string[] }).__printPacket.at(-1)!);
+    expect(packet, button).toMatch(/Alex Morgan's plan, saved \w+day, .* the latest date in its name is the newest\./);
+    expect(packet, button).toContain('12 Example Lane');
+    await expect.poll(() => app.title()).toBe(titleBefore);
+  }
+});
+
+test('the "opened on their device" step records the date, travels with the plan, and stops asking', async ({ app }) => {
+  await addRecord(app, 'People', { 'Full name': 'Jordan Morgan' });
+  await nav(app, 'Suggestions');
+  await expect(app.getByText('Nobody has opened a saved copy on your family\'s device yet')).toHaveCount(0);
+  await app.getByRole('button', { name: 'Export backup' }).first().click();
+  const dialog = app.getByRole('dialog');
+  await expect(dialog).toContainText('Send this to the phone or computer your family uses, and open it there once.');
+  await skipPdf(app);
+  await nav(app, 'Suggestions');
+  await expect(app.getByText('Nobody has opened a saved copy on your family\'s device yet')).toBeVisible();
+  await nav(app, 'Settings');
+  await app.getByLabel('It opened on their device').check();
+  expect((await storedPlan(app)).info.familyOpenedAt).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  await expect(app.getByText(/Last confirmed/)).toBeVisible();
+  await nav(app, 'Suggestions');
+  await expect(app.getByText('Nobody has opened a saved copy on your family\'s device yet')).toHaveCount(0);
+  await app.getByRole('button', { name: 'Export backup' }).first().click();
+  await expect(app.getByRole('dialog')).not.toContainText('open it there once');
+  await skipPdf(app);
 });

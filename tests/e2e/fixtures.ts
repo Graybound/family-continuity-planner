@@ -26,8 +26,17 @@ export const test = base.extend<{ app: Page; external: string[]; consoleErrors: 
     page.on('pageerror', (e) => consoleErrors.push(String(e)));
     // window.print() would block a headless test; record calls instead.
     await page.addInitScript(() => {
-      (window as unknown as { __printed: number }).__printed = 0;
-      window.print = () => { (window as unknown as { __printed: number }).__printed++; };
+      const w = window as unknown as { __printed: number; __printTitles: string[]; __printPacket: string[] };
+      w.__printed = 0;
+      w.__printTitles = [];
+      w.__printPacket = [];
+      // Records the page title and the packet text at the moment the print window would open.
+      window.print = () => {
+        w.__printed++;
+        w.__printTitles.push(document.title);
+        w.__printPacket.push(document.getElementById('print-packet')?.textContent ?? '');
+        window.dispatchEvent(new Event('afterprint'));
+      };
     });
     await page.goto(APP_URL);
     await use(page);
@@ -35,6 +44,11 @@ export const test = base.extend<{ app: Page; external: string[]; consoleErrors: 
     expect(consoleErrors, 'no console errors or CSP violations').toEqual([]);
   },
 });
+
+/** Close the dialog that follows every export (it offers the PDF) without printing. */
+export async function skipPdf(page: Page) {
+  await page.getByRole('dialog').getByRole('button', { name: 'Skip for now' }).click();
+}
 
 export { expect };
 
