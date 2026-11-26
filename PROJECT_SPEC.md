@@ -17,7 +17,7 @@ The creator enters the information. The output is primarily for the reader: a pa
 ## Principles
 
 1. **Local first.** Works without a cloud service, account, subscription, backend, internet access, or proprietary service. Runs from a computer, USB drive, external drive, NAS, a static download, or as a printed packet. No analytics, telemetry, tracking, remote fonts, external scripts, CDNs, or required remote APIs. Remains useful if development stops.
-2. **Privacy by design.** Storage, data flows, backups, and encryption status are documented honestly. No raw passwords by default; document the password manager, emergency access, recovery documents, and who can help instead.
+2. **Privacy by design.** Storage, data flows, backups, and encryption status are documented honestly. **The plan never stores secrets** (passwords, PINs, recovery codes, full card or account numbers). It stores pointers: where the secret lives, who can get it, and the exact steps to get in. The app warns, never blocks, when text looks like a secret, and never sends anything anywhere. See [docs/handoff-methods.md](docs/handoff-methods.md).
 3. **Reduce overwhelm.** Guide and encourage. No walls of questions, no required sections, no forced linear flow, no shaming, no morbid language, no claims of completeness, no misleading overall percentage. A basic plan is useful on its own.
 4. **Design for the survivor.** The family-facing output opens with a reassuring Start Here section that explains what the document is, that not everything is urgent, that help exists, to focus on the next step, and that it is guidance, not a legal instruction. The creator can keep, edit, or replace it and add messages for different audiences.
 5. **Knowledge before assets.** Operational knowledge and helpful relationships come before lists of property.
@@ -67,7 +67,7 @@ The creator enters the information. The output is primarily for the reader: a pa
 
 ### Future ideas (need design and discussion)
 
-- Encrypted backups using Web Crypto, only with clear warnings about permanent loss if a passphrase is forgotten
+- ~~Encrypted backups~~ Decided against on 2026-11-26: a forgotten passphrase locks out the person the plan is for, and the plan holds no secrets to protect. Reasons in [docs/handoff-methods.md](docs/handoff-methods.md#passphrase-decision)
 - Optional, clearly separated AI assistance for memory joggers. Never required, never part of the core audit
 - Translations
 - Import from common formats (CSV contacts)

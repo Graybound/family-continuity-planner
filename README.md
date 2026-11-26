@@ -48,7 +48,7 @@ A sample printed packet made from the fictional sample data is in [docs/screensh
 
 ## Project status
 
-Version 0.2.0. The core planner, backups, printing, guided start, readiness levels, and continuity review are implemented and tested. Audience-specific packets (executor, caregiver, technology helper), review reminders, and encrypted backups are planned but **not** built yet. See [ROADMAP.md](ROADMAP.md).
+Version 0.2.0. The core planner, backups, printing, guided start, readiness levels, and continuity review are implemented and tested. Audience-specific packets (executor, caregiver, technology helper) and review reminders are planned but **not** built yet. See [ROADMAP.md](ROADMAP.md).
 
 ## Privacy in one paragraph
 
@@ -113,7 +113,7 @@ Click **Print**. Choose whether to include private details (off by default), the
 
 ## Roadmap summary
 
-Next up: audience-specific printed packets, review reminders and guided maintenance, more life areas (pets, vehicles, children, digital legacy), A4 print layout, and cross-browser automated tests. Encrypted backups are being considered carefully because a lost passphrase would lock a family out. Full plan: [ROADMAP.md](ROADMAP.md).
+Next up: audience-specific printed packets, review reminders and guided maintenance, more life areas (pets, vehicles, children, digital legacy), A4 print layout, and cross-browser automated tests. Encrypted backups were decided against, because a lost passphrase would lock a family out and the plan is designed to hold no secrets. Full plan: [ROADMAP.md](ROADMAP.md).
 
 ---
 

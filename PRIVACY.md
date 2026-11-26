@@ -62,7 +62,7 @@ The app contains one external address: a plain link to the project's GitHub page
 
 ## Passwords and secrets
 
-The planner is not a password vault and asks you not to use it as one. Record which password manager you use, how a trusted person can get emergency access, and where recovery documents are kept. The continuity review flags text that looks like a password, PIN, or full card number.
+The planner is not a password vault and asks you not to use it as one. Record which password manager you use, how a trusted person can get emergency access, and where recovery documents are kept. While you type, the entry form gently warns when text looks like a password, PIN, recovery code, or full card, account, or Social Security number, and the continuity review lists those entries. The warning never blocks saving, and the check runs only on your device. [docs/handoff-methods.md](docs/handoff-methods.md) explains better ways to hand over access.
 
 ## The online version (GitHub Pages)
 

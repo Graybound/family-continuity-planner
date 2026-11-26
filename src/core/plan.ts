@@ -6,6 +6,7 @@
  */
 import { AREA_IDS, CHECKLIST_GROUPS, SECTION_IDS, type AreaId, type SectionId } from './sections';
 import { newId } from './ids';
+import { practiceHandoffItem } from './handoff';
 
 export const SCHEMA_ID = 'family-continuity-planner';
 export const SCHEMA_VERSION = 2;
@@ -122,6 +123,7 @@ export function starterChecklist(): ChecklistItem[] {
     { id: newId(), group: CHECKLIST_GROUPS[0], title: 'Choose two trusted backup contacts', note: 'Confirm how they should be reached.', due: '', done: false },
     { id: newId(), group: CHECKLIST_GROUPS[1], title: 'Record utility shutoff locations', note: 'Include any tool needed to operate them.', due: '', done: false },
     { id: newId(), group: CHECKLIST_GROUPS[2], title: 'Walk one trusted person through the plan', note: 'Show them where the current backup is stored.', due: '', done: false },
+    practiceHandoffItem(),
     { id: newId(), group: CHECKLIST_GROUPS[3], title: 'Export an updated backup', note: 'Keep an offline copy somewhere protected.', due: '', done: false },
   ];
 }

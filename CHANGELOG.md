@@ -4,6 +4,17 @@ All notable changes are listed here. The project follows [Semantic Versioning](h
 
 ## [Unreleased]
 
+### Added
+
+- Accounts now explains how to hand over access without writing down passwords: seven ways, best first (password manager emergency access, a printed emergency kit, keeping the phone working, Apple Legacy Contact, Google Inactive Account Manager, Facebook legacy contact, and what to do about Microsoft accounts), each checked against the company's own help pages.
+- "Practice the handoff once" is on the starter checklist of new plans, and Accounts offers to add it to older plans. Accounts shows when it is done.
+- The entry form warns, while you type, when a field looks like a password, PIN, recovery code, or full card, account, or Social Security number. It never blocks saving.
+
+### Changed
+
+- The possible-secret suggestion now also catches "The PIN is 4821" style text, recovery codes, labelled account numbers, and Social Security numbers, and says which kind it found.
+- Encrypted backups are off the roadmap. A forgotten passphrase would lock out the family, and the plan holds no secrets.
+
 ### Fixed
 
 - When browser storage was completely full, the app showed an empty plan and said it could not save, even though the plan was still there. Exporting at that point produced an empty backup. The saved plan now loads; only new changes fail to save, with a clear message.

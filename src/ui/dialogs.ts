@@ -5,7 +5,7 @@
 import { newId } from '../core/ids';
 import type { ChecklistItem, Message } from '../core/plan';
 import { CHECKLIST_GROUPS, SECTIONS, recordTitle, type FieldDef, type SectionId } from '../core/sections';
-import { looksLikeSecret } from '../core/audit';
+import { SECRET_KIND_LABELS, secretKind, secretWarning } from '../core/audit';
 import { append, domId, h, type Child } from './dom';
 import { getPlan, mutate } from './store';
 
@@ -111,12 +111,23 @@ export function openRecordDialog(section: SectionId, id: string | null, prefill:
     const id2 = domId(`f-${f.key}`);
     const helpTexts = [f.help, f.private ? 'Private: hidden in privacy mode and left out of printouts unless you choose otherwise.' : ''].filter(Boolean);
     const helpId = helpTexts.length ? domId('help') : undefined;
-    const control = fieldControl(f, values[f.key] ?? '', id2, helpId);
+    // Free-text fields get a gentle warning when the text looks like a secret. It never blocks saving.
+    const checks = f.type !== 'select' && f.type !== 'date';
+    const warnId = checks ? domId('warn') : undefined;
+    const describedBy = [helpId, warnId].filter(Boolean).join(' ') || undefined;
+    const control = fieldControl(f, values[f.key] ?? '', id2, describedBy);
     firstControl ??= control;
+    const warn = warnId ? h('span', { class: 'field-warning', attrs: { id: warnId, 'aria-live': 'polite' } }) : null;
+    if (warn) {
+      const update = () => { warn.textContent = secretWarning(control.value) ?? ''; };
+      control.addEventListener('input', update);
+      update();
+    }
     grid.append(h('div', { class: ['field', f.wide && 'full'] },
       h('label', { attrs: { for: id2 } }, f.label, f.required ? h('span', { class: 'req-star' }, ' (required)') : null),
       control,
       helpId ? h('span', { class: 'help', attrs: { id: helpId } }, helpTexts.join(' ')) : null,
+      warn,
     ));
   }
   const save = h('button', { class: 'btn primary', attrs: { type: 'submit' } }, 'Save');
@@ -132,13 +143,13 @@ export function openRecordDialog(section: SectionId, id: string | null, prefill:
     const fd = new FormData(form);
     const rec: Record<string, string> & { id: string } = { id: existing?.id ?? newId() };
     for (const f of def.fields) rec[f.key] = String(fd.get(f.key) ?? '').trim();
-    const secret = looksLikeSecret(def.fields.map((f) => rec[f.key]).join('\n'));
+    const secret = secretKind(def.fields.map((f) => rec[f.key]).join('\n'));
     mutate((p) => {
       const list = p.records[section];
       const idx = existing ? list.findIndex((r) => r.id === existing.id) : -1;
       if (idx >= 0) list[idx] = rec;
       else list.push(rec);
-    }, { message: secret ? 'Saved. This entry may contain a password or card number; consider removing it.' : `${def.singular[0]!.toUpperCase()}${def.singular.slice(1)} saved`, log: `${existing ? 'Updated' : 'Added'} ${def.singular}` });
+    }, { message: secret ? `Saved. This entry may contain ${SECRET_KIND_LABELS[secret]}. Consider writing where it is kept instead.` : `${def.singular[0]!.toUpperCase()}${def.singular.slice(1)} saved`, log: `${existing ? 'Updated' : 'Added'} ${def.singular}` });
     m.close();
     },
   });
