@@ -44,7 +44,7 @@ async function openSaved(browser: Browser, path: string) {
 test('Export backup saves the app with the plan inside, named by local date and time', async ({ app }) => {
   await addRecord(app, 'People', { 'Full name': 'Alex Morgan', Notes: HOSTILE });
   const { path, name } = await exportSavedFile(app);
-  expect(name).toMatch(/^WhenImGone_\d{4}-\d{2}-\d{2}_\d{4}(_\d{2})?\.html$/);
+  expect(name).toMatch(/^WhenImGone_\d{4}-\d{2}-\d{2}_\d{4}_\d{2}\.html$/);
   const html = readFileSync(path, 'utf8');
   expect(html.startsWith('<!doctype html>')).toBe(true);
   expect(html).toContain('http-equiv="Content-Security-Policy"');
@@ -63,7 +63,7 @@ test('with Your name filled in, saved file names start with it', async ({ app })
   await app.getByLabel('Your name').fill('Zoë Morgan-Lee');
   await app.getByRole('button', { name: 'Save details' }).click();
   const { name } = await exportSavedFile(app);
-  expect(name).toMatch(/^WhenImGone_Zoë_Morgan_Lee_\d{4}-\d{2}-\d{2}_\d{4}(_\d{2})?\.html$/);
+  expect(name).toMatch(/^WhenImGone_Zoë_Morgan_Lee_\d{4}-\d{2}-\d{2}_\d{4}_\d{2}\.html$/);
 });
 
 test('a saved file opens from disk with the same plan in every engine', async ({ app }) => {
@@ -296,8 +296,11 @@ test('every export offers a PDF named like the file, with private details and th
     await expect(dialog.getByLabel('Include private details')).toBeChecked();
     await expect(dialog).toContainText(`Name the PDF ${stem}.pdf`);
     const titleBefore = await app.title();
+    const printsBefore = await app.evaluate(() => (window as unknown as { __printTitles: string[] }).__printTitles.length);
     await dialog.getByRole('button', { name: 'Save the PDF' }).click();
-    await expect.poll(() => app.evaluate(() => (window as unknown as { __printTitles: string[] }).__printTitles.at(-1))).toBe(stem);
+    // Wait for this print, not the last one: two exports in the same second share a name.
+    await expect.poll(() => app.evaluate(() => (window as unknown as { __printTitles: string[] }).__printTitles.length)).toBe(printsBefore + 1);
+    expect(await app.evaluate(() => (window as unknown as { __printTitles: string[] }).__printTitles.at(-1))).toBe(stem);
     const packet = await app.evaluate(() => (window as unknown as { __printPacket: string[] }).__printPacket.at(-1)!);
     expect(packet, button).toMatch(/Alex Morgan's plan, saved \w+day, .* the latest date in its name is the newest\./);
     expect(packet, button).toContain('12 Example Lane');

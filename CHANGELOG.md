@@ -6,6 +6,7 @@ All notable changes are listed here. The project follows [Semantic Versioning](h
 
 ### Added
 
+- Saved file names always end in seconds (`..._1432_05`), so every name has the same shape and any folder sorted by name puts the newest copy last, including in macOS Finder.
 - Every Export backup and Export .json is followed by "Step 2 of 2: save a PDF too". It opens the print window with the PDF named like the file (in Chrome and Edge), private details included, and the save time on the cover. "Skip for now" is always there.
 - A step to send a copy to the family's own phone or computer and open it there once, with an "It opened on their device" checkbox (in the export dialog until ticked, and in Settings). Suggestions remind you until it is ticked, and again after a year.
 - A saved plan file now carries a readable copy of the whole plan, with steps for opening it on a computer, iPhone, or Android phone. Places that show the file without running it (an iPhone preview, a mail app) show this instead of a blank page. Phone numbers and email addresses in it are tappable.
@@ -13,7 +14,7 @@ All notable changes are listed here. The project follows [Semantic Versioning](h
 - Accounts now explains how to hand over access without writing down passwords: seven ways, best first (password manager emergency access, a printed emergency kit, keeping the phone working, Apple Legacy Contact, Google Inactive Account Manager, Facebook legacy contact, and what to do about Microsoft accounts), each checked against the company's own help pages.
 - "Practice the handoff once" is on the starter checklist of new plans, and Accounts offers to add it to older plans. Accounts shows when it is done.
 - The entry form warns, while you type, when a field looks like a password, PIN, recovery code, or full card, account, or Social Security number. It never blocks saving.
-- Settings has a "Your name" field. Saved files are then named like `WhenImGone_Alex_Morgan_2026-11-26_1432.html`, so your family can tell whose plan a file is. Accented letters are kept.
+- Settings has a "Your name" field. Saved files are then named like `WhenImGone_Alex_Morgan_2026-11-26_1432_05.html`, so your family can tell whose plan a file is. Accented letters are kept.
 
 ### Compatibility
 
@@ -21,9 +22,9 @@ All notable changes are listed here. The project follows [Semantic Versioning](h
 
 ### Changed
 
-- **Export backup saves the app and your plan as one file** (`WhenImGone_YYYY-MM-DD_HHMM.html`) that opens offline by double-clicking it. Restore accepts these files as well as `.json` backups. A saved file always opens on its own plan; changes made in it are kept as a draft tied to that file and offered back if it is closed without saving. **Export .json** in Settings still saves the plan data alone
+- **Export backup saves the app and your plan as one file** (`WhenImGone_YYYY-MM-DD_HHMM_SS.html`) that opens offline by double-clicking it. Restore accepts these files as well as `.json` backups. A saved file always opens on its own plan; changes made in it are kept as a draft tied to that file and offered back if it is closed without saving. **Export .json** in Settings still saves the plan data alone
 - The online-version notice points at Export backup instead of a GitHub download page
-- Backup file names now include the time: `WhenImGone_YYYY-MM-DD_HHMM.json`
+- Backup file names now include the time: `WhenImGone_YYYY-MM-DD_HHMM_SS.json`
 - The online version moved to https://whenimgone.grayhek.com/, served by Cloudflare. The GitHub Pages copy is retired. Plans saved in the old online copy do not move over on their own: open the old copy, export a backup, and restore it in the new one.
 - The online-version notice now says your plan "is never sent anywhere" instead of naming GitHub.
 - On phones, the top bar shows short words (Menu, Privacy, Backup, Print) instead of bare symbols, and search fits on one line

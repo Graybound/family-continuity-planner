@@ -30,27 +30,25 @@ function download(filename: string, text: string, type = 'application/json'): vo
   window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }
 
-/** Mark the plan as exported now and return the previous export time (for same-minute file names). */
-function markExported(now: Date): string {
-  const previous = getPlan().info.lastExportedAt;
+/** Mark the plan as exported now. */
+function markExported(now: Date): void {
   // The export works even when saving does not; a "could not save, export a backup" error here would contradict it.
   mutate((p) => {
     p.info.lastExportedAt = now.toISOString();
   }, { touch: false, silentSaveError: true });
-  return previous;
 }
 
 /**
  * Export backup: the whole app as one HTML file with this plan inside, named
- * like WhenImGone_Alex_Morgan_2026-11-26_1432.html (no name part when Your
+ * like WhenImGone_Alex_Morgan_2026-11-26_1432_05.html (no name part when Your
  * name is empty). It opens offline on its own and can be restored like a JSON
  * backup. See docs/specs/self-contained-plan-file.md.
  */
 export function exportBackup(): void {
   const now = new Date();
-  const previous = markExported(now);
+  markExported(now);
   const plan = getPlan();
-  const name = `${savedFileStem(now, previous, plan.info.ownerName)}.html`;
+  const name = `${savedFileStem(now, plan.info.ownerName)}.html`;
   const savedAt = localIsoWithOffset(now);
   const title = savedHeadline(plan.info.ownerName, formatSavedTime(savedAt)).replace(/\.$/, '') || `${plan.info.planName || 'Family plan'}, saved`;
   download(name, buildSavedFile(serializeBackup(plan, __APP_VERSION__, now), buildReadableCopy(plan, savedAt), title), 'text/html');
@@ -61,8 +59,8 @@ export function exportBackup(): void {
 /** The plan data only, as a JSON file (for other tools, or a smaller file). */
 export function exportJsonBackup(): void {
   const now = new Date();
-  const previous = markExported(now);
-  const name = backupFileName(now, previous, getPlan().info.ownerName);
+  markExported(now);
+  const name = backupFileName(now, getPlan().info.ownerName);
   download(name, serializeBackup(getPlan(), __APP_VERSION__, now));
   openExportSetDialog({ fileName: name, stem: name.replace(/\.json$/, ''), savedAt: localIsoWithOffset(now), kind: 'json' });
 }

@@ -12,6 +12,7 @@ import { downloadRecoveryCopies, exportBackup, removeSampleData, startSavedFile 
 import { embeddedBackupText } from './selfCopy';
 import { STATIC_ID } from '../core/embedded';
 import { openPrintDialog } from './printDialog';
+import { heldPrintTitle } from './print';
 import { openSearch } from './searchDialog';
 import { addBanner, getPlan, getPlanKey, go, init, removeBanner, render, ui, type View } from './store';
 import { applyTheme, currentTheme } from './theme';
@@ -158,7 +159,8 @@ function renderApp(): void {
   clear(view);
   view.append(viewFor(ui.view));
   const plan = getPlan();
-  document.title = `${plan.info.planName ? `${plan.info.planName} | ` : ''}Family Continuity Planner`;
+  // While a PDF is being saved, the title is the file's name (see printPacket).
+  document.title = heldPrintTitle() ?? `${plan.info.planName ? `${plan.info.planName} | ` : ''}Family Continuity Planner`;
   if (ui.focusHeading) {
     ui.focusHeading = false;
     view.querySelector<HTMLElement>('.view-title')?.focus();

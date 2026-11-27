@@ -89,24 +89,23 @@ describe('fileNamePart', () => {
 
 describe('savedFileStem', () => {
   const t = new Date(2026, 10, 26, 14, 32, 5);
-  it('uses local date and time with no colons', () => {
-    expect(savedFileStem(t)).toBe('WhenImGone_2026-11-26_1432');
-    expect(savedFileStem(t, undefined, 'Noah Grayhek')).toBe('WhenImGone_Noah_Grayhek_2026-11-26_1432');
-    expect(savedFileStem(t, undefined, '  ')).toBe('WhenImGone_2026-11-26_1432');
+  it('uses local date and time, always with seconds, and no colons', () => {
+    expect(savedFileStem(t)).toBe('WhenImGone_2026-11-26_1432_05');
+    expect(savedFileStem(t, 'Noah Grayhek')).toBe('WhenImGone_Noah_Grayhek_2026-11-26_1432_05');
+    expect(savedFileStem(t, '  ')).toBe('WhenImGone_2026-11-26_1432_05');
+    expect(savedFileStem(new Date(2026, 10, 26, 14, 32, 0))).toBe('WhenImGone_2026-11-26_1432_00');
   });
-  it('adds seconds only when the previous save was in the same minute', () => {
-    expect(savedFileStem(t, new Date(2026, 10, 26, 14, 32, 1).toISOString())).toBe('WhenImGone_2026-11-26_1432_05');
-    expect(savedFileStem(t, new Date(2026, 10, 26, 14, 31, 59).toISOString())).toBe('WhenImGone_2026-11-26_1432');
-    expect(savedFileStem(t, 'not a date')).toBe('WhenImGone_2026-11-26_1432');
-  });
-  it('sorts in time order, as text and number-aware', () => {
+  it('sorts in time order, as text, number-aware, and ignoring punctuation', () => {
     const names = [
-      savedFileStem(new Date(2026, 10, 26, 14, 33)),
-      savedFileStem(t, new Date(2026, 10, 26, 14, 32, 1).toISOString()),
-      savedFileStem(new Date(2026, 10, 26, 14, 32)),
-      savedFileStem(new Date(2026, 10, 26, 9, 5)),
+      savedFileStem(new Date(2026, 10, 26, 14, 33, 0)),
+      savedFileStem(t),
+      savedFileStem(new Date(2026, 10, 26, 14, 32, 0)),
+      savedFileStem(new Date(2026, 10, 26, 9, 5, 59)),
     ].map((n) => `${n}.html`);
-    const expected = ['WhenImGone_2026-11-26_0905.html', 'WhenImGone_2026-11-26_1432.html', 'WhenImGone_2026-11-26_1432_05.html', 'WhenImGone_2026-11-26_1433.html'];
+    const expected = ['WhenImGone_2026-11-26_0905_59.html', 'WhenImGone_2026-11-26_1432_00.html', 'WhenImGone_2026-11-26_1432_05.html', 'WhenImGone_2026-11-26_1433_00.html'];
+    // Collation that ignores punctuation (ICU, as macOS Finder may sort):
+    expect([...names].sort(new Intl.Collator('en', { numeric: true, ignorePunctuation: true }).compare)).toEqual(expected);
+    expect([...names].sort(new Intl.Collator('en', { numeric: true }).compare)).toEqual(expected);
     expect([...names].sort()).toEqual(expected);
     // Number-aware sorting that compares other characters by code (like Windows Explorer):
     const numericOrdinal = (a: string, b: string) => {
@@ -133,7 +132,7 @@ describe('drafts', () => {
   const file = { savedOn: '2026-11-26T14:32:05-06:00', updatedAt: '2026-11-26T20:30:00.000Z' };
   const meta = { draftOf: file.savedOn };
   it('keys a draft to the file address, so two files never share one', () => {
-    const a = draftKey({ protocol: 'file:', host: '', pathname: '/Users/x/WhenImGone_2026-11-26_1432.html' });
+    const a = draftKey({ protocol: 'file:', host: '', pathname: '/Users/x/WhenImGone_2026-11-26_1432_05.html' });
     const b = draftKey({ protocol: 'file:', host: '', pathname: '/Users/x/WhenImGone_2026-11-26_1500.html' });
     expect(a).not.toBe(b);
     expect(a.startsWith('familyContinuityPlanner.draft.')).toBe(true);
