@@ -8,6 +8,11 @@ updates:
     groups:
       dev-dependencies:
         dependency-type: development
+    ignore:
+      # typescript-eslint supports TypeScript below 6.1 only, so a TypeScript 7
+      # bump breaks npm ci. Remove this once typescript-eslint supports 7.
+      - dependency-name: typescript
+        versions: [">=6.1.0"]
   - package-ecosystem: github-actions
     directory: /
     schedule:
