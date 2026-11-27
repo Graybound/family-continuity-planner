@@ -22,7 +22,7 @@ test('export and restore round trip with preview and confirmation', async ({ app
   await nav(app, 'Settings and backup');
   const [dl] = await Promise.all([app.waitForEvent('download'), app.getByRole('button', { name: 'Export .json' }).click()]);
   await skipPdf(app);
-  expect(dl.suggestedFilename()).toMatch(/^WhenImGone_\d{4}-\d{2}-\d{2}_\d{4}(_\d{2})?\.json$/);
+  expect(dl.suggestedFilename()).toMatch(/^WhenImGone_\d{4}-\d{2}-\d{2}_\d{4}_\d{2}\.json$/);
   const exported = JSON.parse(readFileSync(await dl.path(), 'utf8'));
   expect(exported.schema).toBe('family-continuity-planner');
   expect(exported.records.people[0].name).toBe('Alex Morgan');

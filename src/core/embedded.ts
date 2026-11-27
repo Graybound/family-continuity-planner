@@ -74,23 +74,15 @@ export function fileNamePart(name: string): string {
 }
 
 /**
- * File name stem for a save, in local time: WhenImGone_Noah_Grayhek_2026-11-26_1432,
- * or WhenImGone_2026-11-26_1432 when there is no name. Seconds are added
- * (..._1432_05) only when the previous save from this browser was in the same
- * minute. "_05" rather than "05" keeps number-aware file sorting (Windows
- * Explorer, macOS Finder) in time order.
+ * File name stem for a save, in local time, always with seconds:
+ * WhenImGone_Noah_Grayhek_2026-11-26_1432_05, or WhenImGone_2026-11-26_1432_05
+ * when there is no name. Every name has the same shape, so plain, number-aware
+ * (Windows Explorer, macOS Finder) and punctuation-blind sorting all put the
+ * newest copy last (Noah's decision, 27 November 2026).
  */
-export function savedFileStem(now: Date, previousSave?: string, ownerName?: string): string {
+export function savedFileStem(now: Date, ownerName?: string): string {
   const who = fileNamePart(ownerName ?? '');
-  const base = `WhenImGone_${who ? `${who}_` : ''}${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}`;
-  if (previousSave) {
-    const prev = new Date(previousSave);
-    const sameMinute = !Number.isNaN(prev.getTime())
-      && prev.getFullYear() === now.getFullYear() && prev.getMonth() === now.getMonth() && prev.getDate() === now.getDate()
-      && prev.getHours() === now.getHours() && prev.getMinutes() === now.getMinutes();
-    if (sameMinute) return `${base}_${pad(now.getSeconds())}`;
-  }
-  return base;
+  return `WhenImGone_${who ? `${who}_` : ''}${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}_${pad(now.getSeconds())}`;
 }
 
 /** ISO 8601 time with the local offset, e.g. 2026-11-26T14:32:05-06:00, so the saved time reads the same everywhere. */
