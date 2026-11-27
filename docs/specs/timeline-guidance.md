@@ -128,11 +128,11 @@ The UI looks up the responsibility by id for the extra lines. Exact names are up
 
 ## Data, schema and migration
 
-- **Additive field, no version bump proposed.** `normalizeRecord` (`src/core/normalize.ts`) reads each defined field and stores `''` when it is missing, so v2 backups and browser data from before this change load cleanly with no warnings and no timeframe set. No migration code is needed.
-- **The rule says a schema change needs a version bump.** This one is arguably a schema change. A bump would make older builds refuse newer backups with a clear error instead of dropping the field. The cost of not bumping: restoring a newer backup into an older build drops `timeframe` with the existing "Unrecognized fields in Who handles what were ignored" warning. No real plans exist yet and the rename pass will change the schema id anyway, so the recommendation is no bump. **Noah decides.** If the answer is bump, fold it into the rename pass rather than doing two schema changes.
+- **Ships inside schema version 3.** Version 3 is already on main (it carries Belongings, Technology and the "opened on their device" checkbox) but has not shipped in a release (v0.2.0 is version 2). So `timeframe` joins version 3 instead of needing its own bump: older builds refuse version 3 files with the clear "made by a newer version" message rather than silently dropping the field. `normalizeRecord` (`src/core/normalize.ts`) stores `''` for a missing field, so the existing v2 to v3 migration needs no extra step for it. Add `timeframe` to the version 3 notes in `docs/backup-format.md`. If a release ships version 3 before this is built, this needs a version 4 instead.
+- **Decision:** fold into version 3 (approved to proceed in November 2026, replacing the earlier "no bump" recommendation).
 - **Unknown values.** `normalizeRecord` does not check select options, so a hand-edited backup could hold `timeframe: "Next Tuesday"`. `buildTimeline` ignores any value not in `TIMEFRAMES`: the entry stays off the timeline and still shows in its section. No crash, no warning needed.
 - **v1 backups.** v1 had no responsibilities section (`src/core/migrate.ts`), so no impact.
-- **Fixtures.** Add a v2 fixture with timeframes set (including one unknown value) for the round-trip and unknown-value tests. Existing fixtures without the field stay as the "before this change" case.
+- **Fixtures.** Add a v3 fixture with timeframes set (including one unknown value) for the round-trip and unknown-value tests. Existing fixtures without the field stay as the "before this change" case.
 
 ## Test plan
 
