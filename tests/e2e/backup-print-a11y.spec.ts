@@ -2,7 +2,7 @@ import { readFileSync, writeFileSync, mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import AxeBuilder from '@axe-core/playwright';
-import { test, expect, nav, addRecord, storedPlan } from './fixtures';
+import { test, expect, nav, addRecord, storedPlan, skipPdf } from './fixtures';
 import type { Page } from '@playwright/test';
 
 async function restoreFile(page: Page, path: string) {
@@ -20,8 +20,9 @@ function tmpFile(name: string, text: string) {
 test('export and restore round trip with preview and confirmation', async ({ app }) => {
   await addRecord(app, 'People', { 'Full name': 'Alex Morgan', 'Address': '123 Example Street' });
   await nav(app, 'Settings and backup');
-  const [dl] = await Promise.all([app.waitForEvent('download'), app.getByRole('button', { name: 'Export backup' }).last().click()]);
-  expect(dl.suggestedFilename()).toMatch(/^family-continuity-backup-\d{4}-\d{2}-\d{2}\.json$/);
+  const [dl] = await Promise.all([app.waitForEvent('download'), app.getByRole('button', { name: 'Export .json' }).click()]);
+  await skipPdf(app);
+  expect(dl.suggestedFilename()).toMatch(/^WhenImGone_\d{4}-\d{2}-\d{2}_\d{4}(_\d{2})?\.json$/);
   const exported = JSON.parse(readFileSync(await dl.path(), 'utf8'));
   expect(exported.schema).toBe('family-continuity-planner');
   expect(exported.records.people[0].name).toBe('Alex Morgan');
@@ -36,6 +37,9 @@ test('export and restore round trip with preview and confirmation', async ({ app
   await expect(replace).toBeDisabled();
   // Offer to export the current plan first.
   await Promise.all([app.waitForEvent('download'), dialog.getByRole('button', { name: 'Export my current plan first' }).click()]);
+  // That export offers the PDF too; skipping returns to the restore preview.
+  await skipPdf(app);
+  await expect(dialog).toBeVisible();
   await dialog.getByLabel(/I understand this replaces/).check();
   await replace.click();
   await nav(app, 'People');
@@ -92,7 +96,7 @@ test('printed packet: Start Here first, private details withheld by default, con
   await addRecord(app, 'Accounts', { 'Institution or service': 'Sample Credit Union', 'Last four digits or safe hint': 'ends 0000', 'Where access instructions are stored': 'Password manager' });
   await addRecord(app, 'Emergency plans', { 'Plan name': 'Power outage', 'When to use this plan': 'Power out', 'Steps, one per line': 'Check breakers\nCall utility' });
   await app.getByRole('button', { name: 'Print' }).first().click();
-  const dialog = app.getByRole('dialog', { name: 'Print the continuity packet' });
+  const dialog = app.getByRole('dialog', { name: 'Print your plan' });
   await expect(dialog.getByLabel('Include private details')).not.toBeChecked();
   await dialog.getByRole('button', { name: 'Print' }).click();
   await expect.poll(() => app.evaluate(() => (window as unknown as { __printed: number }).__printed)).toBe(1);
@@ -162,7 +166,7 @@ test('mobile: closed menu is not keyboard reachable; opening and Escape work', a
   expect(await app.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true);
 });
 
-const VIEWS = ['Overview', 'Get started', 'Start Here', 'Who handles what', 'People', 'Accounts', 'Checklist', 'Continuity review', 'Settings and backup'];
+const VIEWS = ['Overview', 'Planning questions', 'Start Here', 'Who handles what', 'People', 'Accounts', 'Checklist', 'Suggestions', 'Settings and backup'];
 
 for (const theme of ['light', 'dark'] as const) {
   test(`no automatically detectable accessibility violations (${theme})`, async ({ app }) => {
@@ -201,13 +205,13 @@ test('the original v1 app refuses v2 backups instead of silently dropping record
 });
 
 test('online copy shows where data lives, and the notice can be acknowledged', async ({ browser }) => {
-  // Serve the built file at the GitHub Pages address without any real network access.
+  // Serve the built file at the hosted address without any real network access.
   const html = readFileSync('dist/index.html', 'utf8');
   const ctx = await browser.newContext();
   const unexpected: string[] = [];
   await ctx.route('**/*', (route) => {
     const url = route.request().url();
-    if (url === 'https://graybound.github.io/family-continuity-planner/') return route.fulfill({ body: html, contentType: 'text/html' });
+    if (url === 'https://whenimgone.grayhek.com/') return route.fulfill({ body: html, contentType: 'text/html' });
     unexpected.push(url);
     return route.abort();
   });
@@ -218,10 +222,17 @@ test('online copy shows where data lives, and the notice can be acknowledged', a
   // reports the CSP block as a console error. The CSP doing its job is not a page error.
   const firefoxFavicon = (t: string) => t.includes('FaviconLoader') && t.includes('/favicon.ico');
   page.on('console', (m) => m.type() === 'error' && !firefoxFavicon(m.text()) && errors.push(m.text()));
-  await page.goto('https://graybound.github.io/family-continuity-planner/');
+  await page.goto('https://whenimgone.grayhek.com/');
   const notice = page.locator('.banner').filter({ hasText: 'You are using the online version' });
   await expect(notice).toBeVisible();
-  await expect(notice).toContainText('never sent to GitHub');
+  await expect(notice).toContainText('never sent anywhere');
+  // The notice points at Export backup, not at a GitHub download tutorial.
+  await expect(notice).toContainText('Export backup saves a copy of the app and your plan that opens offline');
+  await expect(notice.getByRole('button', { name: 'How to download' })).toHaveCount(0);
+  const [dl] = await Promise.all([page.waitForEvent('download'), notice.getByRole('button', { name: 'Export backup' }).click()]);
+  await skipPdf(page);
+  expect(dl.suggestedFilename()).toMatch(/^WhenImGone_.*\.html$/);
+  expect(readFileSync((await dl.path())!, 'utf8')).toContain('id="when-im-gone-plan"');
   await notice.getByRole('button', { name: 'Got it' }).click();
   await expect(notice).toHaveCount(0);
   await page.reload();
