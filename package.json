@@ -4,7 +4,7 @@
   "private": true,
   "description": "A private, local-first planner for documenting the practical knowledge your family needs if you are no longer available to help.",
   "license": "MIT",
-  "homepage": "https://graybound.github.io/family-continuity-planner/",
+  "homepage": "https://whenimgone.grayhek.com/",
   "repository": {
     "type": "git",
     "url": "https://github.com/Graybound/family-continuity-planner"
