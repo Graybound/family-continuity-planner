@@ -66,7 +66,7 @@ Stay private: `people.address`, `health.details`, `health.instructions`, `home.a
 
 Keep the stored preference as is (`includePrivateInPrint`), no schema change.
 
-**Decision for Noah:** which option is selected by default. Recommendation: keep Option B as the default, because the flag changes above already put every pointer on the page, and a copy that leaks is worse than a copy that needs a tick. If you disagree, flipping the default is a one-line change in `blankPlan`.
+**Decided by Noah (November 2026):** how to get into the accounts must be printed when the creator has written it. The flag changes above make `accounts.access` and the other pointers not private, so they print in the default printout. Option B stays the default, so real secrets (the fields that stay private) are still left out unless the creator ticks Option A. Flipping the default later is a one-line change in `blankPlan`.
 
 **Data impact.** None. Field flags are code, not data. Privacy mode on screen will also show these fields; update PRIVACY.md's list of private fields and `docs/backup-format.md` where it marks fields with (P).
 
@@ -89,7 +89,7 @@ b. **Accounts callout rewrite** (`accounts.callout` in `src/core/sections.ts`):
 
 c. **New Accounts field** `signInCodes`, label `Sign-in codes go to`, select: `Text message to my phone`, `An app on my phone`, `Email`, `A security key`, `No codes`, `Not sure`. Help: `If codes go to your phone, your family will need the phone and a way to unlock it. Write where the unlock code is kept, not the code.` Not private.
 
-d. **New readiness requirement, Basic level**, id `basic-access`, label `Say how your family can get into your accounts`. Met when at least one Accounts record has type `Password manager or login list` and a non-empty `access`. Target: Accounts, new entry, prefilled with that type. Rationale: this is more basic than an emergency plan for most households. Update `docs/readiness-and-audit.md`. Consequence: existing plans at Basic drop to Getting Started until they add it. Acceptable before real plans exist; say so in the CHANGELOG.
+d. **New readiness requirement, Basic level** (decided by Noah, November 2026), id `basic-access`, label `Say how your family can get into your accounts`. Met when at least one Accounts record has type `Password manager or login list` and a non-empty `access`. Target: Accounts, new entry, prefilled with that type. Rationale: this is more basic than an emergency plan for most households. Update `docs/readiness-and-audit.md`. Consequence: existing plans at Basic drop to Getting Started until they add it. Acceptable before real plans exist; say so in the CHANGELOG.
 
 e. **Cover page and reader header line.** Below "First person to contact" on the printed cover (`src/ui/print.ts`, cover part), add `How to get into accounts: {name}. {access}` from the first `Password manager or login list` record, left out when there is none. The reader view header in [reader-mode.md](reader-mode.md) should show the same line under its trusted contact sentence. That is the whole change to that spec.
 
