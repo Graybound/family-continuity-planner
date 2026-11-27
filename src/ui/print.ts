@@ -139,9 +139,15 @@ export function printPacket(plan: Plan, includePrivate: boolean, opts: { title?:
   }
   const before = document.title;
   document.title = opts.title;
-  // print() blocks in some browsers and returns at once in others; afterprint covers both.
-  window.addEventListener('afterprint', () => {
-    document.title = before;
-  }, { once: true });
+  // iPhone Safari returns from print() and fires afterprint before its share sheet reads the
+  // title, so restoring on afterprint named the PDF after the app (device test, 26 Nov 2026).
+  // Keep the file's name until the person next touches the page; the next render also resets it.
+  const restore = () => {
+    if (document.title === opts.title) document.title = before;
+    window.removeEventListener('pointerdown', restore, true);
+    window.removeEventListener('keydown', restore, true);
+  };
+  window.addEventListener('pointerdown', restore, true);
+  window.addEventListener('keydown', restore, true);
   window.print();
 }

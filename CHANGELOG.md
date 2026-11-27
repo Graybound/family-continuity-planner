@@ -48,6 +48,8 @@ All notable changes are listed here. The project follows [Semantic Versioning](h
 
 ### Fixed
 
+- On iPhone, the PDF from "Save the PDF" was named after the app instead of matching the saved file. The page now keeps the file's name until you next tap it, and the dialog says what to name the PDF.
+- The readable copy in a saved file now says plainly that the file is the whole planner app, not only a printout, and that a computer or Android phone opens it ready to change.
 - Long text could be cut short after a reload; fields now stop at the length a reload keeps
 - Escape, Close, or Cancel in a form with typed changes now asks before discarding them
 - Privacy mode no longer shows private fields in the edit dialog until "Show private details" is pressed; saving keeps them
