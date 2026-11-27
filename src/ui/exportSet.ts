@@ -50,7 +50,8 @@ export function openExportSetDialog(opts: { fileName: string; stem: string; save
     description: about,
     body: [
       h('h3', null, 'Step 2 of 2: save a PDF too'),
-      h('p', null, 'A PDF opens on any phone or computer, even where the plan file can\'t. In the print window, choose ', h('strong', null, 'Save as PDF'), ' as the printer, then save. It will be named to match.'),
+      h('p', null, 'A PDF opens on any phone or computer, even where the plan file can\'t. In the print window, choose ', h('strong', null, 'Save as PDF'), ' as the printer, then save. On an iPhone or iPad, tap the share button in the print window, then ', h('strong', null, 'Save to Files'), '.'),
+      h('p', null, 'Name the PDF ', h('strong', null, `${opts.stem}.pdf`), ' so it sits next to the plan file. Most computers suggest that name; if yours suggests another, change it.'),
       h('div', { class: 'check-row' }, box, h('div', null,
         h('label', { attrs: { for: privId } }, h('strong', null, 'Include private details')),
         h('small', { attrs: { id: `${privId}-help` } }, 'This PDF is for your family. It includes private details, like the plan file does.'),

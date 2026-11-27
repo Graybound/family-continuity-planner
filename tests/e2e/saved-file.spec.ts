@@ -121,6 +121,7 @@ test('with scripts off, a saved file shows the whole plan to read and how to ope
       await expect(copy, engine).toContainText(/Alex Morgan's plan, saved \w+day, \w+ \d{1,2}, \d{4} at \d{1,2}:\d{2}/);
       await expect(copy, engine).toContainText('the one with the latest date in its name is the newest');
       await expect(copy.getByText('On an iPhone or iPad:'), engine).toBeVisible();
+      await expect(copy, engine).toContainText('This file is the whole planner app with this plan inside');
       await expect(copy.getByRole('heading', { name: 'Start here' }), engine).toBeVisible();
       await expect(copy.getByRole('link', { name: '555-0140' }), engine).toHaveAttribute('href', 'tel:5550140');
       await expect(copy.getByRole('link', { name: 'pat@example.com' }), engine).toHaveAttribute('href', 'mailto:pat@example.com');
@@ -293,12 +294,20 @@ test('every export offers a PDF named like the file, with private details and th
     const dialog = app.getByRole('dialog', { name: `Saved ${dl.suggestedFilename()}` });
     await expect(dialog.getByRole('heading', { name: 'Step 2 of 2: save a PDF too' })).toBeVisible();
     await expect(dialog.getByLabel('Include private details')).toBeChecked();
+    await expect(dialog).toContainText(`Name the PDF ${stem}.pdf`);
     const titleBefore = await app.title();
+    const printsBefore = await app.evaluate(() => (window as unknown as { __printTitles: string[] }).__printTitles.length);
     await dialog.getByRole('button', { name: 'Save the PDF' }).click();
-    await expect.poll(() => app.evaluate(() => (window as unknown as { __printTitles: string[] }).__printTitles.at(-1))).toBe(stem);
+    // Wait for this print, not the last one: two exports in the same second share a name.
+    await expect.poll(() => app.evaluate(() => (window as unknown as { __printTitles: string[] }).__printTitles.length)).toBe(printsBefore + 1);
+    expect(await app.evaluate(() => (window as unknown as { __printTitles: string[] }).__printTitles.at(-1))).toBe(stem);
     const packet = await app.evaluate(() => (window as unknown as { __printPacket: string[] }).__printPacket.at(-1)!);
     expect(packet, button).toMatch(/Alex Morgan's plan, saved \w+day, .* the latest date in its name is the newest\./);
     expect(packet, button).toContain('12 Example Lane');
+    // The name stays after the print window returns (iPhone reads it later), until the page is touched.
+    // The stub fires afterprint at once, as iPhone Safari does.
+    expect(await app.title()).toBe(stem);
+    await app.locator('#view').click({ position: { x: 5, y: 5 } });
     await expect.poll(() => app.title()).toBe(titleBefore);
   }
 });

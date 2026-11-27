@@ -124,6 +124,13 @@ export function buildPacket(plan: Plan, opts: PacketOptions): HTMLElement {
   return out;
 }
 
+let heldTitle: string | null = null;
+
+/** The file name the page title must keep while a PDF of it may still be being saved, if any. */
+export function heldPrintTitle(): string | null {
+  return heldTitle;
+}
+
 /**
  * Print the packet. With a title, the page title is that name while the print
  * window is open, because Chrome and Edge suggest the title as the PDF's file name.
@@ -139,9 +146,17 @@ export function printPacket(plan: Plan, includePrivate: boolean, opts: { title?:
   }
   const before = document.title;
   document.title = opts.title;
-  // print() blocks in some browsers and returns at once in others; afterprint covers both.
-  window.addEventListener('afterprint', () => {
-    document.title = before;
-  }, { once: true });
+  heldTitle = opts.title;
+  // iPhone Safari returns from print() and fires afterprint before its share sheet reads the
+  // title, so restoring on afterprint named the PDF after the app (device test, 26 Nov 2026).
+  // Keep the file's name, even across renders, until the person next touches the page.
+  const restore = () => {
+    heldTitle = null;
+    if (document.title === opts.title) document.title = before;
+    window.removeEventListener('pointerdown', restore, true);
+    window.removeEventListener('keydown', restore, true);
+  };
+  window.addEventListener('pointerdown', restore, true);
+  window.addEventListener('keydown', restore, true);
   window.print();
 }

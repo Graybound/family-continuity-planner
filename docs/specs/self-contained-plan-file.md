@@ -215,7 +215,7 @@ Noah's decision, 26 November 2026. Mixed households are normal (here: the creato
    > **Step 2 of 2: save a PDF too.** A PDF opens on any phone or computer, even where the plan file can't. Choose **Save as PDF** as the printer, then save.
    > [Save the PDF] [Skip for now]
 
-   "Save the PDF" opens the existing print packet with the browser's print dialog. While the dialog is open, `document.title` is set to `WhenImGone_2026-11-26_1432_05`, and the title goes back afterwards. Chrome and Edge suggest the page title as the PDF's file name, so the PDF matches the HTML (believed for Chrome; UNVERIFIED for Edge, Firefox and Safari; must be checked by hand, because a test can't drive the print dialog).
+   "Save the PDF" opens the existing print packet with the browser's print dialog. While the dialog is open, `document.title` is set to `WhenImGone_2026-11-26_1432_05`, and the title goes back afterwards. Chrome and Edge suggest the page title as the PDF's file name, so the PDF matches the HTML (believed for Chrome; UNVERIFIED for Edge, Firefox and Safari; must be checked by hand, because a test can't drive the print dialog). Device test, 26 November 2026: iPhone Safari named the PDF after the app ("Family Continuity Planner.pdf"). Likely cause: it fires `afterprint` before its share sheet reads the title, so the title is now kept until the next tap or key press (UNVERIFIED until retested). The dialog also shows the name to use.
 4. The print packet shows the same banner as the app and the readable copy: "This copy was saved Thursday, November 26, 2026 at 2:32 PM. If you have several copies, the one with the latest date in its name is the newest." Both files come from one save, so both carry the same time.
 
 Rules:
