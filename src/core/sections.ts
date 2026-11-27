@@ -21,15 +21,21 @@ export interface FieldDef {
   help?: string;
 }
 
+/**
+ * Sections in the order the creator should fill them in. The sidebar, the
+ * overview and the readiness next steps all follow this order, so the
+ * suggested next step is always the next page down the list. A unit test
+ * keeps the readiness requirements in the same order.
+ */
 export const SECTION_IDS = [
-  'responsibilities',
-  'people',
   'contacts',
-  'health',
-  'home',
-  'accounts',
-  'documents',
   'plans',
+  'documents',
+  'responsibilities',
+  'accounts',
+  'home',
+  'people',
+  'health',
   'notes',
 ] as const;
 
@@ -69,6 +75,28 @@ export const AREA_LABELS = {
 } as const;
 
 export type AreaId = keyof typeof AREA_LABELS;
+
+/**
+ * One line of examples per area for the planning questions, so the creator
+ * does not have to guess what an area covers. Display text only; the stored
+ * value is the area id.
+ */
+export const AREA_HINTS: Record<AreaId, string> = {
+  finances: 'Paying bills, bank accounts, the budget.',
+  household: 'Groceries, cleaning, school forms, everyday errands.',
+  technology: 'Wi-Fi, computers, phones, the TV, smart home devices.',
+  maintenance: 'Repairs, the furnace, gutters, calling a plumber.',
+  vehicles: 'Insurance, registration, servicing, repairs.',
+  taxes: 'Filing taxes and keeping the records.',
+  insurance: 'Home, car, health and life insurance policies.',
+  children: 'Schedules, school, activities, care.',
+  pets: 'Feeding, the vet, medication, who can take them.',
+  healthcare: 'Appointments, prescriptions, insurance claims.',
+  coordination: 'Keeping family and friends informed, birthdays, plans.',
+  work: 'A job, a business, or clients who depend on you.',
+  records: 'Where the will, deeds, passports and certificates are.',
+  digital: 'Email, photos, cloud storage, subscriptions, websites.',
+};
 export const AREA_IDS = Object.keys(AREA_LABELS) as AreaId[];
 
 /** Responsibility "domain" options are the area labels plus Other, so audit rules can match them. */

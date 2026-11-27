@@ -11,6 +11,7 @@
   .print-packet .multiline, .print-packet dd, .print-packet .pk-text p { white-space: pre-wrap; overflow-wrap: anywhere; }
   .pk-cover { min-height: 8.5in; display: flex; flex-direction: column; justify-content: center; break-after: page; }
   .pk-cover .pk-sub { font-size: 14pt; color: #333; margin-bottom: 24pt; }
+  .pk-cover .pk-saved { font: 11pt/1.4 Arial, sans-serif; margin: -12pt 0 20pt; }
   .pk-cover dl { display: grid; grid-template-columns: auto 1fr; gap: 4pt 14pt; font: 11pt Arial, sans-serif; }
   .pk-cover dt { font-weight: bold; }
   .pk-cover dd { margin: 0; }
