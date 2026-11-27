@@ -8,7 +8,7 @@ It is a single file that runs in your web browser. No account, no subscription, 
 
 **How to use it:** open [whenimgone.grayhek.com](https://whenimgone.grayhek.com/). Nothing to install. Your plan is saved only in that browser on that device and is never sent anywhere.
 
-**Keep an offline copy:** click **Export backup**. It saves one file, like `WhenImGone_2026-11-26_1432.html`, that holds the whole app and your plan. Double-click it on any computer and the plan opens, with no internet and no website needed. Keep it on a USB drive or in a private folder.
+**Keep an offline copy:** click **Export backup**. It saves one file, like `WhenImGone_2026-11-26_1432_05.html`, that holds the whole app and your plan. Double-click it on any computer and the plan opens, with no internet and no website needed. Keep it on a USB drive or in a private folder.
 
 ![Overview with fictional sample data](docs/screenshots/overview-light.png)
 
@@ -72,7 +72,7 @@ Copy the file made by **Export backup** there and double-click it.
 
 ## Backing up and restoring
 
-- **Export:** the **Export backup** button (top bar, or Settings and backup) downloads `WhenImGone_YYYY-MM-DD_HHMM.html`: the whole app with your plan inside, which opens offline on its own. **Export .json** in Settings saves only the plan data. After either one, the app offers a PDF of the plan with the same name, through your browser's print window (choose **Save as PDF**). The PDF opens on any phone, even where the plan file can't. Do this after any significant change, then send a copy to the phone or computer your family uses and open it there once. Readiness levels and the review page remind you when the last backup is old.
+- **Export:** the **Export backup** button (top bar, or Settings and backup) downloads `WhenImGone_YYYY-MM-DD_HHMM_SS.html` (with your name after `WhenImGone_` once Settings has it): the whole app with your plan inside, which opens offline on its own. **Export .json** in Settings saves only the plan data. After either one, the app offers a PDF of the plan with the same name, through your browser's print window (choose **Save as PDF**). The PDF opens on any phone, even where the plan file can't. Do this after any significant change, then send a copy to the phone or computer your family uses and open it there once. Readiness levels and the review page remind you when the last backup is old.
 - **Store it privately.** The file is plain text and not encrypted. Keep it in a place only you and trusted people can reach, and tell one trusted person where it is. An encrypted USB drive or an encrypted folder is a good choice.
 - **Restore:** Settings and backup, then **Restore from file**, and pick a saved `.html` file or a `.json` backup. You will see what the file contains, any problems that were fixed, and how your current plan will be affected. You can export your current plan first. Nothing changes until you confirm.
 - **Old backups** made by the original single-file version (the `version: 1` format) restore and are upgraded automatically. Details: [docs/backup-format.md](docs/backup-format.md).

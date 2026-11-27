@@ -20,7 +20,7 @@ She needs one file. Open it and the plan is there, offline. She can read it on a
 Recommended answers first. Each is argued in the section named.
 
 1. **Each file is self-contained; no plan id** (Noah, 26 November 2026, replacing the earlier plan id design). Opening a file always shows the plan inside it. Browser storage only holds a crash-safety draft keyed to the file's own address. There is no newer/older comparison between files. See "2".
-2. **Save always makes a new, uniquely named file** (`WhenImGone_2026-11-26_1432.html`, Noah's naming decision). By default it downloads. On Chrome and Edge desktop, an optional setup lets Save write the new file straight into a chosen folder instead of Downloads. **Saving over the same file is dropped**: it would leave an old date in the name of the newest copy, which breaks "the latest date in the name is the newest". See "2" and "10".
+2. **Save always makes a new, uniquely named file** (`WhenImGone_2026-11-26_1432_05.html`, Noah's naming decision). By default it downloads. On Chrome and Edge desktop, an optional setup lets Save write the new file straight into a chosen folder instead of Downloads. **Saving over the same file is dropped**: it would leave an old date in the name of the newest copy, which breaks "the latest date in the name is the newest". See "2" and "10".
 3. **iPhone: read in the preview, edit on a computer.** There is no built-in way to run a local HTML file's scripts on iPhone. The only free route found (an Apple Shortcut) can't keep changes between visits. See "5. Running it on phones".
 4. **No .webarchive.** It doesn't open on Windows, Android, Chrome or Firefox, and nothing shows it runs scripts on iPhone. See "7".
 5. **No passphrase.** Decided by Noah, 26 November 2026: no passphrase by default, and the plan never stores secrets. Final call from the secrets handoff work (PR #26): no passphrase, not even optional. This spec builds none. See "8".
@@ -208,21 +208,21 @@ Noah's decision, 26 November 2026. Mixed households are normal (here: the creato
 
 ### What Save does
 
-1. Fixes the timestamp for this save, for example `2026-11-26_1432`.
-2. Downloads `WhenImGone_2026-11-26_1432.html` (sections 1 to 3).
+1. Fixes the timestamp for this save, for example `2026-11-26_1432_05`.
+2. Downloads `WhenImGone_2026-11-26_1432_05.html` (sections 1 to 3).
 3. Shows a second step in the same dialog:
 
    > **Step 2 of 2: save a PDF too.** A PDF opens on any phone or computer, even where the plan file can't. Choose **Save as PDF** as the printer, then save.
    > [Save the PDF] [Skip for now]
 
-   "Save the PDF" opens the existing print packet with the browser's print dialog. While the dialog is open, `document.title` is set to `WhenImGone_2026-11-26_1432`, and the title goes back afterwards. Chrome and Edge suggest the page title as the PDF's file name, so the PDF matches the HTML (believed for Chrome; UNVERIFIED for Edge, Firefox and Safari; must be checked by hand, because a test can't drive the print dialog).
+   "Save the PDF" opens the existing print packet with the browser's print dialog. While the dialog is open, `document.title` is set to `WhenImGone_2026-11-26_1432_05`, and the title goes back afterwards. Chrome and Edge suggest the page title as the PDF's file name, so the PDF matches the HTML (believed for Chrome; UNVERIFIED for Edge, Firefox and Safari; must be checked by hand, because a test can't drive the print dialog).
 4. The print packet shows the same banner as the app and the readable copy: "This copy was saved Thursday, November 26, 2026 at 2:32 PM. If you have several copies, the one with the latest date in its name is the newest." Both files come from one save, so both carry the same time.
 
 Rules:
 
 - **No new dependency, no in-app PDF generation.** The browser's print dialog is the only way to make the PDF. That means the PDF can't be made without a click, and the app can't confirm it was saved. "Skip for now" leaves a quiet line next to Save: "No PDF saved with this copy". The next save offers step 2 again.
 - **Private details in the PDF.** The print dialog keeps its existing "include private details" choice. In the export set it starts checked, with the line "This PDF is for your family. It includes private details, like the plan file does." Reason: the PDF exists to stand in for the HTML file where that can't run, and the HTML file already holds everything. Ordinary Print keeps today's default.
-- **The PDF is offered on every save, not only from a menu.** Step 2 appears after every Save, and after every export under "Other formats" (the JSON backup gets `WhenImGone_..._1432.json` plus the same PDF step). The only way past it is "Skip for now", which is a visible choice each time.
+- **The PDF is offered on every save, not only from a menu.** Step 2 appears after every Save, and after every export under "Other formats" (the JSON backup gets `WhenImGone_..._1432_05.json` plus the same PDF step). The only way past it is "Skip for now", which is a visible choice each time.
 - **Print or save as PDF** also stays as its own button next to Save, for printing paper at any time. No silent fallback to print anywhere: printing is always a visible choice.
 - On phones, printing to PDF is awkward (UNVERIFIED by device). The export set is a creator task on a computer; the instructions don't ask the reader to make one.
 
@@ -309,9 +309,9 @@ Recommendation: no passphrase. The plan by design holds no passwords (PROJECT_SP
 
 Noah's decision, 26 November 2026.
 
-- **File name:** `WhenImGone_<Name>_YYYY-MM-DD_HHMM.html`, 24-hour local time of the saving device, for example `WhenImGone_Noah_Grayhek_2026-11-26_1432.html`, or `WhenImGone_2026-11-26_1432.html` when no owner name is entered. JSON export uses the same pattern with `.json`. Copies of one plan sort oldest to newest by name in any folder. No colons (Windows forbids them), no apostrophe.
+- **File name:** `WhenImGone_<Name>_YYYY-MM-DD_HHMM_SS.html`, 24-hour local time of the saving device, for example `WhenImGone_Noah_Grayhek_2026-11-26_1432_05.html`, or `WhenImGone_2026-11-26_1432_05.html` when no owner name is entered. JSON export uses the same pattern with `.json`. Copies of one plan sort oldest to newest by name in any folder. No colons (Windows forbids them), no apostrophe.
 - **Owner name in the file name** (Noah, 26 November 2026): spaces become underscores; letters and digits in any language are kept (José, Zoë); everything else is dropped, including apostrophes and the characters Windows or macOS refuse; capped at 40 characters (`fileNamePart` in `src/core/embedded.ts`, built in PR #31). The owner name is a new plan field in schema v3.
-- **Seconds only on a clash:** if this plan was already exported in the same minute (from `info.lastExportedAt`), the name gets seconds after another underscore: `WhenImGone_2026-11-26_1432_05.html`. Not `_143205`: Windows Explorer and macOS Finder sort numbers by value, so `143205` would land after `1433` and the newest copy would no longer be last. With `_1432_05`, plain text sorting and number-aware sorting agree: `_1432.html`, then `_1432_05.html`, then `_1433.html` (`.` sorts before `_`). Tested in unit tests for plain and number-aware ordinal sorting. Not true for every sort: ICU collation, which ignores punctuation, puts `_1432_05` before `_1432`, and macOS Finder may sort that way (UNVERIFIED). Always adding seconds would fix every case; Noah chose seconds only on a clash. Clashes across two devices can't be seen; the browser's own " (1)" handles those.
+- **Seconds, always** (Noah's decision, 27 November 2026; replaces "seconds only on a clash"): every name ends in seconds after another underscore, `WhenImGone_2026-11-26_1432_05.html`. With every name the same shape, plain text sorting, number-aware sorting (Windows Explorer, macOS Finder) and punctuation-blind ICU collation all agree, so the newest copy is last. Tested in unit tests. Two saves in the same second on one device, or clashes across two devices, get the browser's own " (1)".
 - **Saved time inside the file:** `savedAt`, ISO 8601 with the saving device's offset (`2026-11-26T14:32:05-06:00`). It is the file's version: it drives the file name and the banner. `exportedAt` stays in UTC for older apps. Built in PR #31.
 - **Banner, in the app and at the top of the readable copy:** "Noah Grayhek's plan, saved Thursday, November 26, 2026 at 2:32 PM. If you have several copies, the one with the latest date in its name is the newest." Without an owner name: "This plan was saved Thursday, ...". The date is formatted with `Intl.DateTimeFormat` (weekday, month name, day, year, hour, minute) in the reader's language, from the wall-clock parts of `savedAt`. In the app the banner stays for the session and can be collapsed, not removed.
 - **Page title:** "{plan name}, saved {date}", so the tab and the Quick Look header say which copy it is.
@@ -324,7 +324,7 @@ Noah's decision, 26 November 2026.
 
 ## Acceptance criteria
 
-- [ ] Save downloads one file named like `WhenImGone_Noah_Grayhek_2026-11-26_1432.html` (or `WhenImGone_2026-11-26_1432.html` without a name) with the current local date and time; two saves in the same minute get different names; a folder of saved copies sorted by name puts the newest last.
+- [ ] Save downloads one file named like `WhenImGone_Noah_Grayhek_2026-11-26_1432_05.html` (or `WhenImGone_2026-11-26_1432_05.html` without a name) with the current local date and time to the second; two saves in the same minute get different names; a folder of saved copies sorted by name puts the newest last.
 - [ ] The app and the readable copy both show "{Name}'s plan, saved {weekday, date} at {time}" matching the file name, and the line about the latest date being the newest.
 - [ ] Offline, double-clicking it on Windows (Edge) and Mac (Safari) opens the full app on that plan. A change, then Save, gives a new file that opens with the change.
 - [ ] On Chrome, two different plan files opened one after the other each show their own plan; editing one never changes the other.
