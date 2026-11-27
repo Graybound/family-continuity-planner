@@ -44,7 +44,7 @@ async function openSaved(browser: Browser, path: string) {
 test('Export backup saves the app with the plan inside, named by local date and time', async ({ app }) => {
   await addRecord(app, 'People', { 'Full name': 'Alex Morgan', Notes: HOSTILE });
   const { path, name } = await exportSavedFile(app);
-  expect(name).toMatch(/^WhenImGone_\d{4}-\d{2}-\d{2}_\d{4}(_\d{2})?\.html$/);
+  expect(name).toMatch(/^WhenImGone_\d{4}-\d{2}-\d{2}_\d{4}_\d{2}\.html$/);
   const html = readFileSync(path, 'utf8');
   expect(html.startsWith('<!doctype html>')).toBe(true);
   expect(html).toContain('http-equiv="Content-Security-Policy"');
@@ -63,7 +63,7 @@ test('with Your name filled in, saved file names start with it', async ({ app })
   await app.getByLabel('Your name').fill('Zoë Morgan-Lee');
   await app.getByRole('button', { name: 'Save details' }).click();
   const { name } = await exportSavedFile(app);
-  expect(name).toMatch(/^WhenImGone_Zoë_Morgan_Lee_\d{4}-\d{2}-\d{2}_\d{4}(_\d{2})?\.html$/);
+  expect(name).toMatch(/^WhenImGone_Zoë_Morgan_Lee_\d{4}-\d{2}-\d{2}_\d{4}_\d{2}\.html$/);
 });
 
 test('a saved file opens from disk with the same plan in every engine', async ({ app }) => {

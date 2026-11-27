@@ -2,10 +2,10 @@
 
 Backups are UTF-8 JSON, readable in any text editor, so a family can recover information even without the app. They come in two files:
 
-- **Saved plan file** (`WhenImGone_YYYY-MM-DD_HHMM.html`, made by Export backup): the whole app with the backup JSON inside `<script type="application/json" id="when-im-gone-plan">`. In that block, `<`, `>`, `&`, U+2028 and U+2029 are written as `\u003c`, `\u003e`, `\u0026`, `\u2028` and `\u2029`, which are ordinary JSON escapes. Restore reads the block and checks it exactly like a JSON file.
-- **JSON backup** (`WhenImGone_YYYY-MM-DD_HHMM.json`, made by Export .json): the same JSON on its own.
+- **Saved plan file** (`WhenImGone_YYYY-MM-DD_HHMM_SS.html`, made by Export backup): the whole app with the backup JSON inside `<script type="application/json" id="when-im-gone-plan">`. In that block, `<`, `>`, `&`, U+2028 and U+2029 are written as `\u003c`, `\u003e`, `\u0026`, `\u2028` and `\u2029`, which are ordinary JSON escapes. Restore reads the block and checks it exactly like a JSON file.
+- **JSON backup** (`WhenImGone_YYYY-MM-DD_HHMM_SS.json`, made by Export .json): the same JSON on its own.
 
-Names use the local date and time of the save. A second save in the same minute adds seconds: `WhenImGone_2026-11-26_1432_05`.
+Names use the local date and time of the save, always with seconds, and the owner's name when Settings has one: `WhenImGone_Alex_Morgan_2026-11-26_1432_05`. Every name has the same shape, so sorting by name puts the newest copy last in any file manager.
 
 ## Version 3 (current)
 
