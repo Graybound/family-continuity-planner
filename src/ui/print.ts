@@ -19,13 +19,29 @@ export interface PacketOptions {
   includePrivate: boolean;
   parts?: PacketPart[];
   today?: string;
+  /** End with the "Printed on" footer (default true). */
+  footer?: boolean;
+  /** Make phone numbers and email addresses tappable links (the readable copy in a saved file). */
+  links?: boolean;
+  /** Which saved copy this packet belongs to, shown on the cover (the export set's PDF). */
+  savedLine?: string;
+}
+
+/** A tel: or mailto: link for a phone or email field, or the plain text when it does not look like one. */
+function contactLink(key: string, v: string): Child {
+  if (key === 'phone') {
+    const digits = v.replace(/[^\d+]/g, '');
+    return digits.replace(/\D/g, '').length >= 3 ? h('a', { attrs: { href: `tel:${digits}` } }, v) : v;
+  }
+  if (key === 'email' && /^[^\s@<>"]+@[^\s@<>"]+\.[^\s@<>"]+$/.test(v.trim())) return h('a', { attrs: { href: `mailto:${v.trim()}` } }, v);
+  return v;
 }
 
 function paragraphs(text: string): HTMLElement {
   return h('div', { class: 'pk-text' }, text.split(/\n\s*\n/).map((para) => h('p', null, para.trim())));
 }
 
-function recordBlock(plan: Plan, s: SectionId, r: Record<string, string>, includePrivate: boolean, skip: string[] = []): HTMLElement {
+function recordBlock(plan: Plan, s: SectionId, r: Record<string, string>, includePrivate: boolean, skip: string[] = [], links = false): HTMLElement {
   const def = SECTIONS[s];
   const rows: Child[] = [];
   for (const f of def.fields) {
@@ -36,7 +52,7 @@ function recordBlock(plan: Plan, s: SectionId, r: Record<string, string>, includ
     if (f.private && !includePrivate) value = h('span', { class: 'pk-withheld' }, 'Withheld from this printout (private)');
     else if (f.type === 'date') value = formatDate(v);
     else if (s === 'plans' && f.key === 'steps') value = h('ol', { class: 'pk-steps' }, v.split('\n').filter((x) => x.trim()).map((x) => h('li', null, x.trim())));
-    else value = v;
+    else value = links ? contactLink(f.key, v) : v;
     rows.push(h('dt', null, f.label), h('dd', null, value));
   }
   return h('article', { class: 'pk-record' }, h('h3', null, recordTitle(s, r)), rows.length ? h('dl', null, rows) : null);
@@ -62,6 +78,7 @@ export function buildPacket(plan: Plan, opts: PacketOptions): HTMLElement {
       out.append(h('section', { class: 'pk-cover' },
         h('h1', null, name),
         h('p', { class: 'pk-sub' }, 'Practical information for the people who may need to keep things running.'),
+        opts.savedLine ? h('p', { class: 'pk-saved' }, opts.savedLine) : null,
         h('dl', null,
           h('dt', null, 'Printed on'), h('dd', null, formatDate(today)),
           h('dt', null, 'Plan last reviewed'), h('dd', null, plan.info.lastReviewedAt ? formatDate(plan.info.lastReviewedAt) : 'Not yet marked as reviewed'),
@@ -78,14 +95,14 @@ export function buildPacket(plan: Plan, opts: PacketOptions): HTMLElement {
     } else if (part === 'immediate') {
       const first = plan.checklist.filter((c) => c.group === CHECKLIST_GROUPS[0]);
       out.append(h('section', { class: 'pk-section' }, h('h2', null, 'Immediate actions'),
-        plan.records.plans.length ? plan.records.plans.map((r) => recordBlock(plan, 'plans', r, opts.includePrivate)) : null,
+        plan.records.plans.length ? plan.records.plans.map((r) => recordBlock(plan, 'plans', r, opts.includePrivate, [], opts.links)) : null,
         first.length ? [h('h3', null, 'First 24 hours'), checklistList(first)] : null,
         !plan.records.plans.length && !first.length ? empty('No immediate actions have been written down.') : null,
       ));
     } else if (part === 'contacts') {
       out.append(h('section', { class: 'pk-section' }, h('h2', null, 'Trusted contacts'),
         plan.info.trustedContact ? h('p', null, h('strong', null, 'First person to contact: '), plan.info.trustedContact) : null,
-        plan.records.contacts.map((r) => recordBlock(plan, 'contacts', r, opts.includePrivate)),
+        plan.records.contacts.map((r) => recordBlock(plan, 'contacts', r, opts.includePrivate, [], opts.links)),
         !plan.records.contacts.length && !plan.info.trustedContact ? empty('No trusted contacts have been written down.') : null,
       ));
     } else if (part === 'checklist') {
@@ -100,17 +117,31 @@ export function buildPacket(plan: Plan, opts: PacketOptions): HTMLElement {
     } else {
       const list = plan.records[part];
       if (!list.length) continue;
-      out.append(h('section', { class: 'pk-section' }, h('h2', null, SECTIONS[part].title), list.map((r) => recordBlock(plan, part, r, opts.includePrivate))));
+      out.append(h('section', { class: 'pk-section' }, h('h2', null, SECTIONS[part].title), list.map((r) => recordBlock(plan, part, r, opts.includePrivate, [], opts.links))));
     }
   }
-  out.append(h('p', { class: 'pk-footer' }, `Printed ${formatDate(today)} from Family Continuity Planner ${__APP_VERSION__}. This packet is an organizational aid, not legal, financial, or medical advice.`));
+  if (opts.footer !== false) out.append(h('p', { class: 'pk-footer' }, `Printed ${formatDate(today)} from Family Continuity Planner ${__APP_VERSION__}. This packet is an organizational aid, not legal, financial, or medical advice.`));
   return out;
 }
 
-export function printPacket(plan: Plan, includePrivate: boolean): void {
+/**
+ * Print the packet. With a title, the page title is that name while the print
+ * window is open, because Chrome and Edge suggest the title as the PDF's file name.
+ */
+export function printPacket(plan: Plan, includePrivate: boolean, opts: { title?: string; savedLine?: string } = {}): void {
   const target = document.getElementById('print-packet');
   if (!target) return;
   clear(target);
-  target.append(buildPacket(plan, { includePrivate }));
+  target.append(buildPacket(plan, { includePrivate, savedLine: opts.savedLine }));
+  if (!opts.title) {
+    window.print();
+    return;
+  }
+  const before = document.title;
+  document.title = opts.title;
+  // print() blocks in some browsers and returns at once in others; afterprint covers both.
+  window.addEventListener('afterprint', () => {
+    document.title = before;
+  }, { once: true });
   window.print();
 }

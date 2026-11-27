@@ -32,7 +32,7 @@ const VIEW_NAMES: Record<Exclude<Target['view'], 'section'>, string> = {
   settings: 'Settings',
   checklist: 'Checklist',
   'start-here': 'Start Here',
-  'get-started': 'Get started',
+  'get-started': 'Planning questions',
   review: 'Suggestions',
 };
 

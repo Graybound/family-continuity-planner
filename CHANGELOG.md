@@ -4,8 +4,26 @@ All notable changes are listed here. The project follows [Semantic Versioning](h
 
 ## [Unreleased]
 
+### Added
+
+- Every Export backup and Export .json is followed by "Step 2 of 2: save a PDF too". It opens the print window with the PDF named like the file (in Chrome and Edge), private details included, and the save time on the cover. "Skip for now" is always there.
+- A step to send a copy to the family's own phone or computer and open it there once, with an "It opened on their device" checkbox (in the export dialog until ticked, and in Settings). Suggestions remind you until it is ticked, and again after a year.
+- A saved plan file now carries a readable copy of the whole plan, with steps for opening it on a computer, iPhone, or Android phone. Places that show the file without running it (an iPhone preview, a mail app) show this instead of a blank page. Phone numbers and email addresses in it are tappable.
+- Opening a saved plan file shows whose plan it is and when it was saved, for example "Alex Morgan's plan, saved Thursday, November 26, 2026 at 2:32 PM", in the time the person who saved it saw.
+- Accounts now explains how to hand over access without writing down passwords: seven ways, best first (password manager emergency access, a printed emergency kit, keeping the phone working, Apple Legacy Contact, Google Inactive Account Manager, Facebook legacy contact, and what to do about Microsoft accounts), each checked against the company's own help pages.
+- "Practice the handoff once" is on the starter checklist of new plans, and Accounts offers to add it to older plans. Accounts shows when it is done.
+- The entry form warns, while you type, when a field looks like a password, PIN, recovery code, or full card, account, or Social Security number. It never blocks saving.
+- Settings has a "Your name" field. Saved files are then named like `WhenImGone_Alex_Morgan_2026-11-26_1432.html`, so your family can tell whose plan a file is. Accented letters are kept.
+
+### Compatibility
+
+- Plans are now schema version 3. Version 2 backups and saved plans upgrade on their own when opened or restored; nothing is lost. Older versions of the app refuse version 3 backups with a clear message. If an older copy of the app is opened in the same browser after this one, it keeps the newer plan in a recovery copy instead of overwriting it.
+
 ### Changed
 
+- **Export backup saves the app and your plan as one file** (`WhenImGone_YYYY-MM-DD_HHMM.html`) that opens offline by double-clicking it. Restore accepts these files as well as `.json` backups. A saved file always opens on its own plan; changes made in it are kept as a draft tied to that file and offered back if it is closed without saving. **Export .json** in Settings still saves the plan data alone
+- The online-version notice points at Export backup instead of a GitHub download page
+- Backup file names now include the time: `WhenImGone_YYYY-MM-DD_HHMM.json`
 - The online version moved to https://whenimgone.grayhek.com/, served by Cloudflare. The GitHub Pages copy is retired. Plans saved in the old online copy do not move over on their own: open the old copy, export a backup, and restore it in the new one.
 - The online-version notice now says your plan "is never sent anywhere" instead of naming GitHub.
 - On phones, the top bar shows short words (Menu, Privacy, Backup, Print) instead of bare symbols, and search fits on one line
@@ -14,7 +32,19 @@ All notable changes are listed here. The project follows [Semantic Versioning](h
 - Section pages show entries first; the filter appears only once a section has more than five entries, and Section status moves to the end of the page
 - Larger help text and record labels; record labels are no longer all caps
 - Checklist Edit and Delete sit under the task on phones
-- The "This is not a will" notice on the overview sits below the next steps
+- The overview has one button: the next step. "Take the continuity assessment" is now a quiet "Answer a few planning questions" link, and Export backup stays in the top bar
+- The sidebar lists sections in the order the next step asks for them: Trusted contacts, Emergency plans, Documents, Who handles what, Accounts, Home and utilities, People, Health, Notes
+- "Get started" is now "Planning questions" and sits with the creator tools, away from "Start Here"; "Continuity review" is now "Suggestions"
+- Readiness levels have plain names: Just started, Ready for an emergency, Covers everyday life, Thorough and up to date
+- The overview no longer asks for a trusted contact (or a backup) twice: a suggestion is hidden while the same thing is already a next step
+- "This is not a will" is no longer repeated on the overview; it stays in the planning questions, the Documents callout and print
+- "Your plan at a glance" appears once the plan has something in it
+- Planning questions: each area has a line of examples, the step "Who handles what" is now "Who does what today" so it no longer shares a name with a section, and buttons name the page they open
+- Suggestions page buttons name where they lead instead of "Go there"
+- The possible-secret suggestion now also catches "The PIN is 4821" style text, recovery codes, labelled account numbers, and Social Security numbers, and says which kind it found.
+- Encrypted backups are off the roadmap. A forgotten passphrase would lock out the family, and the plan holds no secrets.
+- Start Here: the default note is shorter and plainer about why the family is reading it. The editor now encourages you to open with a last message in your own words, suggests what to say, and offers an example message for ideas (the example is never saved in your plan).
+- Writing guidance: sad is allowed. "No morbid language" is now "no gratuitous or graphic language" (PROJECT_SPEC.md principle 3, CONTRIBUTING.md).
 
 ### Fixed
 

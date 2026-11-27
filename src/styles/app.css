@@ -93,6 +93,8 @@ h2.section-h { font: 24px var(--font-display); margin: 30px 0 12px; }
 .hero p { color: #d6e1e6; margin: 0; max-width: 620px; }
 .hero .eyebrow { color: #ffb08f; }
 .hero .btn:not(.signal) { background: transparent; color: #fff; border-color: rgba(255, 255, 255, .45); }
+.hero .hero-aside { margin-top: 14px; font-size: 15px; }
+.hero .btn.link { color: #fff; padding: 0; font: inherit; }
 .readiness-panel { background: rgba(255, 255, 255, .07); border: 1px solid rgba(255, 255, 255, .18); border-radius: 16px; padding: 18px; }
 .readiness-panel h2 { font: 22px/1.15 var(--font-display); margin: 4px 0 6px; }
 .readiness-panel p { font-size: 14px; }
@@ -157,6 +159,9 @@ h2.section-h { font: 24px var(--font-display); margin: 30px 0 12px; }
 .field textarea { min-height: 96px; resize: vertical; }
 .field input:focus-visible, .field select:focus-visible, .field textarea:focus-visible { outline: 3px solid var(--signal); outline-offset: 1px; }
 .help { color: var(--muted); font-size: 14px; }
+.example-letter { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 12px; }
+.example-letter summary { cursor: pointer; font-weight: 600; }
+.example-letter p { margin: 0.6em 0; }
 .req-star { color: var(--signal-text); }
 .check-row { display: flex; gap: 10px; align-items: flex-start; padding: 10px 0; }
 .check-row input { width: 20px; height: 20px; margin-top: 2px; accent-color: var(--sage); flex: 0 0 auto; }
@@ -267,3 +272,32 @@ dialog::backdrop { background: var(--overlay); }
 @media (prefers-reduced-motion: reduce) {
   * { scroll-behavior: auto !important; transition: none !important; animation: none !important; }
 }
+.field-warning:not(:empty) { display: block; margin-top: 4px; padding: 6px 10px; border-left: 4px solid var(--signal); background: var(--pale-orange); color: var(--callout-text); font-size: 13px; border-radius: 0 8px 8px 0; }
+.handoff-guide { margin: 0 0 18px; }
+.handoff-guide h2 { margin-top: 0; }
+.handoff-guide h3 { margin: 18px 0 4px; }
+.handoff-methods li { margin-bottom: 12px; }
+.handoff-methods p { margin: 2px 0; }
+.handoff-label { font-weight: 600; }
+
+/* The readable copy in a saved plan file, for previews that run no scripts.
+   With scripts, the theme script adds .js before first paint and this stays hidden.
+   Without them, it replaces the empty app shell and the "needs JavaScript" line. */
+.js .static-plan { display: none; }
+html:not(.js) body:has(.static-plan) .shell,
+html:not(.js) body:has(.static-plan) noscript { display: none; }
+.static-plan { max-width: 760px; margin: 0 auto; padding: 24px 16px 64px; overflow-wrap: anywhere; }
+.static-plan h1 { font-size: 1.8rem; line-height: 1.2; margin: 0 0 12px; }
+.static-plan h2 { font-size: 1.35rem; margin: 32px 0 10px; padding-bottom: 4px; border-bottom: 1px solid var(--line); }
+.static-plan h3 { font-size: 1.05rem; margin: 0 0 6px; }
+.static-plan a { color: inherit; }
+.static-intro { padding: 16px; border: 1px solid var(--line); border-radius: 10px; margin-bottom: 8px; }
+.static-intro ul { padding-left: 20px; }
+.static-plan .pk-record { padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; margin: 0 0 10px; }
+.static-plan dl { display: grid; grid-template-columns: minmax(120px, 30%) 1fr; gap: 4px 12px; margin: 6px 0 0; }
+.static-plan dt { font-weight: 600; }
+.static-plan dd { margin: 0; white-space: pre-wrap; }
+.static-plan .pk-text p { white-space: pre-wrap; }
+.static-plan .pk-checks { padding-left: 20px; }
+.static-plan .pk-checks small { display: block; }
+@media (max-width: 520px) { .static-plan dl { grid-template-columns: 1fr; } .static-plan dd { margin-bottom: 6px; } }

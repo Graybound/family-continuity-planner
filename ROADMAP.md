@@ -53,8 +53,9 @@ Phases are ordered by dependency, not by date. Items marked done are implemented
 
 ## Under consideration
 
-- Encrypted backups (see SECURITY.md for the conditions)
 - Translations
 - Optional, separate AI memory joggers (never part of the core)
+
+Ideas we have decided to defer, with what would make us revisit them, are in [docs/future-ideas.md](docs/future-ideas.md).
 
 Suggested issues for each open item are in [IMPORT_ISSUES.md](IMPORT_ISSUES.md).

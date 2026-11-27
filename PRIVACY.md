@@ -19,7 +19,8 @@ The app contains one external address: a plain link to the project's GitHub page
 | Damaged data that could not be read | `familyContinuityPlanner.recovery.<time>` | No |
 | Light or dark theme choice | `familyContinuityPlanner.theme` | No |
 | Online-version notice acknowledged | `familyContinuityPlanner.hostedNotice` | No |
-| Exported backups | Wherever you save the `.json` file | No |
+| Unsaved changes made in a saved plan file | `familyContinuityPlanner.draft.<file address>` | No |
+| Exported backups | Wherever you save the `.html` or `.json` file. The `.html` file holds the whole plan in readable form. | No |
 | Printouts and saved PDFs | Paper, or wherever you save the PDF | No |
 
 `localStorage` is part of your browser profile on your computer. It is not synced by the planner. Some browsers can sync or back up browser profiles; check your browser's settings if that matters to you.
@@ -62,7 +63,7 @@ The app contains one external address: a plain link to the project's GitHub page
 
 ## Passwords and secrets
 
-The planner is not a password vault and asks you not to use it as one. Record which password manager you use, how a trusted person can get emergency access, and where recovery documents are kept. The continuity review flags text that looks like a password, PIN, or full card number.
+The planner is not a password vault and asks you not to use it as one. Record which password manager you use, how a trusted person can get emergency access, and where recovery documents are kept. While you type, the entry form gently warns when text looks like a password, PIN, recovery code, or full card, account, or Social Security number, and the continuity review lists those entries. The warning never blocks saving, and the check runs only on your device. [docs/handoff-methods.md](docs/handoff-methods.md) explains better ways to hand over access.
 
 ## The online version
 

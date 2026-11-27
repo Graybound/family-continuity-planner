@@ -6,6 +6,7 @@
 import { newId } from '../core/ids';
 import { blankPlan, type Plan } from '../core/plan';
 import type { SectionId } from '../core/sections';
+import type { DraftMeta } from '../core/embedded';
 import { KEYS, getStorage, loadPlan, savePlan, type LoadResult, type StorageLike } from '../core/storage';
 import { toast } from './toast';
 
@@ -38,6 +39,10 @@ export interface UiState {
 let storage: StorageLike | null = null;
 let plan: Plan = blankPlan();
 let loadResult: LoadResult | null = null;
+/** Where the plan is saved in this browser: the main key, or a saved plan file's own draft key. */
+let planKey: string = KEYS.plan;
+/** Set when this page is a saved plan file; stored next to the plan in its draft. */
+let draftMeta: DraftMeta | null = null;
 export const ui: UiState = { view: { name: 'dashboard' }, privacy: false, filters: {}, banners: [], focusHeading: false };
 let renderFn: () => void = () => {};
 
@@ -48,6 +53,47 @@ export function init(onRender: () => void): LoadResult {
   plan = loadResult.plan;
   ui.privacy = plan.preferences.privacyDefault;
   return loadResult;
+}
+
+/**
+ * Start on the plan inside a saved plan file. Its edits are kept under the
+ * file's own draft key, never the main plan key, so opening a file cannot
+ * overwrite another plan saved in this browser.
+ */
+export function initFromFile(onRender: () => void, filePlan: Plan, key: string, meta: DraftMeta): { storageAvailable: boolean } {
+  renderFn = onRender;
+  storage = getStorage();
+  planKey = key;
+  draftMeta = meta;
+  plan = filePlan;
+  ui.privacy = plan.preferences.privacyDefault;
+  return { storageAvailable: storage !== null };
+}
+
+/** True when this page is a saved plan file (the plan came from inside the file). */
+export function isSavedFile(): boolean {
+  return draftMeta !== null;
+}
+
+export function getPlanKey(): string {
+  return planKey;
+}
+
+/** Record that the current plan was written to a file, so reopening the older file can say where it went. */
+export function noteSavedAs(fileName: string): void {
+  if (!draftMeta) return;
+  draftMeta = { ...draftMeta, savedAs: fileName, savedAsUpdatedAt: plan.info.updatedAt };
+  persist(true);
+}
+
+/** Forget this file's draft. */
+export function discardDraft(): void {
+  if (!storage || !draftMeta) return;
+  try {
+    storage.removeItem(planKey);
+  } catch {
+    // Nothing to do; the draft stays and is offered again next time.
+  }
 }
 
 export function getStorageRef(): StorageLike | null {
@@ -63,7 +109,7 @@ export function render(): void {
 }
 
 function persist(silent = false): boolean {
-  const r = savePlan(storage, plan);
+  const r = savePlan(storage, plan, planKey, draftMeta ? { ...draftMeta } : undefined);
   if (!r.ok) {
     if (!silent) toast(r.error, 'error');
     return false;
@@ -92,7 +138,7 @@ export function mutate(fn: (p: Plan) => void, opts: { message?: string; log?: st
  */
 export function replacePlan(next: Plan, message?: string): boolean {
   if (storage) {
-    const r = savePlan(storage, next);
+    const r = savePlan(storage, next, planKey, draftMeta ? { ...draftMeta } : undefined);
     if (!r.ok) {
       toast(`Nothing was replaced; your current plan is unchanged. ${r.error.split('.')[0]}.`, 'error');
       return false;
